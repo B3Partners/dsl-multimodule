@@ -1,0 +1,88 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package nl.b3p.geotools.data.linker.blocks;
+
+import com.vividsolutions.jts.geom.*;
+import java.util.HashMap;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.ActionFactory;
+
+/**
+ * Split geometries in Point, Line, Polygon, MultiPoint, MultiLine, MultiPolygon
+ * @author Gertjan Al, B3Partners
+ */
+public class ActionCombo_GeometrySplitter_Writer extends ActionCombo {
+
+    public ActionCombo_GeometrySplitter_Writer(Map params, boolean append, boolean dropFirst) {
+
+        ActionCondition_Feature_Class condition_P = new ActionCondition_Feature_Class(Action.THE_GEOM, Point.class);
+        ActionCondition_Feature_Class condition_L = new ActionCondition_Feature_Class(Action.THE_GEOM, LineString.class);
+        ActionCondition_Feature_Class condition_V = new ActionCondition_Feature_Class(Action.THE_GEOM, Polygon.class);
+
+        ActionCondition_Feature_Class condition_MP = new ActionCondition_Feature_Class(Action.THE_GEOM, MultiPoint.class);
+        ActionCondition_Feature_Class condition_ML = new ActionCondition_Feature_Class(Action.THE_GEOM, MultiLineString.class);
+        ActionCondition_Feature_Class condition_MV = new ActionCondition_Feature_Class(Action.THE_GEOM, MultiPolygon.class);
+
+        actionList.add(condition_P);
+        condition_P.addActionToList(false, condition_L);
+        condition_L.addActionToList(false, condition_V);
+        condition_V.addActionToList(false, condition_MP);
+        condition_MP.addActionToList(false, condition_ML);
+        condition_ML.addActionToList(false, condition_MV);
+
+        condition_P.addActionToList(true, new ActionFeatureType_Replace_Class(Action.THE_GEOM, Point.class, true));
+        condition_P.addActionToList(true, new ActionFeatureType_Typename_Update("_p", true));
+        ActionDataStore_Writer dsw_p = new ActionDataStore_Writer(new HashMap(params), append, dropFirst);
+        condition_P.addActionToList(true, dsw_p);
+
+        condition_L.addActionToList(true, new ActionFeatureType_Replace_Class(Action.THE_GEOM, LineString.class, true));
+        condition_L.addActionToList(true, new ActionFeatureType_Typename_Update("_l", true));
+        ActionDataStore_Writer dsw_l = new ActionDataStore_Writer(new HashMap(params), append, dropFirst);
+        condition_L.addActionToList(true, dsw_l);
+
+        condition_V.addActionToList(true, new ActionFeatureType_Replace_Class(Action.THE_GEOM, Polygon.class, true));
+        condition_V.addActionToList(true, new ActionFeatureType_Typename_Update("_v", true));
+        ActionDataStore_Writer dsw_v = new ActionDataStore_Writer(new HashMap(params), append, dropFirst);
+        condition_V.addActionToList(true, dsw_v);
+
+        condition_MP.addActionToList(true, new ActionFeatureType_Replace_Class(Action.THE_GEOM, MultiPoint.class, true));
+        condition_MP.addActionToList(true, new ActionFeatureType_Typename_Update("_mp", true));
+        ActionDataStore_Writer dsw_mp = new ActionDataStore_Writer(new HashMap(params), append, dropFirst);
+        condition_MP.addActionToList(true, dsw_mp);
+
+        condition_ML.addActionToList(true, new ActionFeatureType_Replace_Class(Action.THE_GEOM, MultiLineString.class, true));
+        condition_ML.addActionToList(true, new ActionFeatureType_Typename_Update("_ml", true));
+        ActionDataStore_Writer dsw_ml = new ActionDataStore_Writer(new HashMap(params), append, dropFirst);
+        condition_ML.addActionToList(true, dsw_ml);
+
+        condition_MV.addActionToList(true, new ActionFeatureType_Replace_Class(Action.THE_GEOM, MultiPolygon.class, true));
+        condition_MV.addActionToList(true, new ActionFeatureType_Typename_Update("_mv", true));
+        ActionDataStore_Writer dsw_mv = new ActionDataStore_Writer(new HashMap(params), append, dropFirst);
+        condition_MV.addActionToList(true, dsw_mv);
+    }
+
+    public static String[][] getConstructors() {
+        return new String[][]{
+                    new String[]{
+                        ActionFactory.PARAMS,
+                        ActionFactory.APPEND,
+                        ActionFactory.DROPFIRST
+                    }
+                    // Constructors supported using ActionFactory
+                    ,new String[]{
+                        ActionFactory.PARAMS,
+                        ActionFactory.APPEND,
+                    }
+                    ,new String[]{
+                        ActionFactory.PARAMS,
+                        ActionFactory.DROPFIRST
+                    }
+                };
+    }
+
+    public String getDescription_NL() {
+        return "Met deze ActionCombo kunnen punten, lijnen, vlakken, multipunten, multilijnen en multivlakken gescheiden worden opgeslagen in een datastore";
+    }
+}
