@@ -9,9 +9,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import nl.b3p.geotools.data.ogr.OGRDataStoreFactory;
 import org.geotools.feature.*;
 import org.geotools.data.*;
 import org.apache.commons.logging.Log;
@@ -27,7 +24,11 @@ public class DataStoreLinker {
 
     private static final Log log = LogFactory.getLog(DataStoreLinker.class);
     static final Logging logging = Logging.ALL;
-    private static final String LIST_PREFIX = "actionlist.action";
+    //private static final String LIST_PREFIX = "actionlist.action";
+    private static final String ACTIONLIST_PREFIX = "actionlist";
+    private static final String ACTION_PREFIX = "action";
+    private static final String TYPE_PREFIX = "type";
+    private static final String SETTINGS_PREFIX = "settings";
     private static final String DATASTORE2READ_PREFIX = "read.datastore.";
     private static final String FEATURES_START = "read.features.start";
     private static final String FEATURES_END = "read.features.end";
@@ -191,184 +192,38 @@ public class DataStoreLinker {
     }
 
     /**
-     * Filter properties from batch and sort them
-     */
-    public static TreeMap<String, String> filterBatch(Properties batch, String filter) {
-        // Get actionList items from propertyFile
-        Set<String> propertyNames = batch.stringPropertyNames();
-        TreeMap<String, String> batchList = new TreeMap();
-
-        Iterator iter = propertyNames.iterator();
-        while (iter.hasNext()) {
-            String property = (String) iter.next();
-            if (property.startsWith(filter)) {
-                String value = batch.getProperty(property);
-                property = property.replaceFirst(filter, "");
-
-                batchList.put(property, value);
-            }
-        }
-
-        return batchList;
-    }
-
-    /**
      * Create dataStore2Read from properties
      */
     public static DataStore createDataStore2Read(Properties batch) throws Exception {
-        // Read datastore2read settings
-        TreeMap<String, String> batchList = filterBatch(batch, DATASTORE2READ_PREFIX);
-
-        // If none found, try ogr read settings
-        if (batchList.size() == 0) {
-            throw new Exception("No " + DATASTORE2READ_PREFIX + "found");
-        }
-        // Open dataStore by read.datastore params
-        Iterator iter = batchList.keySet().iterator();
-        Map<String, Object> params = new HashMap();
-
-        params = propertiesToMaps(batch, DATASTORE2READ_PREFIX);
-
-        /*
-
-        // Loop through all sorted actionProperties
-        while (iter.hasNext()) {
-        String property = (String) iter.next();
-        String value = batchList.get(property);
-
-        params.put(property, value);
-        }
-
-
-        if (params.containsKey("url")) {
-        File file = new File((String) params.get("url"));
-
-        params.clear();
-
-        if (file.exists()) {
-        params.put("url", file.toURL());
-        }
-        }
-
-        Map tmp_db = new HashMap();
-
-        tmp_db.put("port", 5432);
-        tmp_db.put("user", "dev");
-        tmp_db.put("passwd", "b3p");
-        tmp_db.put("database", "uploadDL");
-        tmp_db.put("host", "b3p-demoserver");
-        tmp_db.put("schema", "public");
-        tmp_db.put("dbtype", "postgis");
-
-        params.put("tmp_db", tmp_db);
-        params.put("skip_failures", false);
-        params.put("srs", "EPSG:28992");
-         */
-        /*
-        if (params.containsKey("url")) {
-        File file = new File((String) params.get("url"));
-
-        if (file.exists()) {
-        params.put("url", file.toURL());
-
-        } else {
-        String error = "File not found; " + file.toURL().toString();
-        log.error(error);
-        throw new Exception(error);
-        }
-        }
-         */
-        return openDataStore(params);
-
+        return openDataStore(propertiesToMaps(batch, DATASTORE2READ_PREFIX));
     }
 
     /**
      * Create actionList from batch
      */
     public static ActionList createActionList(Properties batch) throws Exception {
-        TreeMap<String, String> batchList = filterBatch(batch, LIST_PREFIX);
-
-        // ActionList to fill and return
         ActionList actionList = new ActionList();
+        Map<String, Object> actionlistParams = propertiesToMaps(batch, ACTIONLIST_PREFIX + "." + ACTION_PREFIX);
 
-        // ActionItem totalFeatureCount
-        int actionCount = 1;
+        int count = 1;
+        while (true) {
+            if (actionlistParams.containsKey(Integer.toString(count))) {
+                Map<String, Object> params = (Map) actionlistParams.get(Integer.toString(count));
 
-        Iterator iter = batchList.keySet().iterator();
-        String actionClass = "";
-        Map actionProperties = new HashMap();
-
-        // Loop through all sorted actionProperties
-        while (iter.hasNext()) {
-            String property = (String) iter.next();
-            String orgProperty = property;
-
-            String actionID = Integer.toString(actionCount) + ".";
-
-            // New actionStart found, create action from cache
-            if (!property.startsWith(actionID)) {
-                if (!actionClass.equals("")) {
-                    // Flush action
-                    actionList.add(ActionFactory.createAction(actionClass, new HashMap<String, Object>(actionProperties)));
-                } else {
-                    throw new Exception("Action " + actionCount + " has no classType; use property '" + LIST_PREFIX + actionID + "type");
-                }
-
-                // Set value defaults
-                actionClass = "";
-                actionProperties.clear();
-
-                // Update count
-                actionCount++;
-                actionID = Integer.toString(actionCount) + ".";
-            }
-
-            // Don't change this if to }else{, actionID might have changed
-            if (property.startsWith(actionID)) {
-
-                // Strip actionID
-                property = property.replaceFirst(actionID, "");
-
-                if (property.equals("type")) {
-                    // Found className of Action
-                    actionClass = batchList.get(orgProperty);
-
-                } else if (property.startsWith("settings.")) {
-                    // Save actionSetting
-                    property = property.replaceFirst("settings.", "");
-
-
-                    // Find subsettings and put them in a new HashMap
-                    Map subParams = actionProperties;
-                    String subProperty = "";
-                    while (property.contains(".")) {
-                        subProperty = property.substring(0, property.indexOf("."));
-                        property = property.substring(property.indexOf(".") + 1);
-
-                        if (!subParams.containsKey(subProperty)) {
-                            subParams.put(subProperty, new HashMap());
-                        }
-
-                        // Step into next hashMap
-                        subParams = (Map) subParams.get(subProperty);
-                    }
-
-                    // Add value to the selected HashMap
-                    if (batchList.containsKey(orgProperty)) {
-                        subParams.put(property, batchList.get(orgProperty));
-
+                if (params.containsKey(TYPE_PREFIX) && params.containsKey(SETTINGS_PREFIX)) {
+                    if (params.get(TYPE_PREFIX) instanceof String && params.get(SETTINGS_PREFIX) instanceof Map) {
+                        actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), (Map) params.get(SETTINGS_PREFIX)));
                     } else {
-                        throw new Exception("Value could not be found for property " + orgProperty);
+                        throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String and " + ACTION_PREFIX + Integer.toString(count) + "." + SETTINGS_PREFIX + " to be a Map");
                     }
+                } else {
+                    throw new Exception("No type or settings found for " + Integer.toString(count));
                 }
+            } else {
+                break;
             }
+            count++;
         }
-
-        // Flush last Action
-        if (!actionClass.equals("")) {
-            actionList.add(ActionFactory.createAction(actionClass, new HashMap<String, Object>(actionProperties)));
-        }
-
         return actionList;
     }
 
@@ -390,9 +245,6 @@ public class DataStoreLinker {
         } else {
             // Load regular Datastore
             dataStore = DataStoreFinder.getDataStore(params);
-
-            OGRDataStoreFactory fac = new OGRDataStoreFactory();
-            return fac.createDataStore(params);
         }
 
         if (dataStore == null) {
@@ -410,6 +262,13 @@ public class DataStoreLinker {
         }
     }
 
+    /**
+     * Make HashMap structure from propertylist
+     * @param batch     Original properties list
+     * @param filter    Specified to filter start of properties, like 'actionlist.action'
+     * @return
+     * @throws java.io.IOException
+     */
     public static Map<String, Object> propertiesToMaps(Properties batch, String filter) throws IOException {
         Map<String, Object> map = new HashMap();
         Iterator iter = batch.keySet().iterator();
@@ -419,11 +278,7 @@ public class DataStoreLinker {
 
             if (key.startsWith(filter)) {
                 String value = batch.getProperty(key);
-
                 String keypart = key.substring(filter.length());
-                
-
-
                 Map<String, Object> stepIn = map;
 
                 while (keypart.contains(".")) {
@@ -442,7 +297,6 @@ public class DataStoreLinker {
                         stepIn = newStep;
                     }
                 }
-
 
                 if (value.toLowerCase().equals("false")) {
                     stepIn.put(keypart, new Boolean(false));
@@ -463,7 +317,6 @@ public class DataStoreLinker {
                 }
             }
         }
-
         return map;
     }
 }

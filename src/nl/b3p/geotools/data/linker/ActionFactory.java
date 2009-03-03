@@ -53,18 +53,18 @@ public class ActionFactory {
         if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class)) {
             if (propertyCheck(properties, PARAMS, APPEND, DROPFIRST)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean append = toBoolean((String) properties.get(APPEND));
-                boolean dropFirst = toBoolean((String) properties.get(DROPFIRST));
+                boolean append = (Boolean) properties.get(APPEND);
+                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
                 return new ActionCombo_GeometrySplitter_Writer(params, append, dropFirst);
 
             } else if (propertyCheck(properties, PARAMS, DROPFIRST)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean dropFirst = toBoolean((String) properties.get(DROPFIRST));
+                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
                 return new ActionCombo_GeometrySplitter_Writer(params, false, dropFirst);
 
             } else if (propertyCheck(properties, PARAMS, APPEND)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean append = toBoolean((String) properties.get(APPEND));
+                boolean append = (Boolean) properties.get(APPEND);
                 return new ActionCombo_GeometrySplitter_Writer(params, append, false);
 
             } else {
@@ -77,18 +77,18 @@ public class ActionFactory {
         } else if (isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class)) {
             if (propertyCheck(properties, PARAMS, APPEND, DROPFIRST)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean append = toBoolean((String) properties.get(APPEND));
-                boolean dropFirst = toBoolean((String) properties.get(DROPFIRST));
+                boolean append = (Boolean) properties.get(APPEND);
+                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
                 return new ActionCombo_GeometrySingle_Writer(params, append, dropFirst);
 
             } else if (propertyCheck(properties, PARAMS, DROPFIRST)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean dropFirst = toBoolean((String) properties.get(DROPFIRST));
+                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
                 return new ActionCombo_GeometrySingle_Writer(params, false, dropFirst);
 
             } else if (propertyCheck(properties, PARAMS, APPEND)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean append = toBoolean((String) properties.get(APPEND));
+                boolean append = (Boolean) properties.get(APPEND);
                 return new ActionCombo_GeometrySingle_Writer(params, append, false);
 
             } else {
@@ -104,18 +104,18 @@ public class ActionFactory {
         } else if (isThisClass(actionClassName, ActionDataStore_Writer.class)) {
             if (propertyCheck(properties, PARAMS, APPEND, DROPFIRST)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean append = toBoolean((String) properties.get(APPEND));
-                boolean dropFirst = toBoolean((String) properties.get(DROPFIRST));
+                boolean append = (Boolean) properties.get(APPEND);
+                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
                 return new ActionDataStore_Writer(params, append, dropFirst);
 
             } else if (propertyCheck(properties, PARAMS, DROPFIRST)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean dropFirst = toBoolean((String) properties.get(DROPFIRST));
+                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
                 return new ActionDataStore_Writer(params, false, dropFirst);
 
             } else if (propertyCheck(properties, PARAMS, APPEND)) {
                 Map params = (Map) properties.get(PARAMS);
-                boolean append = toBoolean((String) properties.get(APPEND));
+                boolean append = (Boolean) properties.get(APPEND);
                 return new ActionDataStore_Writer(params, append, false);
 
             } else if (propertyCheck(properties, PARAMS)) {
@@ -174,13 +174,13 @@ public class ActionFactory {
             if (propertyCheck(properties, ATTRIBUTE_NAME, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
                 String attributeName = (String) properties.get(ATTRIBUTE_NAME);
                 Class newAttributeClass = toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
-                boolean tryCast = toBoolean((String) properties.get(TRYCAST));
+                boolean tryCast = (Boolean) properties.get(TRYCAST);
                 return new ActionFeatureType_Replace_Class(attributeName, newAttributeClass, tryCast);
 
             } else if (propertyCheck(properties, ATTRIBUTE_ID, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
                 int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
                 Class newAttributeClass = (Class) toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
-                boolean tryCast = toBoolean((String) properties.get(TRYCAST));
+                boolean tryCast = (Boolean) properties.get(TRYCAST);
                 return new ActionFeatureType_Replace_Class(attributeID, newAttributeClass, tryCast);
 
             } else {
@@ -215,7 +215,7 @@ public class ActionFactory {
         } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Update.class)) {
             if (propertyCheck(properties, NEW_TYPENAME, APPEND)) {
                 String newTypeName = (String) properties.get(NEW_TYPENAME);
-                boolean append = toBoolean((String) properties.get(APPEND));
+                boolean append = (Boolean) properties.get(APPEND);
                 return new ActionFeatureType_Typename_Update(newTypeName, append);
 
             } else if (propertyCheck(properties, NEW_TYPENAME)) {
@@ -250,13 +250,13 @@ public class ActionFactory {
             if (propertyCheck(properties, ATTRIBUTE_NAME, OBJECT_REPLACE, APPEND)) {
                 String attributeName = (String) properties.get(ATTRIBUTE_NAME);
                 Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
-                boolean append = toBoolean((String) properties.get(APPEND));
+                boolean append = (Boolean) properties.get(APPEND);
                 return new ActionFeature_Value_Set(attributeName, replace, append);
 
             } else if (propertyCheck(properties, ATTRIBUTE_ID, OBJECT_REPLACE, APPEND)) {
                 int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
                 Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
-                boolean append = toBoolean((String) properties.get(APPEND));
+                boolean append = (Boolean) properties.get(APPEND);
                 return new ActionFeature_Value_Set(attributeID, replace, append);
 
             } else if (propertyCheck(properties, ATTRIBUTE_NAME, OBJECT_REPLACE)) {
@@ -293,7 +293,7 @@ public class ActionFactory {
          */
         } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Case.class)) {
             if (propertyCheck(properties, UPPERCASE)) {
-                boolean toUppercase = toBoolean((String) properties.get(UPPERCASE));
+                boolean toUppercase = (Boolean) properties.get(UPPERCASE);
 
                 return new ActionFeatureType_Typename_Case(toUppercase);
             } else {
@@ -316,7 +316,7 @@ public class ActionFactory {
                 return new ActionFeatureType_Typename_Substring(beginIndex);
             } else if (propertyCheck(properties, LENGTH, REVERSE)) {
                 int length = toInteger((String) properties.get(LENGTH));
-                boolean reverse = toBoolean((String) properties.get(REVERSE));
+                boolean reverse = (Boolean) properties.get(REVERSE);
 
                 return new ActionFeatureType_Typename_Substring(length, reverse);
             } else {
@@ -362,12 +362,12 @@ public class ActionFactory {
         } else if (isThisClass(actionClassName, ActionFeatureType_AttributeName_Case.class)) {
             if (propertyCheck(properties, ATTRIBUTE_ID, UPPERCASE)) {
                 int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                boolean toUppercase = toBoolean((String) properties.get(UPPERCASE));
+                boolean toUppercase = (Boolean) properties.get(UPPERCASE);
 
                 return new ActionFeatureType_AttributeName_Case(attributeID, toUppercase);
             } else if (propertyCheck(properties, ATTRIBUTE_NAME, UPPERCASE)) {
                 String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                boolean toUppercase = toBoolean((String) properties.get(UPPERCASE));
+                boolean toUppercase = (Boolean) properties.get(UPPERCASE);
 
                 return new ActionFeatureType_AttributeName_Case(attributeName, toUppercase);
             } else {
@@ -380,7 +380,7 @@ public class ActionFactory {
 
         } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Case.class)) {
             if (propertyCheck(properties, UPPERCASE)) {
-                boolean toUppercase = toBoolean((String) properties.get(UPPERCASE));
+                boolean toUppercase = (Boolean) properties.get(UPPERCASE);
 
                 return new ActionFeatureType_AttributeNames_Case(toUppercase);
             } else {
