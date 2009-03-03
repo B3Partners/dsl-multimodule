@@ -5,14 +5,13 @@
 package nl.b3p.geotools.data.linker;
 
 import java.io.*;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
-import nl.b3p.geotools.data.linker.blocks.*;
+import nl.b3p.geotools.data.ogr.OGRDataStoreFactory;
 import org.geotools.feature.*;
 import org.geotools.data.*;
 import org.apache.commons.logging.Log;
@@ -30,12 +29,10 @@ public class DataStoreLinker {
     static final Logging logging = Logging.ALL;
     private static final String LIST_PREFIX = "actionlist.action";
     private static final String DATASTORE2READ_PREFIX = "read.datastore.";
-    private static final String OGR2READ_PREFIX = "read.ogr.";
     private static final String FEATURES_START = "read.features.start";
     private static final String FEATURES_END = "read.features.end";
     private static final String READ_TYPENAME = DATASTORE2READ_PREFIX + "typename";
     private static final Map<String, String> errorMapping = new HashMap();
-    private static boolean isOgr = false;
 
 
     static {
@@ -153,10 +150,6 @@ public class DataStoreLinker {
                 }
             }
 
-            if (isOgr) {
-                RunOnceOGR_Loader.close(dataStore2Read);
-            }
-
             dataStore2Read.dispose();
 
         } catch (IOException ex) {
@@ -193,23 +186,7 @@ public class DataStoreLinker {
     public static String process(Properties batch) throws Exception {
         // Build actionList from propertyfile
         DataStore dataStore2Read = createDataStore2Read(batch);
-        ActionList actionList = new ActionList();
-
-        if (isOgr) {
-            // Due to the ogr2ogr process some changes have to be made to support the
-            File file = new File(batch.getProperty(OGR2READ_PREFIX + ActionFactory.URL));
-            String name = file.getName();
-            if (name.contains(".")) {
-                name = name.substring(0, name.indexOf("."));
-            }
-
-            //actionList.add(new ActionFeatureType_Replace_Name("wkb_geometry", "the_geom"));
-            actionList.add(new ActionFeatureType_Typename_Update(Action.fixTypename(name)));
-            batch.setProperty(READ_TYPENAME, RunOnceOGR_Loader.TEMP_TABLE);
-        }
-
-        // Add actions from batchfile
-        actionList.addAll(createActionList(batch));
+        ActionList actionList = createActionList(batch);
         return process(dataStore2Read, actionList, batch);
     }
 
@@ -244,84 +221,65 @@ public class DataStoreLinker {
 
         // If none found, try ogr read settings
         if (batchList.size() == 0) {
-            batchList = filterBatch(batch, OGR2READ_PREFIX);
-
-            if (batchList.size() == 0) {
-                throw new Exception("No " + DATASTORE2READ_PREFIX + " or " + OGR2READ_PREFIX + "found");
-            } else {
-                isOgr = true;
-                // Open dataStore by read.ogr params
-                // TODO check if vars exist
-                String file_in = batchList.get(ActionFactory.URL);
-                String fwtools_dir = getOsSpecificProperties().getProperty("ogr.dir");
-                String srs = batchList.get(ActionFactory.SRS);
-
-                boolean skipFailures = false;
-                if (batchList.containsKey(ActionFactory.SKIPFAILURES)) {
-                    skipFailures = ActionFactory.toBoolean(batchList.get(ActionFactory.SKIPFAILURES));
-                }
-
-                Map params = filterBatch(batch, OGR2READ_PREFIX + "tempdb.");
-                Map db_tmp = new HashMap();
-
-                // Note that other params than these 4 are not allowed
-                if (params.containsKey("database")) {
-                    db_tmp.put("dbname", params.get("database"));
-                }
-
-                if (params.containsKey("passwd")) {
-                    db_tmp.put("password", params.get("passwd"));
-                }
-
-                if (params.containsKey("user")) {
-                    db_tmp.put("user", params.get("user"));
-                }
-
-                if (params.containsKey("host")) {
-                    db_tmp.put("host", params.get("host"));
-                }
-
-                String name = new File(file_in).getName();
-                if (name.contains(".")) {
-                    name = name.substring(0, name.indexOf("."));
-                }
-                params.put("table", Action.fixTypename(name));
-
-                // Transform file into db
-                RunOnce runOnce = new RunOnceOGR_Loader(fwtools_dir, file_in, db_tmp, srs, skipFailures);
-                runOnce.execute();
-
-                // Open the temp database as source
-                return openDataStore(params);
-            }
-        } else {
-            isOgr = false;
-            // Open dataStore by read.datastore params
-            Iterator iter = batchList.keySet().iterator();
-            Map<String, Object> params = new HashMap();
-
-            // Loop through all sorted actionProperties
-            while (iter.hasNext()) {
-                String property = (String) iter.next();
-                String value = batchList.get(property);
-
-                params.put(property, value);
-            }
-
-            if (params.containsKey("url")) {
-                File file = new File((String) params.get("url"));
-
-                if (file.exists()) {
-                    params.put("url", file.toURL());
-
-                } else {
-                    String error = "File not found; " + file.toURL().toString();
-                    log.error(error);
-                    throw new Exception(error);
-                }
-            }
-            return openDataStore(params);
+            throw new Exception("No " + DATASTORE2READ_PREFIX + "found");
         }
+        // Open dataStore by read.datastore params
+        Iterator iter = batchList.keySet().iterator();
+        Map<String, Object> params = new HashMap();
+
+        params = propertiesToMaps(batch, DATASTORE2READ_PREFIX);
+
+        /*
+
+        // Loop through all sorted actionProperties
+        while (iter.hasNext()) {
+        String property = (String) iter.next();
+        String value = batchList.get(property);
+
+        params.put(property, value);
+        }
+
+
+        if (params.containsKey("url")) {
+        File file = new File((String) params.get("url"));
+
+        params.clear();
+
+        if (file.exists()) {
+        params.put("url", file.toURL());
+        }
+        }
+
+        Map tmp_db = new HashMap();
+
+        tmp_db.put("port", 5432);
+        tmp_db.put("user", "dev");
+        tmp_db.put("passwd", "b3p");
+        tmp_db.put("database", "uploadDL");
+        tmp_db.put("host", "b3p-demoserver");
+        tmp_db.put("schema", "public");
+        tmp_db.put("dbtype", "postgis");
+
+        params.put("tmp_db", tmp_db);
+        params.put("skip_failures", false);
+        params.put("srs", "EPSG:28992");
+         */
+        /*
+        if (params.containsKey("url")) {
+        File file = new File((String) params.get("url"));
+
+        if (file.exists()) {
+        params.put("url", file.toURL());
+
+        } else {
+        String error = "File not found; " + file.toURL().toString();
+        log.error(error);
+        throw new Exception(error);
+        }
+        }
+         */
+        return openDataStore(params);
+
     }
 
     /**
@@ -432,12 +390,15 @@ public class DataStoreLinker {
         } else {
             // Load regular Datastore
             dataStore = DataStoreFinder.getDataStore(params);
+
+            OGRDataStoreFactory fac = new OGRDataStoreFactory();
+            return fac.createDataStore(params);
         }
 
-        if (dataStore != null) {
-            return dataStore;
-        } else {
+        if (dataStore == null) {
             throw new Exception("DataStore could not be found: " + params.toString());
+        } else {
+            return dataStore;
         }
     }
 
@@ -449,39 +410,60 @@ public class DataStoreLinker {
         }
     }
 
-    public static void setEnvironment(Map<String, String> environment, String prefix) {
-        try {
-            Properties p = getOsSpecificProperties();
+    public static Map<String, Object> propertiesToMaps(Properties batch, String filter) throws IOException {
+        Map<String, Object> map = new HashMap();
+        Iterator iter = batch.keySet().iterator();
 
-            for (String prop : p.stringPropertyNames()) {
-                if (prop.toLowerCase().startsWith(prefix)) {
-                    String key = prop.substring(prefix.length());
-                    String value = p.getProperty(prop);
-                    environment.put(key, value);
+        while (iter.hasNext()) {
+            String key = (String) iter.next();
+
+            if (key.startsWith(filter)) {
+                String value = batch.getProperty(key);
+
+                String keypart = key.substring(filter.length());
+                
+
+
+                Map<String, Object> stepIn = map;
+
+                while (keypart.contains(".")) {
+                    String step = keypart.substring(0, keypart.indexOf("."));
+                    keypart = keypart.substring(keypart.indexOf(".") + 1);
+
+                    if (stepIn.containsKey(step)) {
+                        if (stepIn.get(step) instanceof Map) {
+                            stepIn = (Map) stepIn.get(step);
+                        } else {
+                            throw new IOException("Tried to save settingsMap for property '" + key + "', but property has already a value?\nValue = '" + stepIn.get(step).toString() + "'");
+                        }
+                    } else {
+                        Map<String, Object> newStep = new HashMap();
+                        stepIn.put(step, newStep);
+                        stepIn = newStep;
+                    }
+                }
+
+
+                if (value.toLowerCase().equals("false")) {
+                    stepIn.put(keypart, new Boolean(false));
+
+                } else if (value.toLowerCase().equals("true")) {
+                    stepIn.put(keypart, new Boolean(true));
+
+                } else if (keypart.toLowerCase().equals("url")) {
+                    File file = new File(value);
+                    if (file.exists()) {
+                        stepIn.put(keypart, file.toURL());
+                    } else {
+                        stepIn.put(keypart, value);
+                    }
+
+                } else {
+                    stepIn.put(keypart, value);
                 }
             }
-        } catch (Exception ex) {
         }
-    }
 
-    public static Properties getOsSpecificProperties() {
-        String os = System.getProperty("os.name");
-        Properties p = new Properties();
-
-        try {
-            if (os.toLowerCase().contains("windows")) {
-                os = "windows";
-            } else if (os.toLowerCase().contains("linux")) {
-                os = "linux";
-            }
-
-            Class c = DataStoreLinker.class;
-            URL envProperties = c.getResource("pref_" + os + ".properties");
-            p.load(envProperties.openStream());
-
-        } catch (Exception ex) {
-            log.warn("Unable to load environment settings from pref_" + os + ".properties;" + ex.getLocalizedMessage());
-        }
-        return p;
+        return map;
     }
 }

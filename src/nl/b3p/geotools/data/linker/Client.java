@@ -162,7 +162,7 @@ public class Client {
             if (ex.getMessage() == null) {
                 exception = " > Geen info. Foutmelding ontstaan buiten DataStoreLinker.";
             } else {
-                exception = ex.getMessage() + "\n\n" + ex.getCause().toString();
+                exception = ex.getMessage() + "\n" + (ex.getCause() != null ? "\n" + ex.getCause().toString() : "") + "\n";
             }
 
             log.error(exception);
