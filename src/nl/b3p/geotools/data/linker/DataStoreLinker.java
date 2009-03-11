@@ -210,14 +210,30 @@ public class DataStoreLinker {
             if (actionlistParams.containsKey(Integer.toString(count))) {
                 Map<String, Object> params = (Map) actionlistParams.get(Integer.toString(count));
 
-                if (params.containsKey(TYPE_PREFIX) && params.containsKey(SETTINGS_PREFIX)) {
-                    if (params.get(TYPE_PREFIX) instanceof String && params.get(SETTINGS_PREFIX) instanceof Map) {
-                        actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), (Map) params.get(SETTINGS_PREFIX)));
+                if (params.containsKey(TYPE_PREFIX)) {
+
+                    if (params.containsKey(SETTINGS_PREFIX)) {
+                        if (params.get(TYPE_PREFIX) instanceof String && params.get(SETTINGS_PREFIX) instanceof Map) {
+                            actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), (Map) params.get(SETTINGS_PREFIX)));
+                        } else {
+                            throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String and " + ACTION_PREFIX + Integer.toString(count) + "." + SETTINGS_PREFIX + " to be a Map");
+                        }
                     } else {
-                        throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String and " + ACTION_PREFIX + Integer.toString(count) + "." + SETTINGS_PREFIX + " to be a Map");
+                        if (params.get(TYPE_PREFIX) instanceof String) {
+                            actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), new HashMap()));
+                        } else {
+                            throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String");
+                        }
                     }
+                /*
+                if (params.get(TYPE_PREFIX) instanceof String && params.get(SETTINGS_PREFIX) instanceof Map) {
+                actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), (Map) params.get(SETTINGS_PREFIX)));
                 } else {
-                    throw new Exception("No type or settings found for " + Integer.toString(count));
+                throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String and " + ACTION_PREFIX + Integer.toString(count) + "." + SETTINGS_PREFIX + " to be a Map");
+                }
+                 * */
+                } else {
+                    throw new Exception("No type found for action" + Integer.toString(count));
                 }
             } else {
                 break;

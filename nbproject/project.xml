@@ -22,14 +22,6 @@
                 <id>jar</id>
             </reference>
             <reference>
-                <foreign-project>b3p-gt2-general</foreign-project>
-                <artifact-type>jar</artifact-type>
-                <script>build.xml</script>
-                <target>jar</target>
-                <clean-target>clean</clean-target>
-                <id>jar</id>
-            </reference>
-            <reference>
                 <foreign-project>b3p-gt2-ogr</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
@@ -47,14 +39,6 @@
             </reference>
             <reference>
                 <foreign-project>b3p-gt2-sdl</foreign-project>
-                <artifact-type>jar</artifact-type>
-                <script>build.xml</script>
-                <target>jar</target>
-                <clean-target>clean</clean-target>
-                <id>jar</id>
-            </reference>
-            <reference>
-                <foreign-project>gt2-2_4_4-postgis-patched</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>

@@ -37,7 +37,7 @@ public class ActionFeatureType_Set_CRS extends Action {
     public Feature execute(Feature feature) throws Exception {
         fixAttributeID(feature);
 
-        CoordinateReferenceSystem crs = (useSRS ? loadSRS() : loadMetaData());
+        CoordinateReferenceSystem crs = (useSRS ? loadSRS(srs) : loadMetaData());
         FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(feature.getFeatureType().getTypeName());
 
         GeometryAttributeType gat = (GeometryAttributeType) feature.getFeatureType().getAttributeType(THE_GEOM);
@@ -57,7 +57,7 @@ public class ActionFeatureType_Set_CRS extends Action {
         return ftb.getFeatureType().create(feature.getAttributes(null), feature.getID());
     }
 
-    public CoordinateReferenceSystem loadSRS() throws DataSourceException {
+    public static CoordinateReferenceSystem loadSRS(String srs) throws DataSourceException {
         // Override srs when provided
         if (srs != null) {
             try {

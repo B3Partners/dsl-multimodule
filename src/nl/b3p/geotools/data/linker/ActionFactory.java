@@ -411,16 +411,18 @@ public class ActionFactory {
          * ActionGeometry_Make_Point
          */
         } else if (isThisClass(actionClassName, ActionGeometry_Make_Point.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_ID_X, ATTRIBUTE_ID_Y)) {
+            if (propertyCheck(properties, ATTRIBUTE_ID_X, ATTRIBUTE_ID_Y, SRS)) {
                 int attributeIDx = toInteger((String) properties.get(ATTRIBUTE_ID_X));
                 int attributeIDy = toInteger((String) properties.get(ATTRIBUTE_ID_Y));
+                String srs = (String) properties.get(SRS);
 
-                return new ActionGeometry_Make_Point(attributeIDx, attributeIDy);
-            } else if (propertyCheck(properties, ATTRIBUTE_NAME_X, ATTRIBUTE_NAME_Y)) {
+                return new ActionGeometry_Make_Point(attributeIDx, attributeIDy, srs);
+            } else if (propertyCheck(properties, ATTRIBUTE_NAME_X, ATTRIBUTE_NAME_Y, SRS)) {
                 String attributeNamex = (String) properties.get(ATTRIBUTE_NAME_X);
-                String attributeNamey = (String) properties.get(ATTRIBUTE_NAME_X);
+                String attributeNamey = (String) properties.get(ATTRIBUTE_NAME_Y);
+                String srs = (String) properties.get(SRS);
 
-                return new ActionGeometry_Make_Point(attributeNamex, attributeNamey);
+                return new ActionGeometry_Make_Point(attributeNamex, attributeNamey, srs);
             } else {
                 failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
             }

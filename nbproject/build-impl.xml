@@ -318,11 +318,9 @@ is divided into following sections:
             -->
     <target depends="init" name="deps-jar" unless="no.deps">
         <ant antfile="${project.b3p-gt2-dxf}/build.xml" inheritall="false" target="jar"/>
-        <ant antfile="${project.b3p-gt2-general}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.b3p-gt2-ogr}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.b3p-gt2-oracle}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.b3p-gt2-sdl}/build.xml" inheritall="false" target="jar"/>
-        <ant antfile="${project.gt2-2_4_4-postgis-patched}/build.xml" inheritall="false" target="jar"/>
     </target>
     <target depends="init,-check-automatic-build,-clean-after-automatic-build" name="-verify-automatic-build"/>
     <target depends="init" name="-check-automatic-build">
@@ -638,11 +636,9 @@ is divided into following sections:
             -->
     <target depends="init" name="deps-clean" unless="no.deps">
         <ant antfile="${project.b3p-gt2-dxf}/build.xml" inheritall="false" target="clean"/>
-        <ant antfile="${project.b3p-gt2-general}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.b3p-gt2-ogr}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.b3p-gt2-oracle}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.b3p-gt2-sdl}/build.xml" inheritall="false" target="clean"/>
-        <ant antfile="${project.gt2-2_4_4-postgis-patched}/build.xml" inheritall="false" target="clean"/>
     </target>
     <target depends="init" name="-do-clean">
         <delete dir="${build.dir}"/>
