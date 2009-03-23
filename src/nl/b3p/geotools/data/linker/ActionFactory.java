@@ -384,7 +384,7 @@ public class ActionFactory {
 
                 return new ActionFeatureType_AttributeNames_Case(toUppercase);
             } else {
-                failedConstructor(ActionFeatureType_AttributeName_Case.class, properties);
+                failedConstructor(ActionFeatureType_AttributeNames_Case.class, properties);
             }
 
 

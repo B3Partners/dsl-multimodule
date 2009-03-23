@@ -72,10 +72,9 @@ public class ActionGeometry_Make_Point extends Action {
         ftb.addType(geometryType);
 
         Object[] objects = new Object[feature.getFeatureType().getAttributeCount() +1];
-        objects[objects.length -1] = point;
+        objects[objects.length-1] = point;
         
-        for (int i = 0; i < feature.getFeatureType().getAttributeCount(); i++) {
-            //simpleFeature.setAttribute(i, feature.getAttribute(i));
+        for (int i = 0; i <= feature.getFeatureType().getAttributeCount(); i++) {
             objects[i] = feature.getAttribute(i);
         }
         
