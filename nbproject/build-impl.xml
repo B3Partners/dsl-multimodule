@@ -337,6 +337,7 @@ is divided into following sections:
                 ===================
             -->
     <target depends="init" name="deps-jar" unless="no.deps">
+        <ant antfile="${project.b3p-gt-msaccess}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.b3p-gt-suf2}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.b3p-gt2-dxf}/build.xml" inheritall="false" target="jar"/>
         <ant antfile="${project.b3p-gt2-ogr}/build.xml" inheritall="false" target="jar"/>
@@ -694,6 +695,7 @@ is divided into following sections:
                 ===============
             -->
     <target depends="init" name="deps-clean" unless="no.deps">
+        <ant antfile="${project.b3p-gt-msaccess}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.b3p-gt-suf2}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.b3p-gt2-dxf}/build.xml" inheritall="false" target="clean"/>
         <ant antfile="${project.b3p-gt2-ogr}/build.xml" inheritall="false" target="clean"/>
