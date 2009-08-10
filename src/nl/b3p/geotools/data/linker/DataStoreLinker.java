@@ -4,17 +4,21 @@
  */
 package nl.b3p.geotools.data.linker;
 
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
-import org.geotools.feature.*;
 import org.geotools.data.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.oracle.OracleDataStoreFactory;
+import org.geotools.feature.FeatureIterator;
 import org.geotools.util.logging.Logging;
+import org.opengis.feature.simple.SimpleFeature;
 
 /**
  * Convert batch to actionList and execute it
@@ -25,15 +29,15 @@ public class DataStoreLinker {
     private static final Log log = LogFactory.getLog(DataStoreLinker.class);
     static final Logging logging = Logging.ALL;
     //private static final String LIST_PREFIX = "actionlist.action";
-    private static final String ACTIONLIST_PREFIX = "actionlist";
-    private static final String ACTION_PREFIX = "action";
-    private static final String TYPE_PREFIX = "type";
-    private static final String SETTINGS_PREFIX = "settings";
-    private static final String DATASTORE2READ_PREFIX = "read.datastore.";
-    private static final String FEATURES_START = "read.features.start";
-    private static final String FEATURES_END = "read.features.end";
-    private static final String READ_TYPENAME = DATASTORE2READ_PREFIX + "typename";
-    private static final Map<String, String> errorMapping = new HashMap();
+    public static final String ACTIONLIST_PREFIX = "actionlist";
+    public static final String ACTION_PREFIX = "action";
+    public static final String TYPE_PREFIX = "type";
+    public static final String SETTINGS_PREFIX = "settings";
+    public static final String DATASTORE2READ_PREFIX = "read.datastore.";
+    public static final String FEATURES_START = "read.features.start";
+    public static final String FEATURES_END = "read.features.end";
+    public static final String READ_TYPENAME = "read.typename";
+    public static final Map<String, String> errorMapping = new HashMap();
 
 
     static {
@@ -46,7 +50,7 @@ public class DataStoreLinker {
      */
     public static String process(DataStore dataStore2Read, ActionList actionList, Properties batch) throws Exception {
         // Print actionList to log
-        log.info(actionList.getDescription());
+        //log.info(actionList.getDescription());
 
         String errorReport = "";
         int errorCount = 0;
@@ -78,12 +82,8 @@ public class DataStoreLinker {
             for (int p = 0; p < typenames.length; p++) {
                 String typeName2Read = typenames[p];
 
-                Feature feature = null;
+                SimpleFeature feature = null;
                 FeatureIterator iterator = dataStore2Read.getFeatureSource(typeName2Read).getFeatures().features();
-
-                if (!iterator.hasNext()) {
-                    log.info("FeatureIterator starting without next for typename " + typeName2Read);
-                }
 
                 boolean runOnce = true;
                 boolean dsReportsError = false;
@@ -94,23 +94,23 @@ public class DataStoreLinker {
                 try {
                     while (iterator.hasNext()) {
                         try {
-                            feature = (Feature) iterator.next();
+                            feature = (SimpleFeature) iterator.next();
                             totalFeatureCount++;
                         } catch (Exception ex) {
                             actionList.close();
                             throw new Exception("Could not add Features, problem with provided reader", ex);
                         }
 
-                        // Check if feature contains errorReport for all posibilities in errorMapping (HashMap)
+                        // Check if SimpleFeature contains errorReport for all posibilities in errorMapping (HashMap)
                         if (runOnce) {
                             boolean match = false;
                             Iterator iter = errorMapping.keySet().iterator();
                             while (iter.hasNext() && !match) {
                                 String hasErrorKey = (String) iter.next();
-                                if (feature.getFeatureType().getAttributeType(hasErrorKey) != null) {
+                                if (feature.getFeatureType().getType(hasErrorKey) != null) {
                                     String errorDesc = errorMapping.get(hasErrorKey);
-                                    if (feature.getFeatureType().getAttributeType(errorDesc) != null) {
-                                        // FeatureType contains errorReport
+                                    if (feature.getFeatureType().getType(errorDesc) != null) {
+                                        // SimpleFeatureType contains errorReport
                                         dsHasErrorAttribute = hasErrorKey;
                                         dsErrorAttribute = errorDesc;
 
@@ -122,29 +122,31 @@ public class DataStoreLinker {
                             runOnce = false;
                         }
 
-                        // Check if feature is between defined start and end
+                        // Check if SimpleFeature is between defined start and end
                         if (totalFeatureCount >= featureStart && ((totalFeatureCount <= featureEnd && featureEnd != -1) || (featureEnd == -1))) {
-                            // Does featureType support error handling?
+
+                            // Does SimpleFeatureType support error handling?
                             if (dsReportsError) {
                                 if (Boolean.parseBoolean(feature.getAttribute(dsHasErrorAttribute).toString()) ||
                                         feature.getAttribute(dsHasErrorAttribute).toString().equals("1")) {
-                                    // Feature contains error
+
+                                    // feature contains error
                                     errorReport += feature.getAttribute(dsErrorAttribute).toString() + "\n";
                                     errorCount++;
                                 } else {
-                                    // Feature is healty
-                                    actionList.process(feature);
+                                    // feature is healty
+                                    actionList.process(new EasyFeature(feature));
                                 }
                             } else {
-                                // No error handling, process feature
-                                actionList.process(feature);
+                                // No error handling, process SimpleFeature
+                                actionList.process(new EasyFeature(feature));
                             }
                             processedFeatures++;
                         }
                     }
                 } catch (Exception ex) {
                     actionList.close();
-                    throw new Exception(ex);
+                    throw ex;
 
                 } finally {
                     iterator.close();
@@ -166,7 +168,10 @@ public class DataStoreLinker {
         }
 
         actionList.close();
-        if (processedFeatures == totalFeatureCount && errorCount == 0) {
+        if (processedFeatures == 0 && errorCount == 0) {
+            return "No features processed, was this intended?";
+
+        } else if (processedFeatures == totalFeatureCount && errorCount == 0) {
             return "All " + processedFeatures + " features processed";
 
         } else if (processedFeatures == totalFeatureCount) {
@@ -248,26 +253,61 @@ public class DataStoreLinker {
      */
     public static DataStore openDataStore(Map params) throws Exception {
         DataStore dataStore;
+        String errormsg = "DataStore could not be found using parameters";
 
-        // Workaround to enable use of Oracle DataStore
-        if (params.containsKey("dbtype")) {
-            if (params.get("dbtype").equals("oracle")) {
-                // Load Oracle Database
-                dataStore = (new OracleDataStoreFactory()).createDataStore(params);
+        try {
+            // Workaround to enable use of Oracle DataStore
+            if (params.containsKey("dbtype")) {
+                if (params.get("dbtype").equals("oracle")) {
+                    // Load Oracle Database
+                    dataStore = (new OracleDataStoreFactory()).createDataStore(params);
+                } else {
+                    // Load regular Database
+                    dataStore = DataStoreFinder.getDataStore(params);
+                }
             } else {
-                // Load Normal Database
+                // Load regular Datastore
                 dataStore = DataStoreFinder.getDataStore(params);
             }
-        } else {
-            // Load regular Datastore
-            dataStore = DataStoreFinder.getDataStore(params);
+        } catch (NullPointerException nullEx) {
+            if (!urlExists(params)) {
+                throw new Exception("URL in parameters seems to point to a non-existing file \n\n" + params.toString());
+            } else {
+                throw new Exception(errormsg + " " + params.toString());
+            }
         }
 
         if (dataStore == null) {
-            throw new Exception("DataStore could not be found: " + params.toString());
+            if (!urlExists(params)) {
+                throw new Exception("URL in parameters may point to a non-existing file \n\n" + params.toString());
+            } else {
+                throw new Exception("DataStoreFinder returned null for \n\n" + params.toString());
+            }
+
         } else {
             return dataStore;
         }
+    }
+
+    private static boolean urlExists(Map params) {
+        try {
+            if (params.containsKey("url")) {
+                if (params.get("url") instanceof URL) {
+                    URL url = (URL) params.get("url");
+                    File file = new File(url.toURI());
+                    return file.exists();
+
+                } else if (params.get("url") instanceof String) {
+                    String url = params.get("url").toString();
+                    File file = new File(url);
+
+                    return file.exists();
+                }
+            }
+        } catch (URISyntaxException uriEx) {
+            return false;
+        }
+        return true;
     }
 
     public static String getSaveProp(Properties batch, String key, String defaultValue) {

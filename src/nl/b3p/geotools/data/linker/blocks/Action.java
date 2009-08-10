@@ -4,8 +4,9 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
-import org.geotools.feature.*;
 
+import java.util.List;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import nl.b3p.geotools.data.linker.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,16 +22,16 @@ public abstract class Action {
     protected String attributeName = "";
     protected int attributeID = -1;
     protected static final Log log = LogFactory.getLog(DataStoreLinker.class);
-    protected static final String THE_GEOM = "the_geom";
+    public static final String THE_GEOM = "the_geom";
 
-    abstract public Feature execute(Feature feature) throws Exception;
+    abstract public EasyFeature execute(EasyFeature feature) throws Exception;
 
     @Override
     abstract public String toString();
 
     abstract public String getDescription_NL();
 
-    public static String[][] getConstructors() {
+    public static List<List<String>> getConstructors() {
         return null;
     }
 
@@ -41,37 +42,14 @@ public abstract class Action {
     /**
      * Constructor has filled attributeID or attibuteName. With this funtion attributeID will be fixed (set / filled), using attributeName
      */
-    protected void fixAttributeID(Feature feature) throws Exception {
+    protected void fixAttributeID(EasyFeature feature) throws Exception {
         if (attributeID == -1) {
-            // Get attributeID by attributeName
-            for (int i = 0; i < feature.getNumberOfAttributes(); i++) {
-                if (feature.getFeatureType().getAttributeType(i).getName().equals(attributeName)) {
-                    attributeID = i;
-                }
-            }
-
-            if (attributeID == -1) {
-                String attributes = "";
-                for (AttributeType attributeType : feature.getFeatureType().getAttributeTypes()) {
-                    attributes += attributeType.getName() + ", ";
-                }
-                throw new Exception("Unable to locate index of '" + attributeName + "' in feature{" + attributes + "}");
-            }
+            attributeID = feature.getAttributeDescriptorIDbyName(attributeName);
+        }else{
+            attributeName = feature.getAttributeDescriptorNameByID(attributeID);
         }
     }
 
-    /**
-     * Check if attributeID falls between bounds of number of attributes in featureType
-     */
-    protected boolean hasLegalAttributeID(Feature feature) throws Exception {
-        boolean isLegal = (attributeID < feature.getFeatureType().getAttributeCount() && attributeID != -1);
-
-        if (!isLegal) {
-            throw new Exception("Illegal attributeID set for " + getClass().getSimpleName() + " (" + attributeID + "," + attributeName + ")");
-        }
-
-        return isLegal;
-    }
 
     /**
      * Fix a string and filter characters not allowed

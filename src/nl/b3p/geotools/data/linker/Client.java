@@ -54,6 +54,10 @@ public class Client {
         // Logger
         Class c = Client.class;
         URL log4j_url = c.getResource("log4j.properties");
+        if (log4j_url == null) {
+            throw new IOException("Unable to locate log4j.properties in package " + Client.class.getPackage().toString());
+        }
+
         Properties p = new Properties();
         p.load(log4j_url.openStream());
         PropertyConfigurator.configure(p);
@@ -126,8 +130,8 @@ public class Client {
                                 milliseconds = value.substring(value.indexOf("."));
                             }
 
-
-                            info += "\n\nBatch succesful (total time: " + total.getMinutes() + " minutes, " + total.getSeconds() + milliseconds + " seconds)";
+                            int minutes = total.getMinutes();
+                            info += "\n\nBatch succesful (total time:" + (minutes == 0 ? "" : " " + minutes + " minute" + (minutes == 1 ? "" : "s") + " ,") + " " + total.getSeconds() + milliseconds + " seconds)";
                             log.info(info);
                             reportMessage += "\n" + info + "\n";
 

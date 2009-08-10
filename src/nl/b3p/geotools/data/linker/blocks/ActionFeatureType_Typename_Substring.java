@@ -4,8 +4,11 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Change typename by using a substring
@@ -32,17 +35,17 @@ public class ActionFeatureType_Typename_Substring extends Action {
     // Calculate substring from end (e.g. last 5 characters)
     public ActionFeatureType_Typename_Substring(int length, boolean reverse) {
         // Re-use of the var
-        this.beginIndex = length;
+        this.endIndex = length;
         this.reverse = reverse;
     }
 
     @Override
-    public Feature execute(Feature feature) throws Exception {
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         String typename = feature.getFeatureType().getTypeName();
 
         if (beginIndex >= 0 && endIndex <= typename.length()) {
             if (reverse) {
-                typename = typename.substring(typename.length() - beginIndex);
+                typename = typename.substring(typename.length() - endIndex);
             } else {
                 if (hasStartAndEnd) {
                     typename = typename.substring(beginIndex, endIndex);
@@ -55,17 +58,13 @@ public class ActionFeatureType_Typename_Substring extends Action {
             if (!reverse) {
                 error = "Typename substring out of range; " + typename + ".subString(" + (hasStartAndEnd ? Integer.toString(beginIndex) + ", " + Integer.toString(endIndex) : Integer.toString(beginIndex)) + ")";
             } else {
-                error = "Reverse typename substring failed; get last piece from " + typename + " with length " + beginIndex;
+                error = "Reverse typename substring failed; get last piece from " + typename + " with length " + endIndex;
             }
 
             throw new Exception(error);
         }
 
-        FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(typename);
-        ftb.importType(feature.getFeatureType());
-        ftb.setName(typename);
-
-        feature = ftb.getFeatureType().create(feature.getAttributes(null), feature.getID());
+        feature.setTypeName(typename);
 
         return feature;
     }
@@ -75,22 +74,26 @@ public class ActionFeatureType_Typename_Substring extends Action {
         if (!reverse) {
             return "Typename subString(" + (hasStartAndEnd ? Integer.toString(beginIndex) + ", " + Integer.toString(endIndex) : Integer.toString(beginIndex)) + ")";
         } else {
-            return "Reverse typename substring; get last piece from typename with length " + beginIndex;
+            return "Reverse typename substring; get last piece from typename with length " + endIndex;
         }
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.BEGIN_INDEX,
-                        ActionFactory.END_INDEX
-                    }, new String[]{
-                        ActionFactory.BEGIN_INDEX
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.BEGIN_INDEX,
+                    ActionFactory.END_INDEX
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.BEGIN_INDEX
+                }));
+
+        return constructors;
     }
 
     public String getDescription_NL() {
-        return "Met deze Action kan bij een featureType de typenaam worden ingekort door middel van een substring";
+        return "Met deze Action kan bij een SimpleFeatureType de typenaam worden ingekort door middel van een substring";
     }
 }

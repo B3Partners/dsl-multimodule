@@ -4,7 +4,11 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
-import org.geotools.feature.Feature;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import nl.b3p.geotools.data.linker.ActionFactory;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Change all classes e.g. all Shorts to Doubles
@@ -22,12 +26,12 @@ public class ActionFeatureType_Replace_Class_All extends Action {
         this.tryCast = tryCast;
     }
 
-    public Feature execute(Feature feature) throws Exception {
-        int attributeCount = feature.getFeatureType().getAttributeCount();
+    public EasyFeature execute(EasyFeature feature) throws Exception {
+        int attributeCount = feature.getAttributeCount();
         for (int i = 0; i < attributeCount; i++) {
-            if(feature.getFeatureType().getAttributeType(i).getType().equals(find)){
-              ActionFeatureType_Replace_Class actionReplace = new ActionFeatureType_Replace_Class(i, replace, tryCast);
-              feature = actionReplace.execute(feature);
+            if (feature.getAttributeType(i).getBinding().equals(find)) {
+                ActionFeatureType_Replace_Class actionReplace = new ActionFeatureType_Replace_Class(i, replace, tryCast);
+                feature = actionReplace.execute(feature);
             }
         }
 
@@ -35,10 +39,22 @@ public class ActionFeatureType_Replace_Class_All extends Action {
     }
 
     public String getDescription_NL() {
-        return "";
+        return "Verander alle attribuutklassen waar voldaan wordt aan de voorwaarde; bijvoorbeeld alle Shorts naar Doubles";
     }
 
     public String toString() {
-        return "Verander alle attribuutklassen waar voldaan wordt aan de voorwaarde; bijvoorbeeld alle Shorts naar Doubles";
+        return "Change " + find.toString() + " to " + replace.toString() + " and " + (tryCast ? "" : "do not ") + "try to cast the value";
+    }
+
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.OBJECT_FIND,
+                    ActionFactory.OBJECT_REPLACE,
+                    ActionFactory.TRYCAST
+                }));
+
+        return constructors;
     }
 }

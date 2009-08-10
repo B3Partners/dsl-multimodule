@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.java.j2seproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/j2se-project/3">
-            <name>b3p-gt2-DataStoreLinker</name>
+            <name>b3p-gt2-datastorelinker</name>
             <minimum-ant-version>1.6.5</minimum-ant-version>
             <source-roots>
                 <root id="src.dir"/>
@@ -46,7 +46,7 @@
                 <id>jar</id>
             </reference>
             <reference>
-                <foreign-project>b3p-gt2-oracle</foreign-project>
+                <foreign-project>b3p-gt2-sdl</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>
@@ -54,7 +54,7 @@
                 <id>jar</id>
             </reference>
             <reference>
-                <foreign-project>b3p-gt2-sdl</foreign-project>
+                <foreign-project>b3p-suf2</foreign-project>
                 <artifact-type>jar</artifact-type>
                 <script>build.xml</script>
                 <target>jar</target>

@@ -5,7 +5,7 @@
 package nl.b3p.geotools.data.linker.blocks;
 
 /**
- * Transform feature for use inside Oracle
+ * Transform SimpleFeature for use inside Oracle
  * @author Gertjan
  */
 public class ActionCombo_Fix_To_Oracle extends ActionCombo {
@@ -14,7 +14,6 @@ public class ActionCombo_Fix_To_Oracle extends ActionCombo {
         // Typename to uppercase
         ActionFeatureType_Typename_Case actionTypenameCase = new ActionFeatureType_Typename_Case(true);
         actionList.add(actionTypenameCase);
-
 
         // If typename is longer than allowed 26 characters
         ActionCondition_FeatureType_Typename_Length actionTypenameLength = new ActionCondition_FeatureType_Typename_Length(ActionCondition.CompareType.GREATER, 26);

@@ -1,7 +1,10 @@
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Append a attribute to the typename
@@ -22,43 +25,37 @@ public class ActionFeatureType_Typename_AppendAttribute extends Action {
     }
 
     @Override
-    public Feature execute(Feature feature) throws Exception {
-        fixAttributeID(feature);
+    public EasyFeature execute(EasyFeature feature) throws Exception {
+        String attributeValue = feature.getAttribute(attributeID).toString();
 
-        String attrValue = fixTypename(feature.getAttribute(attributeID).toString());
-
-        if (attrValue.length() > maxLength) {
-            attrValue = attrValue.substring(0, maxLength);
+        if (attributeValue.length() > maxLength) {
+            attributeValue = attributeValue.substring(0, maxLength);
         }
 
-        String newTypename = feature.getFeatureType().getTypeName() + attrValue;
-
-        FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(feature.getFeatureType().getTypeName());
-        ftb.importType(feature.getFeatureType());
-        ftb.setName(newTypename);
-
-        feature = ftb.getFeatureType().create(feature.getAttributes(null), feature.getID());
+        feature.setTypeName(feature.getTypeName() + attributeValue);
 
         return feature;
     }
-
-
 
     @Override
     public String toString() {
         return "Append attribute '" + (attributeName.equals("") ? attributeID : attributeName) + "' to typename";
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.ATTRIBUTE_ID,
-                        ActionFactory.LENGTH
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_NAME,
-                        ActionFactory.LENGTH
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_ID,
+                    ActionFactory.LENGTH
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.LENGTH
+                }));
+
+        return constructors;
     }
 
     public String getDescription_NL() {

@@ -1,13 +1,12 @@
 package nl.b3p.geotools.data.linker.blocks;
 
-import com.vividsolutions.jts.geom.Geometry;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.data.DataSourceException;
-import org.geotools.feature.Feature;
-import org.geotools.feature.FeatureTypeBuilder;
-import org.geotools.feature.GeometryAttributeType;
-import org.geotools.feature.type.GeometricAttributeType;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.ReferencingFactoryFinder;
 import org.opengis.referencing.crs.CRSFactory;
@@ -25,36 +24,18 @@ public class ActionFeatureType_Set_CRS extends Action {
 
     public ActionFeatureType_Set_CRS(String srs) {
         this.srs = srs;
-        attributeName = THE_GEOM;
     }
 
     public ActionFeatureType_Set_CRS(HashMap params) {
         this.metadata = params;
         this.useSRS = false;
-        attributeName = THE_GEOM;
     }
 
-    public Feature execute(Feature feature) throws Exception {
-        fixAttributeID(feature);
-
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         CoordinateReferenceSystem crs = (useSRS ? loadSRS(srs) : loadMetaData());
-        FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(feature.getFeatureType().getTypeName());
+        feature.setCRS(crs);
 
-        GeometryAttributeType gat = (GeometryAttributeType) feature.getFeatureType().getAttributeType(THE_GEOM);
-        GeometricAttributeType geometryType = new GeometricAttributeType(
-                gat.getLocalName(),
-                Geometry.class,
-                feature.getFeatureType().getDefaultGeometry().isNillable(),
-                null,
-                crs,
-                null);
-
-        ftb.importType(feature.getFeatureType());
-        ftb.setDefaultGeometry(geometryType);
-        ftb.removeType(attributeID);
-        ftb.addType(attributeID, geometryType);
-
-        return ftb.getFeatureType().create(feature.getAttributes(null), feature.getID());
+        return feature;
     }
 
     public static CoordinateReferenceSystem loadSRS(String srs) throws DataSourceException {
@@ -71,7 +52,6 @@ public class ActionFeatureType_Set_CRS extends Action {
     }
 
     public CoordinateReferenceSystem loadMetaData() throws DataSourceException {
-
         String[] csMetadata = (String[]) metadata.values().toArray(new String[metadata.size()]);
         if (csMetadata != null) {
             String wkt = csMetadata[0];
@@ -80,10 +60,10 @@ public class ActionFeatureType_Set_CRS extends Action {
                 CRSFactory crsFactory = ReferencingFactoryFinder.getCRSFactory(null);
                 return crsFactory.createFromWKT(wkt);
             } catch (Exception e) {
-                throw new DataSourceException("Error parsing CoordinateSystem WKT: \"" + wkt + "\"");
+                throw new DataSourceException("Error parsing CoordinateSystem WKT: \"" + wkt + "\": " + e.getLocalizedMessage());
             }
         } else {
-            throw new DataSourceException("coordinatesystem csMetadata is empty");
+            throw new DataSourceException("Coordinatesystem csMetadata is empty");
         }
     }
 
@@ -99,13 +79,17 @@ public class ActionFeatureType_Set_CRS extends Action {
         return "Stel een ander SRS in (standaard EPSG:28992)";
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.SRS
-                    }, new String[]{
-                        ActionFactory.PARAMS
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.SRS
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.PARAMS
+                }));
+
+        return constructors;
     }
 }

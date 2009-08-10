@@ -4,7 +4,7 @@
  */
 package nl.b3p.geotools.data.linker;
 
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import nl.b3p.geotools.data.linker.blocks.*;
 import java.util.*;
 import org.apache.commons.logging.Log;
@@ -18,7 +18,7 @@ public class ActionList extends ArrayList<Action> {
 
     protected static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
-    public Feature process(Feature feature) throws Exception {
+    public EasyFeature process(EasyFeature feature) throws Exception {
         Iterator iter = iterator();
         while (iter.hasNext()) {
             Action action = (Action) iter.next();

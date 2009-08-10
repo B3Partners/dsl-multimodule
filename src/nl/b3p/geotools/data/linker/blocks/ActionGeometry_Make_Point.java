@@ -1,17 +1,15 @@
 package nl.b3p.geotools.data.linker.blocks;
 
-import org.geotools.feature.Feature;
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.AttributeType;
-import org.geotools.feature.FeatureTypeBuilder;
-import org.geotools.feature.GeometryAttributeType;
-import org.geotools.feature.SimpleFeature;
-import org.geotools.feature.type.GeometricAttributeType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import org.geotools.referencing.CRS;
+import org.opengis.feature.type.AttributeDescriptor;
 
 /**
  *
@@ -37,48 +35,43 @@ public class ActionGeometry_Make_Point extends Action {
         this.srs = srs;
     }
 
-    public Feature execute(Feature feature) throws Exception {
-        // Fix attributeIDs
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         int attributeIDX = -1;
+
         if (useID) {
             attributeIDX = attributeID;
 
         } else {
-            fixAttributeID(feature);
-            attributeIDX = attributeID;
-
-            attributeName = attributeNameY;
-            attributeID = -1;
-            fixAttributeID(feature);
-
-            attributeIDY = attributeID;
+            attributeIDX = feature.getAttributeDescriptorIDbyName(attributeName);
+            attributeIDY = feature.getAttributeDescriptorIDbyName(attributeNameY);
         }
 
-        Coordinate coord = new Coordinate(Double.parseDouble(feature.getAttribute(attributeIDX).toString()), Double.parseDouble(feature.getAttribute(attributeIDY).toString()));
-        GeometryFactory gf = new GeometryFactory();
-        Point point = gf.createPoint(coord);
-
-        CoordinateReferenceSystem crs = ActionFeatureType_Set_CRS.loadSRS(srs);
-        GeometricAttributeType geometryType = new GeometricAttributeType(
-                THE_GEOM,
-                Point.class,
-                true,
-                null,
-                crs,
-                null);
-
-        FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(feature.getFeatureType().getTypeName());
-        ftb.importType(feature.getFeatureType());
-        ftb.addType(geometryType);
-
-        Object[] objects = new Object[feature.getFeatureType().getAttributeCount() +1];
-        objects[objects.length-1] = point;
-        
-        for (int i = 0; i <= feature.getFeatureType().getAttributeCount(); i++) {
-            objects[i] = feature.getAttribute(i);
+        // Retrieve geometryColumn name
+        String geometryDescriptorName = Action.THE_GEOM;
+        if (feature.getFeatureType().getGeometryDescriptor() != null) {
+            geometryDescriptorName = feature.getFeatureType().getGeometryDescriptor().getName().getLocalPart();
         }
-        
-        return ftb.getFeatureType().create(objects);
+
+        // Create or replace geometry AttributeType
+        AttributeDescriptor geometryAttributeType = EasyFeature.buildGeometryAttributeDescriptor(geometryDescriptorName, Point.class, feature.getFeature().isNillable(), CRS.decode(srs));
+        feature.setAttributeDescriptor(geometryDescriptorName, geometryAttributeType);
+
+
+        if (feature.getAttribute(attributeIDX) == null || feature.getAttribute(attributeIDY) == null) {
+            log.warn("Unable to create point with " + toString());
+
+        } else {
+            // Point Geometry Creation
+            Coordinate coord = new Coordinate(Double.parseDouble(feature.getAttribute(attributeIDX).toString()), Double.parseDouble(feature.getAttribute(attributeIDY).toString()));
+
+            GeometryFactory gf = new GeometryFactory();
+            Point point = gf.createPoint(coord);
+
+            // Set attribute
+            feature.setAttribute(geometryDescriptorName, point);
+        }
+
+        return feature;
     }
 
     public String toString() {
@@ -89,15 +82,21 @@ public class ActionGeometry_Make_Point extends Action {
         return "Maak van twee attributen een punt; bijvoorbeeld van COORD_X en COORD_Y";
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.ATTRIBUTE_ID_X,
-                        ActionFactory.ATTRIBUTE_ID_Y
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_NAME_X,
-                        ActionFactory.ATTRIBUTE_NAME_Y
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_ID_X,
+                    ActionFactory.ATTRIBUTE_ID_Y,
+                    ActionFactory.SRS
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_NAME_X,
+                    ActionFactory.ATTRIBUTE_NAME_Y,
+                    ActionFactory.SRS
+                }));
+
+        return constructors;
     }
 }

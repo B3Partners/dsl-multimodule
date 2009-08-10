@@ -1,7 +1,11 @@
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import org.opengis.feature.type.AttributeType;
 
 /**
  * Set typename to upper- or lowercase
@@ -22,10 +26,11 @@ public class ActionFeatureType_AttributeName_Case extends Action {
     }
 
     @Override
-    public Feature execute(Feature feature) throws Exception {
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         fixAttributeID(feature);
 
-        String newAttributeName = feature.getFeatureType().getAttributeType(attributeID).getName();
+        AttributeType attributeType = feature.getAttributeType(attributeID);
+        String newAttributeName = attributeType.getName().getLocalPart();
 
         if (toUpper) {
             newAttributeName = newAttributeName.toUpperCase();
@@ -33,15 +38,8 @@ public class ActionFeatureType_AttributeName_Case extends Action {
             newAttributeName = newAttributeName.toLowerCase();
         }
 
-        FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(feature.getFeatureType().getTypeName());
-        ftb.importType(feature.getFeatureType());
-
-        AttributeType type = AttributeTypeFactory.newAttributeType(newAttributeName, feature.getFeatureType().getAttributeType(attributeID).getType());
-
-        ftb.removeType(attributeID);
-        ftb.addType(attributeID, type);
-
-        feature = ftb.getFeatureType().create(feature.getAttributes(null), feature.getID());
+        Action rename = new ActionFeatureType_AttributeName_Rename(attributeID, newAttributeName);
+        rename.execute(feature);
 
         return feature;
     }
@@ -51,16 +49,20 @@ public class ActionFeatureType_AttributeName_Case extends Action {
         return "Set typename to " + (toUpper ? "upper" : "lower") + "case";
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.ATTRIBUTE_NAME,
-                        ActionFactory.UPPERCASE
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_ID,
-                        ActionFactory.UPPERCASE
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.UPPERCASE
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_ID,
+                    ActionFactory.UPPERCASE
+                }));
+
+        return constructors;
     }
 
     public String getDescription_NL() {

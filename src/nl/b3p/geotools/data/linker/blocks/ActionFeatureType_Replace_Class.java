@@ -4,18 +4,21 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
-import org.geotools.feature.type.GeometricAttributeType;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
- * Change a featureType class and try to cast the value
+ * Change a SimpleFeatureType class and try to cast the value
  * @author Gertjan Al, B3Partners
  */
 public class ActionFeatureType_Replace_Class extends Action {
 
     private Class newAttributeClass;
     private boolean tryCast;
+    private boolean useGeometry = false;
 
     public ActionFeatureType_Replace_Class(String attributeName, Class newAttributeClass, boolean tryCast) {
         this.attributeName = attributeName;
@@ -29,113 +32,91 @@ public class ActionFeatureType_Replace_Class extends Action {
         this.tryCast = tryCast;
     }
 
+    public ActionFeatureType_Replace_Class(Class newAttributeClass, boolean tryCast) {
+        this.newAttributeClass = newAttributeClass;
+        this.tryCast = tryCast;
+        useGeometry = true;
+    }
+
     @Override
-    public Feature execute(Feature feature) throws Exception {
+    public EasyFeature execute(EasyFeature feature) throws Exception {
+        if (useGeometry) {
+            attributeName = feature.getFeatureType().getGeometryDescriptor().getLocalName();
+        }
+
         fixAttributeID(feature);
 
-        if (hasLegalAttributeID(feature)) {
-            if (feature.getFeatureType().getAttributeType(attributeID).getClass().equals(GeometricAttributeType.class)) {
-                FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(feature.getFeatureType().getTypeName());
-                ftb.importType(feature.getFeatureType());
+        if (feature.containsAttributeDescriptor(attributeID)) {
+            boolean hasGeometry = feature.getFeatureType().getGeometryDescriptor() != null;
+            boolean isGeometry = false;
 
-                GeometryAttributeType gat = (GeometryAttributeType) feature.getFeatureType().getAttributeType(attributeID);
-                GeometricAttributeType geometryType = new GeometricAttributeType(
-                        gat.getLocalName(),
-                        newAttributeClass,
-                        feature.getFeatureType().getDefaultGeometry().isNillable(),
-                        null,
-                        gat.getCoordinateSystem(),
-                        null);
+            if (hasGeometry) {
+                String geometryColumn = feature.getFeatureType().getGeometryDescriptor().getName().getLocalPart();
 
-                ftb.setDefaultGeometry(geometryType);
-                ftb.removeType(attributeID);
-                ftb.addType(attributeID, geometryType);
+                if (attributeName.equals(geometryColumn)) {
+                    feature.setAttributeDescriptor(attributeID, EasyFeature.buildGeometryAttributeDescriptor(attributeName, newAttributeClass, feature.getFeature().isNillable(), feature.getFeature().getFeatureType().getCoordinateReferenceSystem()), true);
+                    isGeometry = true;
+                }
+            }
 
-                feature = ftb.getFeatureType().create(feature.getAttributes(null), feature.getID());
+            if (!isGeometry) {
+                String value = feature.getAttribute(attributeID).toString();
+                //feature.removeAttributeDescriptor(attributeID);
 
+                if (tryCast) {
+                    feature.setAttributeDescriptor(attributeID, attributeName, newAttributeClass, false);
 
-            } else {
-                // Do something else
-                FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(feature.getFeatureType().getTypeName());
-                ftb.importType(feature.getFeatureType());
+                    if (newAttributeClass.equals(Integer.class)) {
+                        feature.setAttribute(attributeID, Integer.parseInt(value));
 
-                String oldAttributeName = feature.getFeatureType().getAttributeType(attributeID).getName();
-                AttributeType attributeType = AttributeTypeFactory.newAttributeType(oldAttributeName, newAttributeClass);
+                    } else if (newAttributeClass.equals(String.class)) {
+                        feature.setAttribute(attributeID, value);
 
-                ftb.removeType(attributeID);
-                ftb.addType(attributeID, attributeType);
+                    } else if (newAttributeClass.equals(Double.class)) {
+                        feature.setAttribute(attributeID, Double.parseDouble(value));
 
-                if (!tryCast) {
-                    feature = ftb.getFeatureType().create(clearAttribute(feature, attributeID), feature.getID());
-                } else {
-                    feature = ftb.getFeatureType().create(tryCast(feature, attributeID, newAttributeClass), feature.getID());
+                    } else if (newAttributeClass.equals(Short.class)) {
+                        feature.setAttribute(attributeID, Short.parseShort(value));
+
+                    } else {
+                        feature.setAttribute(attributeID, value);
+                    }
                 }
             }
         }
-
         return feature;
-    }
-
-    protected Object[] clearAttribute(Feature feature, int attributeID) {
-        Object[] newAttributes = feature.getAttributes(null);
-
-        if (attributeID >= 0 && attributeID < newAttributes.length) {
-            newAttributes[attributeID] = null;
-        }
-        return newAttributes;
-    }
-
-    protected Object[] tryCast(Feature feature, int clearID, Class castClass) {
-        Object[] newAttributes = feature.getAttributes(null);
-
-        if (attributeID >= 0 && attributeID < newAttributes.length) {
-            try {
-                if (castClass.equals(String.class)) {
-                    newAttributes[attributeID] = newAttributes[attributeID].toString();
-
-                } else if (castClass.equals(Integer.class)) {
-                    newAttributes[attributeID] = Integer.parseInt(newAttributes[attributeID].toString());
-
-                } else if (castClass.equals(Double.class)) {
-                    newAttributes[attributeID] = Double.parseDouble(newAttributes[attributeID].toString());
-
-                } else if (castClass.equals(Short.class)) {
-                    newAttributes[attributeID] = Short.parseShort(newAttributes[attributeID].toString());
-
-                } else {
-                    String info = "Unknown casting '" + newAttributes[attributeID].getClass().getSimpleName() + "' to '" + castClass.getSimpleName() + "' failed. Consider FeatureType_Replace_Class without tryCast";
-
-                    log.info(info);
-                    throw new Exception(info);
-                }
-
-            } catch (Exception ex) {
-                throw new ClassCastException("Casting '" + newAttributes[attributeID].getClass().getSimpleName() + "' to '" + castClass.getSimpleName() + "' failed. Consider FeatureType_Replace_Class without tryCast");
-            }
-        }
-        return newAttributes;
     }
 
     @Override
     public String toString() {
-        return "Change class  at '" + (attributeID == -1 ? attributeName : attributeID) + "' to \"" + newAttributeClass.getSimpleName() + "\"";
+        String findAttribute = (useGeometry ? "geometry class" : "class  at '" + (attributeID == -1 ? attributeName : attributeID) + "'");
+        return "Change " + findAttribute + " to \"" + newAttributeClass.getSimpleName() + "\"";
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.ATTRIBUTE_NAME,
-                        ActionFactory.NEW_ATTRIBUTE_CLASS,
-                        ActionFactory.TRYCAST
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_ID,
-                        ActionFactory.NEW_ATTRIBUTE_CLASS,
-                        ActionFactory.TRYCAST
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.NEW_ATTRIBUTE_CLASS,
+                    ActionFactory.TRYCAST
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_ID,
+                    ActionFactory.NEW_ATTRIBUTE_CLASS,
+                    ActionFactory.TRYCAST
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.NEW_ATTRIBUTE_CLASS,
+                    ActionFactory.TRYCAST
+                }));
+
+        return constructors;
     }
 
     public String getDescription_NL() {
-        return "Met deze Action kan bij een featureType de class van een attribuut worden gewijzigd";
+        return "Met deze Action kan bij een SimpleFeatureType de class van een attribuut worden gewijzigd";
     }
 }

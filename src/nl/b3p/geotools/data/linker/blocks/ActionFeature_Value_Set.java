@@ -4,27 +4,20 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
-import org.geotools.feature.type.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
- * Set a value inside a feature at a given position
+ * Set a value inside a SimpleFeature at a given position
  * @author Gertjan Al, B3Partners
  */
 public class ActionFeature_Value_Set extends Action {
 
     private Object objectReplace;
-    private static final HashMap attributeMapping = new HashMap();
     private boolean append;
-
-
-    static {
-        attributeMapping.put(String.class, TextualAttributeType.class);
-        attributeMapping.put(Integer.class, NumericAttributeType.class);
-        attributeMapping.put(Double.class, NumericAttributeType.class);
-    }
 
     public ActionFeature_Value_Set(String attributeName, Object objectReplace, boolean append) {
         this.attributeName = attributeName;
@@ -50,21 +43,21 @@ public class ActionFeature_Value_Set extends Action {
         this.append = false;
     }
 
-    public Feature execute(Feature feature) throws Exception {
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         fixAttributeID(feature);
 
         if (attributeID != -1) {
-            if (feature.getFeatureType().getAttributeType(attributeID).getClass().equals(attributeMapping.get(objectReplace.getClass()))) {
+            if (feature.getAttributeType(attributeID).getBinding().equals(objectReplace.getClass())) {
                 Object replaceValue = objectReplace;
                 if (append && objectReplace instanceof String) {
                     replaceValue = ((String) feature.getAttribute(attributeID) + (String) replaceValue);
                 }
-
                 feature.setAttribute(attributeID, replaceValue);
 
             } else {
-                throw new Exception("Unable to set value in feature to " + objectReplace.toString() + "; " + feature.getFeatureType().getAttributeType(attributeID).getClass().getSimpleName() + " expected");
+                throw new Exception("Unable to set value in SimpleFeature to " + objectReplace.toString() + "; " + feature.getAttributeType(attributeID).getClass().getSimpleName() + " expected");
             }
+
         } else {
             throw new Exception("Attribute " + attributeID + " not found");
         }
@@ -73,30 +66,39 @@ public class ActionFeature_Value_Set extends Action {
     }
 
     public String toString() {
-        return "Set feature attribute '" + (attributeID == -1 ? attributeName : attributeID) + "' to \"" + objectReplace.toString() + "\"";
+        return "Set SimpleFeature attribute '" + (attributeID == -1 ? attributeName : attributeID) + "' to \"" + objectReplace.toString() + "\"";
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.ATTRIBUTE_NAME,
-                        ActionFactory.OBJECT_REPLACE,
-                        ActionFactory.APPEND
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_ID,
-                        ActionFactory.OBJECT_REPLACE,
-                        ActionFactory.APPEND
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_NAME,
-                        ActionFactory.OBJECT_REPLACE
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_ID,
-                        ActionFactory.OBJECT_REPLACE
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.OBJECT_REPLACE,
+                    ActionFactory.APPEND
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_ID,
+                    ActionFactory.OBJECT_REPLACE,
+                    ActionFactory.APPEND
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.OBJECT_REPLACE
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_ID,
+                    ActionFactory.OBJECT_REPLACE
+                }));
+
+
+        return constructors;
     }
 
     public String getDescription_NL() {
-        return "Met deze Action kan bij een feature een attribuutWaarde in een bepaalde kolom worden gewijzigd.";
+        return "Met deze Action kan bij een SimpleFeature een attribuutWaarde in een bepaalde kolom worden gewijzigd.";
     }
 }

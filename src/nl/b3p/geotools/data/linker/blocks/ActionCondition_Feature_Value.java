@@ -5,10 +5,11 @@
 package nl.b3p.geotools.data.linker.blocks;
 
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import org.opengis.feature.simple.SimpleFeature;
 
 /**
- * Check a value in a feature on a given attribute
+ * Check a value in a SimpleFeature on a given attribute
  * @author Gertjan Al, B3Partners
  */
 public class ActionCondition_Feature_Value extends ActionCondition {
@@ -17,8 +18,8 @@ public class ActionCondition_Feature_Value extends ActionCondition {
     private Object right;
 
     /**
-     * Compare value inside the feature with attributeName to object right
-     * @param attributeName Name of attribute in FeatureType
+     * Compare value inside the SimpleFeature with attributeName to object right
+     * @param attributeName Name of attribute in SimpleFeatureType
      * @param compareType Compare type; equal, not_equal, smaller, greater, smaller_equal, greater_equal
      * @param right Object to compare value to
      */
@@ -29,7 +30,7 @@ public class ActionCondition_Feature_Value extends ActionCondition {
     }
 
     /**
-     * Compare value inside the feature at position attributeID to object right
+     * Compare value inside the SimpleFeature at position attributeID to object right
      * @param attributeID Position in attribute[]
      * @param compareType Compare type; equal, not_equal, smaller, greater, smaller_equal, greater_equal
      * @param right Object to compare value to
@@ -40,7 +41,7 @@ public class ActionCondition_Feature_Value extends ActionCondition {
         this.right = right;
     }
 
-    public Feature execute(Feature feature) throws Exception {
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         fixAttributeID(feature);
         Object left = feature.getAttribute(attributeID);
 
@@ -49,20 +50,6 @@ public class ActionCondition_Feature_Value extends ActionCondition {
 
     public String toString() {
         return "if (" + (attributeName == null ? "Column " + attributeID : attributeName.toString()) + " " + compareType.toString() + " " + right.toString() + listsToString();
-    }
-
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.ATTRIBUTE_NAME,
-                        "ActionCondition.CompareType",
-                        "Object"
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_ID,
-                        "ActionCondition.CompareType",
-                        "Object"
-                    }
-                };
     }
 
     public String getDescription_NL() {

@@ -4,11 +4,14 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
- * Condition by featureType class on a given attibuteType
+ * Condition by SimpleFeatureType class on a given attibuteType
  * @author Gertjan Al, B3Partners
  */
 public class ActionCondition_FeatureType_Class extends ActionCondition {
@@ -35,23 +38,28 @@ public class ActionCondition_FeatureType_Class extends ActionCondition {
         this.right = columnClass;
     }
 
-    public Feature execute(Feature feature) throws Exception {
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         fixAttributeID(feature);
-        Class left = feature.getFeatureType().getAttributeType(attributeID).getType();
+        Class left = feature.getAttributeType(attributeID).getBinding();
 
         return compare(feature, left, ActionCondition.CompareType.EQUAL, right);
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.ATTRIBUTE_ID,
-                        ActionFactory.ATTRIBUTE_CLASS
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_NAME,
-                        ActionFactory.ATTRIBUTE_CLASS
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_ID,
+                    ActionFactory.ATTRIBUTE_CLASS
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.ATTRIBUTE_CLASS
+                }));
+
+
+        return constructors;
     }
 
     public String toString() {
@@ -59,6 +67,6 @@ public class ActionCondition_FeatureType_Class extends ActionCondition {
     }
 
     public String getDescription_NL() {
-        return "Met deze ActionCondition kan gecontroleerd worden of de class van een attribuut in een featureType gelijk is aan de opgegeven class";
+        return "Met deze ActionCondition kan gecontroleerd worden of de class van een attribuut in een SimpleFeatureType gelijk is aan de opgegeven class";
     }
 }

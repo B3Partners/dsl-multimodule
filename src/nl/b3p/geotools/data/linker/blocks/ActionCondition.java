@@ -4,7 +4,8 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import org.opengis.feature.simple.SimpleFeature;
 import nl.b3p.geotools.data.linker.*;
 
 /**
@@ -45,7 +46,7 @@ public abstract class ActionCondition extends Action {
         }
     }
 
-    abstract public Feature execute(Feature feature) throws Exception;
+    abstract public EasyFeature execute(EasyFeature feature) throws Exception;
 
     public ActionList getActionList(boolean type) {
         if (type) {
@@ -79,45 +80,44 @@ public abstract class ActionCondition extends Action {
         }
     }
 
-    protected Double parse(Object object) {
-        double result = 0.0;
-
+    protected Double parseDouble(Object object) throws Exception {
         try {
-            result = Double.parseDouble(object.toString());
+            return Double.parseDouble(object.toString());
         } catch (NumberFormatException ex) {
-            log.error(ex);
+            throw new Exception("Unable to compare object '" + object.toString() + "'; Object is not a number");
         }
-        return result;
     }
 
-    protected Feature compare(Feature feature, Object left, CompareType compareType, Object right) throws Exception {
+    protected EasyFeature compare(EasyFeature feature, Object left, CompareType compareType, Object right) throws Exception {
         Boolean result = null;
 
-        try {
-            switch (compareType) {
-                case EQUAL:
-                    result = left.equals(right);
-                    break;
-                case NOT_EQUAL:
-                    result = new Boolean(!left.equals(right));
-                    break;
-                case GREATER:
-                    result = new Boolean(parse(left) > parse(right));
-                    break;
-                case SMALLER:
-                    result = new Boolean(parse(left) < parse(right));
-                    break;
-                case GREATER_EQUAL:
-                    result = new Boolean(parse(left) >= parse(right));
-                    break;
-                case SMALLER_EQUAL:
-                    result = new Boolean(parse(left) <= parse(right));
-                    break;
-                default:
-                    break;
-            }
-        } catch (Exception ex) {
-            throw new Exception("ActionCondition failed:\n" + ex.getLocalizedMessage());
+        switch (compareType) {
+            case EQUAL:
+                result = left.equals(right);
+                break;
+
+            case NOT_EQUAL:
+                result = !left.equals(right);
+                break;
+
+            case GREATER:
+                result = parseDouble(left) > parseDouble(right);
+                break;
+
+            case SMALLER:
+                result = parseDouble(left) < parseDouble(right);
+                break;
+
+            case GREATER_EQUAL:
+                result = parseDouble(left) >= parseDouble(right);
+                break;
+
+            case SMALLER_EQUAL:
+                result = parseDouble(left) <= parseDouble(right);
+                break;
+
+            default:
+                break;
         }
 
         if (result != null) {
@@ -127,7 +127,7 @@ public abstract class ActionCondition extends Action {
         }
     }
 
-    protected Feature process(boolean actionListType, Feature feature) throws Exception {
+    protected EasyFeature process(boolean actionListType, EasyFeature feature) throws Exception {
         if (actionListType) {
             return actionListTrue.process(feature);
         } else {

@@ -6,7 +6,10 @@ package nl.b3p.geotools.data.linker;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import nl.b3p.geotools.data.linker.blocks.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -129,40 +132,40 @@ public class ActionFactory {
 
 
         /**
-         * Create ActionFeatureType_Attribute_Insert
+         * Create ActionFeatureType_AttributeType_Add
          */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Attribute_Insert.class)) {
+        } else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Add.class)) {
             if (propertyCheck(properties, ATTRIBUTE_NAME, ATTRIBUTE_CLASS, ATTRIBUTE_ID)) {
                 String attributeName = (String) properties.get(ATTRIBUTE_NAME);
                 Class attributeClass = (Class) toClass((String) properties.get(ATTRIBUTE_CLASS));
                 int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                return new ActionFeatureType_Attribute_Insert(attributeName, attributeClass, attributeID);
+                return new ActionFeatureType_AttributeType_Add(attributeID, attributeName, attributeClass);
 
             } else if (propertyCheck(properties, ATTRIBUTE_NAME, ATTRIBUTE_CLASS)) {
                 String attributeName = (String) properties.get(ATTRIBUTE_NAME);
                 Class attributeClass = (Class) toClass((String) properties.get(ATTRIBUTE_CLASS));
-                return new ActionFeatureType_Attribute_Insert(attributeName, attributeClass);
+                return new ActionFeatureType_AttributeType_Add(attributeName, attributeClass);
 
             } else {
-                failedConstructor(ActionFeatureType_Attribute_Insert.class, properties);
+                failedConstructor(ActionFeatureType_AttributeType_Add.class, properties);
             }
 
 
 
         /**
-         * Create ActionFeatureType_Attribute_Remove
+         * Create ActionFeatureType_AttributeType_Remove
          */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Attribute_Remove.class)) {
+        } else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Remove.class)) {
             if (propertyCheck(properties, ATTRIBUTE_ID)) {
                 int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                return new ActionFeatureType_Attribute_Remove(attributeID);
+                return new ActionFeatureType_AttributeType_Remove(attributeID);
 
             } else if (propertyCheck(properties, ATTRIBUTE_NAME)) {
                 String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                return new ActionFeatureType_Attribute_Remove(attributeName);
+                return new ActionFeatureType_AttributeType_Remove(attributeName);
 
             } else {
-                failedConstructor(ActionFeatureType_Attribute_Remove.class, properties);
+                failedConstructor(ActionFeatureType_AttributeType_Remove.class, properties);
             }
 
 
@@ -183,6 +186,11 @@ public class ActionFactory {
                 boolean tryCast = (Boolean) properties.get(TRYCAST);
                 return new ActionFeatureType_Replace_Class(attributeID, newAttributeClass, tryCast);
 
+            } else if (propertyCheck(properties, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
+                Class newAttributeClass = (Class) toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
+                boolean tryCast = (Boolean) properties.get(TRYCAST);
+                return new ActionFeatureType_Replace_Class(newAttributeClass, tryCast);
+
             } else {
                 failedConstructor(ActionFeatureType_Replace_Class.class, properties);
             }
@@ -190,21 +198,21 @@ public class ActionFactory {
 
 
         /**
-         * Create ActionFeatureType_Replace_Name
+         * Create ActionFeatureType_AttributeName_Rename
          */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Replace_Name.class)) {
+        } else if (isThisClass(actionClassName, ActionFeatureType_AttributeName_Rename.class)) {
             if (propertyCheck(properties, ATTRIBUTE_NAME, NEW_ATTRIBUTE_NAME)) {
                 String attributeName = (String) properties.get(ATTRIBUTE_NAME);
                 String newAttributeName = (String) properties.get(NEW_ATTRIBUTE_NAME);
-                return new ActionFeatureType_Replace_Name(attributeName, newAttributeName);
+                return new ActionFeatureType_AttributeName_Rename(attributeName, newAttributeName);
 
             } else if (propertyCheck(properties, ATTRIBUTE_ID, NEW_ATTRIBUTE_NAME)) {
                 int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
                 String newAttributeName = (String) properties.get(NEW_ATTRIBUTE_NAME);
-                return new ActionFeatureType_Replace_Name(attributeID, newAttributeName);
+                return new ActionFeatureType_AttributeName_Rename(attributeID, newAttributeName);
 
             } else {
-                failedConstructor(ActionFeatureType_Replace_Name.class, properties);
+                failedConstructor(ActionFeatureType_AttributeName_Rename.class, properties);
             }
 
 
@@ -384,7 +392,7 @@ public class ActionFactory {
 
                 return new ActionFeatureType_AttributeNames_Case(toUppercase);
             } else {
-                failedConstructor(ActionFeatureType_AttributeNames_Case.class, properties);
+                failedConstructor(ActionFeatureType_AttributeName_Case.class, properties);
             }
 
 
@@ -405,6 +413,7 @@ public class ActionFactory {
             } else {
                 failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
             }
+
 
 
         /**
@@ -561,6 +570,10 @@ public class ActionFactory {
             return null;
 
         } else {
+            if (className.endsWith(".class")) {
+                className = className.substring(0, className.length() - ".class".length());
+            }
+
             try {
                 return Class.forName(className);
             } catch (Exception ex) {
@@ -588,85 +601,57 @@ public class ActionFactory {
     public static ActionCondition.CompareType toCompareType(String value) {
         return ActionCondition.CompareType.byString(value);
     }
-
     /*
-     * The following function
-    public static String[][] getConstructors(Class clazz) throws Exception {
-    if (clazz.equals(ActionCombo_Fix_From_Oracle.class)) {
-    return ActionCombo_Fix_From_Oracle.getConstructors();
+    public static List<Class> getActionClasses() {
+    Class cls = Action.class;
+    Package pkg = cls.getPackage();
+    String name = pkg.getName();
 
-    } else if (clazz.equals(ActionCombo_Fix_To_Oracle.class)) {
-    return ActionCombo_Fix_To_Oracle.getConstructors();
-
-    } else if (clazz.equals(ActionCombo_GeometrySplitter_Writer.class)) {
-    return ActionCombo_GeometrySplitter_Writer.getConstructors();
-
-    } else if (clazz.equals(ActionCombo_GeometrySingle_Writer.class)) {
-    return ActionCombo_GeometrySingle_Writer.getConstructors();
-
-    } else if (clazz.equals(ActionCondition_FeatureType_Class.class)) {
-    return ActionCondition_FeatureType_Class.getConstructors();
-
-    } else if (clazz.equals(ActionCondition_FeatureType_Typename_Length.class)) {
-    return ActionCondition_FeatureType_Typename_Length.getConstructors();
-
-    } else if (clazz.equals(ActionCondition_FeatureType_Value.class)) {
-    return ActionCondition_FeatureType_Value.getConstructors();
-
-    } else if (clazz.equals(ActionCondition_Feature_Class.class)) {
-    return ActionCondition_Feature_Class.getConstructors();
-
-    } else if (clazz.equals(ActionCondition_Feature_Value.class)) {
-    return ActionCondition_Feature_Value.getConstructors();
-
-    } else if (clazz.equals(ActionDataStore_Writer.class)) {
-    return ActionDataStore_Writer.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_AttributeName_Case.class)) {
-    return ActionFeatureType_AttributeName_Case.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_AttributeNames_Case.class)) {
-    return ActionFeatureType_AttributeNames_Case.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Attribute_Insert.class)) {
-    return ActionFeatureType_Attribute_Insert.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Attribute_Remove.class)) {
-    return ActionFeatureType_Attribute_Remove.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Replace_Class.class)) {
-    return ActionFeatureType_Replace_Class.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Replace_Class_All.class)) {
-    return ActionFeatureType_Replace_Class_All.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Replace_Name.class)) {
-    return ActionFeatureType_Replace_Name.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Set_CRS.class)) {
-    return ActionFeatureType_Set_CRS.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Typename_Update.class)) {
-    return ActionFeatureType_Typename_Update.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Typename_Case.class)) {
-    return ActionFeatureType_Typename_Case.getConstructors();
-
-    } else if (clazz.equals(ActionFeatureType_Typename_Substring.class)) {
-    return ActionFeatureType_Typename_Substring.getConstructors();
-
-    } else if (clazz.equals(ActionFeature_Value_Replace.class)) {
-    return ActionFeature_Value_Replace.getConstructors();
-
-    } else if (clazz.equals(ActionFeature_Value_Set.class)) {
-    return ActionFeature_Value_Set.getConstructors();
-
-    } else if (clazz.equals(ActionGeometry_Buffer.class)) {
-    return ActionGeometry_Buffer.getConstructors();
-
-    } else {
-    throw new Exception(clazz.getSimpleName() + " has not yet been implemented in Actionfactory.getConstructors()");
+    try {
+    Class[] classes = Class.forName(name).getClasses();
+    return Arrays.asList(classes);
+    } catch (Exception ex) {
+    return new ArrayList();
     }
     }
      */
+    // The following function
+
+    public static SortedMap<String, List<List<String>>> getSupportedActionBlocks() {
+        SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
+
+        actionBlocks.put(ActionCombo_Fix_From_Oracle.class.getSimpleName(), ActionCombo_Fix_From_Oracle.getConstructors());
+        actionBlocks.put(ActionCombo_Fix_To_Oracle.class.getSimpleName(), ActionCombo_Fix_To_Oracle.getConstructors());
+
+        //actionBlocks.put(ActionCombo_GeometrySingle_Writer.class.getSimpleName(), ActionCombo_GeometrySingle_Writer.getConstructors());
+        //actionBlocks.put(ActionCombo_GeometrySplitter_Writer.class.getSimpleName(), ActionCombo_GeometrySplitter_Writer.getConstructors());
+        //actionBlocks.put(ActionDataStore_Writer.class.getSimpleName(), ActionDataStore_Writer.getConstructors());
+
+        actionBlocks.put(ActionFeatureType_AttributeNames_Case.class.getSimpleName(), ActionFeatureType_AttributeName_Case.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeName_Case.class.getSimpleName(), ActionFeatureType_AttributeName_Case.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeName_Rename.class.getSimpleName(), ActionFeatureType_AttributeName_Rename.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeType_Add.class.getSimpleName(), ActionFeatureType_AttributeType_Add.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeType_Remove.class.getSimpleName(), ActionFeatureType_AttributeType_Remove.getConstructors());
+        actionBlocks.put(ActionFeatureType_Replace_Class.class.getSimpleName(), ActionFeatureType_Replace_Class.getConstructors());
+        actionBlocks.put(ActionFeatureType_Replace_Class_All.class.getSimpleName(), ActionFeatureType_Replace_Class_All.getConstructors());
+        actionBlocks.put(ActionFeatureType_Set_CRS.class.getSimpleName(), ActionFeatureType_Set_CRS.getConstructors());
+        actionBlocks.put(ActionFeatureType_Typename_AppendAttribute.class.getSimpleName(), ActionFeatureType_Typename_AppendAttribute.getConstructors());
+        actionBlocks.put(ActionFeatureType_Typename_Case.class.getSimpleName(), ActionFeatureType_Typename_Case.getConstructors());
+        actionBlocks.put(ActionFeatureType_Typename_Substring.class.getSimpleName(), ActionFeatureType_Typename_Substring.getConstructors());
+        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+
+        actionBlocks.put(ActionFeature_Value_Replace.class.getSimpleName(), ActionFeature_Value_Replace.getConstructors());
+        actionBlocks.put(ActionFeature_Value_Set.class.getSimpleName(), ActionFeature_Value_Set.getConstructors());
+
+        actionBlocks.put(ActionGeometry_Buffer.class.getSimpleName(), ActionGeometry_Buffer.getConstructors());
+        actionBlocks.put(ActionGeometry_Make_Point.class.getSimpleName(), ActionGeometry_Make_Point.getConstructors());
+
+        return actionBlocks;
+    }
+
+    public static boolean isDataStoreAction(String classname){
+        return classname.equals(ActionCombo_GeometrySingle_Writer.class.getSimpleName()) ||
+                classname.equals(ActionCombo_GeometrySplitter_Writer.class.getSimpleName()) ||
+                classname.equals(ActionDataStore_Writer.class.getSimpleName());
+    }
 }

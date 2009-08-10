@@ -4,16 +4,25 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import org.geotools.feature.*;
+import java.util.List;
 import org.geotools.data.*;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.data.jdbc.JDBCDataStore;
+import org.geotools.feature.IllegalAttributeException;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 
 /**
  * Write to a datastore (file or JDBC)
@@ -29,7 +38,8 @@ public class ActionDataStore_Writer extends Action {
     private Exception constructorEx;
     private HashMap<String, FeatureWriter> featureWriters = new HashMap();
     private HashMap<String, String> checked = new HashMap();
-    private static final int MAX_CONNECTIONS = 50;
+    private static final int MAX_CONNECTIONS_NR = 50;
+    private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
 
     public ActionDataStore_Writer(Map params, boolean append, boolean dropFirst) {
@@ -37,7 +47,10 @@ public class ActionDataStore_Writer extends Action {
         this.append = append;
         this.dropFirst = dropFirst;
 
-        params.put("max connections", MAX_CONNECTIONS);
+        if (!params.containsKey(MAX_CONNECTIONS)) {
+            params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
+        }
+
         try {
             dataStore2Write = DataStoreLinker.openDataStore(params);
             initDone = (dataStore2Write != null);
@@ -52,7 +65,10 @@ public class ActionDataStore_Writer extends Action {
         this.append = false;
         this.dropFirst = true;
 
-        params.put("max connections", MAX_CONNECTIONS);
+        if (!params.containsKey(MAX_CONNECTIONS)) {
+            params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
+        }
+
         try {
             dataStore2Write = DataStoreLinker.openDataStore(params);
             initDone = (dataStore2Write != null);
@@ -62,7 +78,7 @@ public class ActionDataStore_Writer extends Action {
         }
     }
 
-    public Feature execute(Feature feature) throws Exception {
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         if (!initDone) {
             throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file.\nUsed parameters:\n" + params.toString() + "\n\n" + constructorEx.getLocalizedMessage());
 
@@ -76,7 +92,7 @@ public class ActionDataStore_Writer extends Action {
 
             } else {
 
-                if (featureWriters.size() + 1 == MAX_CONNECTIONS) {
+                if (featureWriters.size() + 1 == MAX_CONNECTIONS_NR) {
                     // If max connections reached, commit all data and continue
                     close();
                     dataStore2Write = DataStoreLinker.openDataStore(params);
@@ -89,27 +105,26 @@ public class ActionDataStore_Writer extends Action {
                     processedTypes++;
                 }
 
-                writer = dataStore2Write.getFeatureWriterAppend(feature.getFeatureType().getTypeName(), Transaction.AUTO_COMMIT);
+                writer = dataStore2Write.getFeatureWriterAppend(typename, Transaction.AUTO_COMMIT);
                 featureWriters.put(typename, writer);
             }
 
-            boolean isOracle = params.get("dbtype").toString().equals("oracle");
+            try {
+                Geometry the_geom = (Geometry) feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName());
 
-            // Check if able to add
-            if (!writer.getFeatureType().equals(feature.getFeatureType()) && !isOracle) {
-                throw new Exception("FeatureType of feature is not equal to featureType in Database");
-
-            } else {
-                // Write to datastore
-                SimpleFeature newFeature = (SimpleFeature) writer.next();
-
-                try {
-                    newFeature.setAttributes(feature.getAttributes(null));
-                } catch (IllegalAttributeException writeProblem) {
-                    throw new IllegalAttributeException("Could not create " + typename + " out of provided feature: " + feature.getID() + "\n" + writeProblem);
+                if (the_geom instanceof GeometryCollection) {
+                    if (((GeometryCollection) the_geom).getNumGeometries() == 0) {
+                        log.warn("Skipping feature with empty GeometryCollection; " + feature.getAttributes().toString());
+                    } else {
+                        write(writer, feature.getFeature());
+                    }
+                } else {
+                    write(writer, feature.getFeature());
                 }
 
-                writer.write();
+            } catch (Exception ex) {
+                log.warn("No DefaultGeometry AttributeType found in feature " + feature.toString());
+                write(writer, feature.getFeature());
             }
         }
         return feature;
@@ -119,6 +134,19 @@ public class ActionDataStore_Writer extends Action {
     public void close() throws Exception {
         closeConnections();
         dataStore2Write.dispose();
+    }
+
+    private void write(FeatureWriter writer, SimpleFeature feature) throws IOException {
+        // Write to datastore
+        SimpleFeature newFeature = (SimpleFeature) writer.next();
+
+        try {
+            newFeature.setAttributes(feature.getAttributes());
+        } catch (IllegalAttributeException writeProblem) {
+            throw new IllegalAttributeException("Could not create " + feature.getFeatureType().getTypeName() + " out of provided SimpleFeature: " + feature.getID() + "\n" + writeProblem);
+        }
+
+        writer.write();
     }
 
     private void closeConnections() throws Exception {
@@ -132,18 +160,21 @@ public class ActionDataStore_Writer extends Action {
         featureWriters.clear();
     }
 
-    private void checkSchema(FeatureType featureType) throws Exception {
+    private void checkSchema(SimpleFeatureType featureType) throws Exception {
         if (initDone) {
-            boolean typeExists = false;
-            String[] typeNamesFound = dataStore2Write.getTypeNames();
+            //boolean typeExists = false;
+            //String[] typeNamesFound = dataStore2Write.getTypeNames();
             String typename2Write = featureType.getTypeName();
+            boolean typeExists = Arrays.asList(dataStore2Write.getTypeNames()).contains(typename2Write);
 
+            /*
             for (int i = 0; i < typeNamesFound.length; i++) {
-                if (typename2Write.equals(typeNamesFound[i])) {
-                    typeExists = true;
-                    break;
-                }
+            if (typename2Write.equals(typeNamesFound[i])) {
+            typeExists = true;
+            break;
             }
+            }
+             */
 
             if (dropFirst && typeExists) {
                 // Check if DataStore is a Database
@@ -187,14 +218,11 @@ public class ActionDataStore_Writer extends Action {
         }
     }
 
-    private Feature fixFeatureTypeName(Feature feature) throws Exception {
-        String typename = fixTypename(feature.getFeatureType().getTypeName().replaceAll(" ", "_"));
+    private EasyFeature fixFeatureTypeName(EasyFeature feature) throws Exception {
+        String typename = fixTypename(feature.getTypeName().replaceAll(" ", "_"));
+        feature.setTypeName(typename);
 
-        FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(typename);
-        ftb.importType(feature.getFeatureType());
-        ftb.setName(typename);
-
-        return ftb.getFeatureType().create(feature.getAttributes(null), feature.getID());
+        return feature;
     }
 
     public Map getParams() {
@@ -205,26 +233,24 @@ public class ActionDataStore_Writer extends Action {
         return "Write to datastore: " + params.toString();
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.PARAMS,
-                        ActionFactory.APPEND,
-                        ActionFactory.DROPFIRST
-                    }, new String[]{
-                        ActionFactory.PARAMS
-                    },
-                    // Managed by ActionFactory:
-                    new String[]{
-                        ActionFactory.PARAMS,
-                        ActionFactory.APPEND,}, new String[]{
-                        ActionFactory.PARAMS,
-                        ActionFactory.DROPFIRST
-                    }
-                };
+  public static  List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.PARAMS,
+                    ActionFactory.APPEND,
+                    ActionFactory.DROPFIRST
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.PARAMS
+                }));
+
+        return constructors;
+
     }
 
     public String getDescription_NL() {
-        return "Schrijf de feature weg naar een datastore. Als de datastore een database is, kan de feature worden toegevoegd of kan de tabel worden geleegd voor het toevoegen";
+        return "Schrijf de SimpleFeature weg naar een datastore. Als de datastore een database is, kan de SimpleFeature worden toegevoegd of kan de tabel worden geleegd voor het toevoegen";
     }
 }

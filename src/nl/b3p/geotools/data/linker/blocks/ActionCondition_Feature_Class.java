@@ -4,8 +4,11 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Check a class on a given attribute
@@ -14,6 +17,7 @@ import org.geotools.feature.*;
 public class ActionCondition_Feature_Class extends ActionCondition {
 
     private Class right;
+    private boolean useGeometry = false;
 
     /**
      * Check if Class at given attributeID is equal to given columnClass
@@ -35,7 +39,16 @@ public class ActionCondition_Feature_Class extends ActionCondition {
         this.right = columnClass;
     }
 
-    public Feature execute(Feature feature) throws Exception {
+    public ActionCondition_Feature_Class(Class columnClass) {
+        this.right = columnClass;
+        this.useGeometry = true;
+    }
+
+    public EasyFeature execute(EasyFeature feature) throws Exception {
+        if (useGeometry) {
+            attributeName = feature.getFeatureType().getGeometryDescriptor().getLocalName();
+        }
+
         fixAttributeID(feature);
         Class left = feature.getAttribute(attributeID).getClass();
 
@@ -46,16 +59,24 @@ public class ActionCondition_Feature_Class extends ActionCondition {
         return "if (Column '" + (attributeName.equals("") ? attributeID : attributeName) + "' equals " + right.toString() + listsToString();
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.ATTRIBUTE_ID,
-                        ActionFactory.ATTRIBUTE_CLASS
-                    }, new String[]{
-                        ActionFactory.ATTRIBUTE_NAME,
-                        ActionFactory.ATTRIBUTE_CLASS
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_ID,
+                    ActionFactory.ATTRIBUTE_CLASS
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.ATTRIBUTE_CLASS
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.ATTRIBUTE_CLASS
+                }));
+
+        return constructors;
     }
 
     public String getDescription_NL() {

@@ -4,8 +4,8 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
-import org.geotools.feature.Feature;
 import nl.b3p.geotools.data.linker.ActionList;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * A combo has a private actionlist and is a combination of actions, which can be called by this one action
@@ -16,7 +16,7 @@ public abstract class ActionCombo extends Action {
     protected ActionList actionList = new ActionList();
 
     @Override
-    public Feature execute(Feature feature) throws Exception {
+    public EasyFeature execute(EasyFeature feature) throws Exception {
         return actionList.process(feature);
     }
 

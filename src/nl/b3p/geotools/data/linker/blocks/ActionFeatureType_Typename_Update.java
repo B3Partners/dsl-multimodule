@@ -4,8 +4,11 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
-import org.geotools.feature.*;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Change typename by overwriting it or append a String
@@ -32,15 +35,12 @@ public class ActionFeatureType_Typename_Update extends Action {
     }
 
     @Override
-    public Feature execute(Feature feature) throws Exception {
-        String typename = (append ? feature.getFeatureType().getTypeName() : "") + newTypeName;
-
-        FeatureTypeBuilder ftb = FeatureTypeBuilder.newInstance(typename);
-        ftb.importType(feature.getFeatureType());
-        ftb.setName(typename);
-
-        feature = ftb.getFeatureType().create(feature.getAttributes(null), feature.getID());
-
+    public EasyFeature execute(EasyFeature feature) throws Exception {
+        if (append) {
+            feature.setTypeName(feature.getTypeName() + newTypeName);
+        } else {
+            feature.setTypeName(newTypeName);
+        }
         return feature;
     }
 
@@ -53,18 +53,22 @@ public class ActionFeatureType_Typename_Update extends Action {
         }
     }
 
-    public static String[][] getConstructors() {
-        return new String[][]{
-                    new String[]{
-                        ActionFactory.NEW_TYPENAME
-                    }, new String[]{
-                        ActionFactory.NEW_TYPENAME,
-                        ActionFactory.APPEND
-                    }
-                };
+    public static List<List<String>> getConstructors() {
+        List<List<String>> constructors = new ArrayList<List<String>>();
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.NEW_TYPENAME
+                }));
+
+        constructors.add(Arrays.asList(new String[]{
+                    ActionFactory.NEW_TYPENAME,
+                    ActionFactory.APPEND
+                }));
+
+        return constructors;
     }
 
     public String getDescription_NL() {
-        return "Met deze Action kan bij een featureType de typenaam worden aangepast. De naam kan worden vervangen of kan worden verlengd.";
+        return "Met deze Action kan bij een SimpleFeatureType de typenaam worden aangepast. De naam kan worden vervangen of kan worden verlengd.";
     }
 }

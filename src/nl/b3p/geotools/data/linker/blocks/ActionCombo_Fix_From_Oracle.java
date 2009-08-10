@@ -5,7 +5,7 @@
 package nl.b3p.geotools.data.linker.blocks;
 
 /**
- * Transform feature for use outside Oracle
+ * Transform SimpleFeature for use outside Oracle
  * @author Gertjan
  */
 public class ActionCombo_Fix_From_Oracle extends ActionCombo {
