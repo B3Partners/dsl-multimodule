@@ -77,7 +77,7 @@ public class ActionFeature_Value_Set extends Action {
                     ActionFactory.OBJECT_REPLACE,
                     ActionFactory.APPEND
                 }));
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_ID,
                     ActionFactory.OBJECT_REPLACE,
@@ -93,7 +93,7 @@ public class ActionFeature_Value_Set extends Action {
                     ActionFactory.ATTRIBUTE_ID,
                     ActionFactory.OBJECT_REPLACE
                 }));
-
+*/
 
         return constructors;
     }

@@ -61,7 +61,6 @@ public class ActionFeatureType_Replace_Class extends Action {
 
             if (!isGeometry) {
                 String value = feature.getAttribute(attributeID).toString();
-                //feature.removeAttributeDescriptor(attributeID);
 
                 if (tryCast) {
                     feature.setAttributeDescriptor(attributeID, attributeName, newAttributeClass, false);
@@ -101,18 +100,19 @@ public class ActionFeatureType_Replace_Class extends Action {
                     ActionFactory.NEW_ATTRIBUTE_CLASS,
                     ActionFactory.TRYCAST
                 }));
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_ID,
                     ActionFactory.NEW_ATTRIBUTE_CLASS,
                     ActionFactory.TRYCAST
                 }));
-
+*/
+        /*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.NEW_ATTRIBUTE_CLASS,
                     ActionFactory.TRYCAST
                 }));
-
+*/
         return constructors;
     }
 

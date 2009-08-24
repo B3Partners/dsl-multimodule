@@ -55,11 +55,11 @@ public class ActionFeatureType_Typename_Update extends Action {
 
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.NEW_TYPENAME
                 }));
-
+*/
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.NEW_TYPENAME,
                     ActionFactory.APPEND

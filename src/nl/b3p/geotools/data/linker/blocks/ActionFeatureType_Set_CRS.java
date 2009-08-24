@@ -85,11 +85,11 @@ public class ActionFeatureType_Set_CRS extends Action {
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.SRS
                 }));
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.PARAMS
                 }));
-
+*/
         return constructors;
     }
 }

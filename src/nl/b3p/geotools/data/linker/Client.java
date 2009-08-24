@@ -39,7 +39,6 @@ public class Client {
     private static final String PRINT_STATS = "printStats";
     private static final String NO_MAIL = "noMail";
 
-
     static {
         projectProperties.put(PRINT_STATS, false);
         projectProperties.put(TO_XML, false);
@@ -80,15 +79,15 @@ public class Client {
             for (int i = 0; i < args.length; i++) {
                 tempFile = args[i];
                 String reportMessage = "";
-                Date startTime;
-                Date endTime;
+
 
                 if (args[i].toLowerCase().endsWith(".xml") || args[i].toLowerCase().endsWith(".properties")) {
                     File file = new File(args[i]);
 
                     if (file.exists() && file.isFile()) {
                         String info = "Reading \"" + file.getAbsolutePath().substring(file.getAbsolutePath().lastIndexOf("\\") + 1) + "\"\n";
-                        startTime = Calendar.getInstance().getTime();
+                        Date startTime = Calendar.getInstance().getTime();
+
                         info += "Started at " + sdf.format(startTime) + "\n";
                         reportMessage += info;
 
@@ -117,21 +116,11 @@ public class Client {
                                 throw new UnsupportedDataTypeException("File \"" + args[i] + "\" not supported; Use .properties or .xml");
                             }
 
-
                             info = DataStoreLinker.process(batch);
 
-                            endTime = Calendar.getInstance().getTime();
-                            Date total = new Date(endTime.getTime() - startTime.getTime());
+                            Date endTime = Calendar.getInstance().getTime();
+                            info += giveTimeInfo(startTime, endTime);
 
-                            double seconds = (Integer.parseInt(Long.toString((endTime.getTime() - startTime.getTime()))) / 10) / 100.0;
-                            String milliseconds = "0";
-                            if (Double.toString(seconds).contains(".")) {
-                                String value = Double.toString(seconds);
-                                milliseconds = value.substring(value.indexOf("."));
-                            }
-
-                            int minutes = total.getMinutes();
-                            info += "\n\nBatch succesful (total time:" + (minutes == 0 ? "" : " " + minutes + " minute" + (minutes == 1 ? "" : "s") + " ,") + " " + total.getSeconds() + milliseconds + " seconds)";
                             log.info(info);
                             reportMessage += "\n" + info + "\n";
 
@@ -147,7 +136,6 @@ public class Client {
                                 } catch (Exception ex) {
                                 }
                             }
-
 
                         } else {
                             throw new Exception("Filestream \"" + args[i] + "\" could not be opened");
@@ -181,6 +169,22 @@ public class Client {
             }
             throw ex;
         }
+    }
+
+    private static String giveTimeInfo(Date startTime, Date endTime) {
+        Date total = new Date(endTime.getTime() - startTime.getTime());
+
+        double seconds = (Integer.parseInt(Long.toString((endTime.getTime() - startTime.getTime()))) / 10) / 100.0;
+        String milliseconds = "0";
+        if (Double.toString(seconds).contains(".")) {
+            String value = Double.toString(seconds);
+            milliseconds = value.substring(value.indexOf("."));
+        }
+
+        int minutes = total.getMinutes();
+        int hours = total.getHours();
+
+        return "\n\nBatch succesful (total time:" + (hours == 0 ? "" : " " + hours + " hour" + (hours == 1 ? "" : "s") + " ,") + (minutes == 0 ? "" : " " + minutes + " minute" + (minutes == 1 ? "" : "s") + " ,") + " " + total.getSeconds() + milliseconds + " seconds)";
     }
 
     public static void saveAsXML(File propertiesFile) throws FileNotFoundException, IOException {

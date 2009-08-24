@@ -4,6 +4,7 @@
  */
 package nl.b3p.geotools.data.linker;
 
+import com.vividsolutions.jts.geom.Geometry;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import java.io.*;
 import java.net.URISyntaxException;
@@ -28,7 +29,6 @@ public class DataStoreLinker {
 
     private static final Log log = LogFactory.getLog(DataStoreLinker.class);
     static final Logging logging = Logging.ALL;
-    //private static final String LIST_PREFIX = "actionlist.action";
     public static final String ACTIONLIST_PREFIX = "actionlist";
     public static final String ACTION_PREFIX = "action";
     public static final String TYPE_PREFIX = "type";
@@ -38,7 +38,6 @@ public class DataStoreLinker {
     public static final String FEATURES_END = "read.features.end";
     public static final String READ_TYPENAME = "read.typename";
     public static final Map<String, String> errorMapping = new HashMap();
-
 
     static {
         // Map combination of hasError (boolean / int) and errorDescription (String)
@@ -105,10 +104,13 @@ public class DataStoreLinker {
                         if (runOnce) {
                             boolean match = false;
                             Iterator iter = errorMapping.keySet().iterator();
+
                             while (iter.hasNext() && !match) {
                                 String hasErrorKey = (String) iter.next();
+
                                 if (feature.getFeatureType().getType(hasErrorKey) != null) {
                                     String errorDesc = errorMapping.get(hasErrorKey);
+
                                     if (feature.getFeatureType().getType(errorDesc) != null) {
                                         // SimpleFeatureType contains errorReport
                                         dsHasErrorAttribute = hasErrorKey;
@@ -138,8 +140,24 @@ public class DataStoreLinker {
                                     actionList.process(new EasyFeature(feature));
                                 }
                             } else {
-                                // No error handling, process SimpleFeature
-                                actionList.process(new EasyFeature(feature));
+                                //
+                                if (feature.getDefaultGeometry() == null) {
+                                    // error, skip
+                                    errorCount++;
+                                    log.warn("Feature " + totalFeatureCount + " has no geometry (null); skipping feature");
+                                } else {
+                                    if (feature.getDefaultGeometry() instanceof Geometry) {
+                                        if (((Geometry) feature.getDefaultGeometry()).isValid()) {
+                                            actionList.process(new EasyFeature(feature));
+                                        } else {
+                                            errorCount++;
+                                            log.warn("Feature " + totalFeatureCount + " has no valid geometry (geometry.isValid() == false");
+                                        }
+                                    } else {
+                                        errorCount++;
+                                        log.warn("Feature " + totalFeatureCount + " doesn't contain a allowed geometry (geometry instanceof com.vividsolutions.jts.geom.Geometry == false)");
+                                    }
+                                }
                             }
                             processedFeatures++;
                         }
@@ -230,13 +248,13 @@ public class DataStoreLinker {
                             throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String");
                         }
                     }
-                /*
-                if (params.get(TYPE_PREFIX) instanceof String && params.get(SETTINGS_PREFIX) instanceof Map) {
-                actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), (Map) params.get(SETTINGS_PREFIX)));
-                } else {
-                throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String and " + ACTION_PREFIX + Integer.toString(count) + "." + SETTINGS_PREFIX + " to be a Map");
-                }
-                 * */
+                    /*
+                    if (params.get(TYPE_PREFIX) instanceof String && params.get(SETTINGS_PREFIX) instanceof Map) {
+                    actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), (Map) params.get(SETTINGS_PREFIX)));
+                    } else {
+                    throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String and " + ACTION_PREFIX + Integer.toString(count) + "." + SETTINGS_PREFIX + " to be a Map");
+                    }
+                     * */
                 } else {
                     throw new Exception("No type found for action" + Integer.toString(count));
                 }

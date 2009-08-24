@@ -84,13 +84,13 @@ public class ActionGeometry_Make_Point extends Action {
 
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_ID_X,
                     ActionFactory.ATTRIBUTE_ID_Y,
                     ActionFactory.SRS
                 }));
-
+*/
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_NAME_X,
                     ActionFactory.ATTRIBUTE_NAME_Y,

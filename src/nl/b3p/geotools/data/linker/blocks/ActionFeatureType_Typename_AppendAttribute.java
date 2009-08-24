@@ -44,12 +44,12 @@ public class ActionFeatureType_Typename_AppendAttribute extends Action {
 
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_ID,
                     ActionFactory.LENGTH
                 }));
-
+*/
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_NAME,
                     ActionFactory.LENGTH

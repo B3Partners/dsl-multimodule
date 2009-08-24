@@ -56,11 +56,12 @@ public class ActionFeatureType_AttributeName_Case extends Action {
                     ActionFactory.ATTRIBUTE_NAME,
                     ActionFactory.UPPERCASE
                 }));
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_ID,
                     ActionFactory.UPPERCASE
                 }));
+ */
 
         return constructors;
     }

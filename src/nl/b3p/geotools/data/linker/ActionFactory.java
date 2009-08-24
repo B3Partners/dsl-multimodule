@@ -475,6 +475,8 @@ public class ActionFactory {
                 } else {
                  */
                 found = false;
+            }else if(properties.get(prop).toString().equals("")){
+                found = false;
             }
         }
 
@@ -627,7 +629,7 @@ public class ActionFactory {
         //actionBlocks.put(ActionCombo_GeometrySplitter_Writer.class.getSimpleName(), ActionCombo_GeometrySplitter_Writer.getConstructors());
         //actionBlocks.put(ActionDataStore_Writer.class.getSimpleName(), ActionDataStore_Writer.getConstructors());
 
-        actionBlocks.put(ActionFeatureType_AttributeNames_Case.class.getSimpleName(), ActionFeatureType_AttributeName_Case.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeNames_Case.class.getSimpleName(), ActionFeatureType_AttributeNames_Case.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeName_Case.class.getSimpleName(), ActionFeatureType_AttributeName_Case.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeName_Rename.class.getSimpleName(), ActionFeatureType_AttributeName_Rename.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeType_Add.class.getSimpleName(), ActionFeatureType_AttributeType_Add.getConstructors());

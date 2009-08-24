@@ -51,12 +51,12 @@ public class ActionFeatureType_AttributeName_Rename extends Action {
                     ActionFactory.ATTRIBUTE_NAME,
                     ActionFactory.NEW_ATTRIBUTE_NAME
                 }));
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_ID,
                     ActionFactory.NEW_ATTRIBUTE_NAME
                 }));
-
+*/
         return constructors;
     }
 

@@ -49,13 +49,13 @@ public class ActionFeatureType_AttributeType_Add extends Action {
                     ActionFactory.ATTRIBUTE_NAME,
                     ActionFactory.ATTRIBUTE_CLASS
                 }));
-
+/*
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_NAME,
                     ActionFactory.ATTRIBUTE_CLASS,
                     ActionFactory.ATTRIBUTE_ID
                 }));
-
+*/
         return constructors;
     }
 
