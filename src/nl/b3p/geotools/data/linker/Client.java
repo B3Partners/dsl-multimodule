@@ -182,7 +182,8 @@ public class Client {
         }
 
         int minutes = total.getMinutes();
-        int hours = total.getHours();
+        int hours = total.getHours() - 1; // total returns hours = 1, when zero?
+        //int hours = endTime.getHours() - startTime.getHours();// problem when starttime is < 24:00 & endtime > 0:00
 
         return "\n\nBatch succesful (total time:" + (hours == 0 ? "" : " " + hours + " hour" + (hours == 1 ? "" : "s") + " ,") + (minutes == 0 ? "" : " " + minutes + " minute" + (minutes == 1 ? "" : "s") + " ,") + " " + total.getSeconds() + milliseconds + " seconds)";
     }
