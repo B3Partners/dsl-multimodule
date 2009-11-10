@@ -539,6 +539,8 @@ public class ActionFactory {
         final String DOUBLE = "java.lang.Double";
         final String INTEGER = "java.lang.Integer";
 
+        final String FLOAT = "java.lang.Float";
+
         if (map.containsKey(CLASS)) {
             if (map.containsKey(VALUE)) {
                 String value = map.get(VALUE);
@@ -554,6 +556,9 @@ public class ActionFactory {
 
                 } else if (map.get(CLASS).equals(INTEGER)) {
                     return Integer.parseInt(value);
+                
+                } else if (map.get(CLASS).equals(FLOAT)) {
+                    return Float.parseFloat(value);
                 }
 
             } else {
