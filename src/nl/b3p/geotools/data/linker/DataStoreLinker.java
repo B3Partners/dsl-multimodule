@@ -160,6 +160,8 @@ public class DataStoreLinker {
                                 }
                             }
                             processedFeatures++;
+                        }else{
+                            break;
                         }
                     }
                 } catch (Exception ex) {
