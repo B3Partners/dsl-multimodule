@@ -46,6 +46,8 @@ public class ActionFactory {
     public static final String SRS = "srs";
     public static final String URL = "url";
     public static final String SKIPFAILURES = "skip_failures";
+    public static final String REGEX = "regex";
+    public static final String REPLACEMENT = "replacement";
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
     public static Action createAction(String actionClassName, Map<String, Object> properties) throws Exception {
@@ -98,15 +100,20 @@ public class ActionFactory {
                 failedConstructor(ActionCombo_GeometrySingle_Writer.class, properties);
             }
 
-        } else if (isThisClass(actionClassName, ActionCombo_Recommended.class)) {
+        } else if (isThisClass(actionClassName, ActionCombo_Recommended_Pro.class)) {
             if (propertyCheck(properties, NEW_TYPENAME, APPEND)) {
                 String new_typename = (String) properties.get(NEW_TYPENAME);
                 boolean append = (Boolean) properties.get(APPEND);
-                return new ActionCombo_Recommended(new_typename, append);
+                return new ActionCombo_Recommended_Pro(new_typename, append);
 
             } else {
                 failedConstructor(ActionCombo_GeometrySingle_Writer.class, properties);
             }
+
+
+
+        } else if (isThisClass(actionClassName, ActionCombo_Recommended.class)) {
+            return new ActionCombo_Recommended();
 
 
             /**
@@ -684,6 +691,7 @@ public class ActionFactory {
 
         actionBlocks.put(ActionCombo_Fix_From_Oracle.class.getSimpleName(), ActionCombo_Fix_From_Oracle.getConstructors());
         actionBlocks.put(ActionCombo_Fix_To_Oracle.class.getSimpleName(), ActionCombo_Fix_To_Oracle.getConstructors());
+        actionBlocks.put(ActionCombo_Recommended_Pro.class.getSimpleName(), ActionCombo_Recommended_Pro.getConstructors());
         actionBlocks.put(ActionCombo_Recommended.class.getSimpleName(), ActionCombo_Recommended.getConstructors());
 
         //actionBlocks.put(ActionCombo_GeometrySingle_Writer.class.getSimpleName(), ActionCombo_GeometrySingle_Writer.getConstructors());
