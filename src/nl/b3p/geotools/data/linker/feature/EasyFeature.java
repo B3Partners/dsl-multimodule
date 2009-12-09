@@ -3,6 +3,8 @@ package nl.b3p.geotools.data.linker.feature;
 import com.vividsolutions.jts.geom.Geometry;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
@@ -10,7 +12,6 @@ import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.GeometryType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
@@ -18,6 +19,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
  * @author Gertjan Al, B3Partners
  */
 public class EasyFeature {
+    private static final Log log = LogFactory.getLog(EasyFeature.class);
 
     private SimpleFeature feature;
 
