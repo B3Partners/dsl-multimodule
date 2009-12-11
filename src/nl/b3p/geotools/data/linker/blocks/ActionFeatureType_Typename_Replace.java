@@ -29,17 +29,15 @@ public class ActionFeatureType_Typename_Replace extends Action {
         this.replacement = replace;
     }
 
-
     @Override
     public EasyFeature execute(EasyFeature feature) throws Exception {
         feature.setTypeName(feature.getTypeName().replaceAll(regEx, replacement));
-
         return feature;
     }
 
     @Override
     public String toString() {
-            return "regEx replacement: " + regEx + " for " + replacement;
+        return "regEx replacement: " + regEx + " for " + replacement;
     }
 
     public static List<List<String>> getConstructors() {

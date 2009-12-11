@@ -499,6 +499,24 @@ public class ActionFactory {
             }
 
 
+
+
+            /**
+             * ActionFeatureType_Typename_Replace
+             */
+        } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Replace.class)) {
+            if (propertyCheck(properties, REGEX, REPLACEMENT)) {
+                String regex = (String) properties.get(REGEX);
+                String replacement = (String) properties.get(REPLACEMENT);
+
+                return new ActionFeatureType_Typename_Replace(regex, replacement);
+            } else {
+                failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
+            }
+
+
+
+
             /**
              * Action not found
              */
@@ -710,6 +728,7 @@ public class ActionFactory {
         actionBlocks.put(ActionFeatureType_Typename_Case.class.getSimpleName(), ActionFeatureType_Typename_Case.getConstructors());
         actionBlocks.put(ActionFeatureType_Typename_Substring.class.getSimpleName(), ActionFeatureType_Typename_Substring.getConstructors());
         actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+        //actionBlocks.put(ActionFeatureType_Typename_Replace.class.getSimpleName(), ActionFeatureType_Typename_Replace.getConstructors());
 
         actionBlocks.put(ActionFeature_Value_Replace.class.getSimpleName(), ActionFeature_Value_Replace.getConstructors());
         actionBlocks.put(ActionFeature_Value_Set.class.getSimpleName(), ActionFeature_Value_Set.getConstructors());
