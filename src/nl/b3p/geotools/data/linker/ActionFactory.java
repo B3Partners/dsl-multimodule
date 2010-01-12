@@ -33,6 +33,8 @@ public class ActionFactory {
     public static final String PARAMS = "params";
     public static final String APPEND = "append";
     public static final String DROPFIRST = "drop";
+    public static final String POLIGONIZE = "poligonize";
+    public static final String POLIGONIZECLASS = "poligonizeclass";
     public static final String TRYCAST = "trycast";
     public static final String OBJECT_FIND = "object_find";
     public static final String OBJECT_REPLACE = "object_replace";
@@ -51,477 +53,449 @@ public class ActionFactory {
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
     public static Action createAction(String actionClassName, Map<String, Object> properties) throws Exception {
+        //if its a writer action:
+        if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class) ||
+                isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class) ||
+                isThisClass(actionClassName, ActionDataStore_Writer.class)) {
+                
+            Map params=null;
+            Boolean append=null;
+            Boolean dropFirst=null;
+            String polygonizeClass=null;
+            Boolean polygonize=null;
 
-        /**
-         * Create ActionCombo_GeometrySplitter_Writer
-         */
-        if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class)) {
-            if (propertyCheck(properties, PARAMS, APPEND, DROPFIRST)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean append = (Boolean) properties.get(APPEND);
-                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
-                return new ActionCombo_GeometrySplitter_Writer(params, append, dropFirst);
-
-            } else if (propertyCheck(properties, PARAMS, DROPFIRST)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
-                return new ActionCombo_GeometrySplitter_Writer(params, false, dropFirst);
-
-            } else if (propertyCheck(properties, PARAMS, APPEND)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean append = (Boolean) properties.get(APPEND);
-                return new ActionCombo_GeometrySplitter_Writer(params, append, false);
-
-            } else {
-                failedConstructor(ActionCombo_GeometrySplitter_Writer.class, properties);
+            if(propertyCheck(properties, PARAMS)){
+                params = (Map) properties.get(PARAMS);
             }
-
-
-
-
-        } else if (isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class)) {
-            if (propertyCheck(properties, PARAMS, APPEND, DROPFIRST)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean append = (Boolean) properties.get(APPEND);
-                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
-                return new ActionCombo_GeometrySingle_Writer(params, append, dropFirst);
-
-            } else if (propertyCheck(properties, PARAMS, DROPFIRST)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
-                return new ActionCombo_GeometrySingle_Writer(params, false, dropFirst);
-
-            } else if (propertyCheck(properties, PARAMS, APPEND)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean append = (Boolean) properties.get(APPEND);
-                return new ActionCombo_GeometrySingle_Writer(params, append, false);
-
-            } else {
-                failedConstructor(ActionCombo_GeometrySingle_Writer.class, properties);
+            if(propertyCheck(properties, APPEND)){
+                append = (Boolean) properties.get(APPEND);
             }
-
-        } else if (isThisClass(actionClassName, ActionCombo_Recommended_Pro.class)) {
-            if (propertyCheck(properties, NEW_TYPENAME, APPEND)) {
-                String new_typename = (String) properties.get(NEW_TYPENAME);
-                boolean append = (Boolean) properties.get(APPEND);
-                return new ActionCombo_Recommended_Pro(new_typename, append);
-
-            } else {
-                failedConstructor(ActionCombo_GeometrySingle_Writer.class, properties);
+            if(propertyCheck(properties, DROPFIRST)){
+                dropFirst = (Boolean) properties.get(DROPFIRST);
             }
-
-
-
-        } else if (isThisClass(actionClassName, ActionCombo_Recommended.class)) {
-            return new ActionCombo_Recommended();
-
-
+            if(propertyCheck(properties, POLIGONIZE)){
+                polygonize = (Boolean) properties.get(POLIGONIZE);
+            }
+            if(propertyCheck(properties, POLIGONIZECLASS)){
+                polygonizeClass = (String) properties.get(POLIGONIZECLASS);
+            }
             /**
-             * Create ActionDataStore_Writer
+             * Create ActionCombo_GeometrySplitter_Writer
              */
-        } else if (isThisClass(actionClassName, ActionDataStore_Writer.class)) {
-            if (propertyCheck(properties, PARAMS, APPEND, DROPFIRST)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean append = (Boolean) properties.get(APPEND);
-                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
-                return new ActionDataStore_Writer(params, append, dropFirst);
+            if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class)) {
+                if (params!=null) {
+                    return new ActionCombo_GeometrySplitter_Writer(params, append, dropFirst,polygonize,polygonizeClass);
+                } else {
+                    failedConstructor(ActionCombo_GeometrySplitter_Writer.class, properties);
+                }
+            }else if (isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class)) {
+                if (params!=null) {
+                    return new ActionCombo_GeometrySingle_Writer(params, append, dropFirst,polygonize,polygonizeClass);
 
-            } else if (propertyCheck(properties, PARAMS, DROPFIRST)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean dropFirst = (Boolean) properties.get(DROPFIRST);
-                return new ActionDataStore_Writer(params, false, dropFirst);
-
-            } else if (propertyCheck(properties, PARAMS, APPEND)) {
-                Map params = (Map) properties.get(PARAMS);
-                boolean append = (Boolean) properties.get(APPEND);
-                return new ActionDataStore_Writer(params, append, false);
-
-            } else if (propertyCheck(properties, PARAMS)) {
-                Map params = (Map) properties.get(PARAMS);
-                return new ActionDataStore_Writer(params);
-
-            } else {
-                failedConstructor(ActionDataStore_Writer.class, properties);
+                } else {
+                    failedConstructor(ActionCombo_GeometrySingle_Writer.class, properties);
+                }
+            }else if (isThisClass(actionClassName, ActionDataStore_Writer.class)) {
+                if (params!=null) {
+                   return new ActionDataStore_Writer(params, append, dropFirst,polygonize,polygonizeClass);
+                }else {
+                    failedConstructor(ActionDataStore_Writer.class, properties);
+                }
+                /**
+                 * Create ActionFeatureType_AttributeType_Add
+                 */
             }
-
-
-
-            /**
-             * Create ActionFeatureType_AttributeType_Add
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Add.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_NAME, ATTRIBUTE_CLASS, ATTRIBUTE_ID)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                Class attributeClass = (Class) toClass((String) properties.get(ATTRIBUTE_CLASS));
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                return new ActionFeatureType_AttributeType_Add(attributeID, attributeName, attributeClass);
-
-            } else if (propertyCheck(properties, ATTRIBUTE_NAME, ATTRIBUTE_CLASS)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                Class attributeClass = (Class) toClass((String) properties.get(ATTRIBUTE_CLASS));
-                return new ActionFeatureType_AttributeType_Add(attributeName, attributeClass);
-
-            } else {
-                failedConstructor(ActionFeatureType_AttributeType_Add.class, properties);
-            }
-
-
-
-            /**
-             * Create ActionFeatureType_AttributeType_Remove
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Remove.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_ID)) {
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                return new ActionFeatureType_AttributeType_Remove(attributeID);
-
-            } else if (propertyCheck(properties, ATTRIBUTE_NAME)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                return new ActionFeatureType_AttributeType_Remove(attributeName);
-
-            } else {
-                failedConstructor(ActionFeatureType_AttributeType_Remove.class, properties);
-            }
-
-
-
-            /**
-             * Create ActionFeatureType_Replace_Class
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Replace_Class.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_NAME, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                Class newAttributeClass = toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
-                boolean tryCast = (Boolean) properties.get(TRYCAST);
-                return new ActionFeatureType_Replace_Class(attributeName, newAttributeClass, tryCast);
-
-            } else if (propertyCheck(properties, ATTRIBUTE_ID, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                Class newAttributeClass = (Class) toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
-                boolean tryCast = (Boolean) properties.get(TRYCAST);
-                return new ActionFeatureType_Replace_Class(attributeID, newAttributeClass, tryCast);
-
-            } else if (propertyCheck(properties, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
-                Class newAttributeClass = (Class) toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
-                boolean tryCast = (Boolean) properties.get(TRYCAST);
-                return new ActionFeatureType_Replace_Class(newAttributeClass, tryCast);
-
-            } else {
-                failedConstructor(ActionFeatureType_Replace_Class.class, properties);
-            }
-
-
-
-            /**
-             * Create ActionFeatureType_AttributeName_Rename
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_AttributeName_Rename.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_NAME, NEW_ATTRIBUTE_NAME)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                String newAttributeName = (String) properties.get(NEW_ATTRIBUTE_NAME);
-                return new ActionFeatureType_AttributeName_Rename(attributeName, newAttributeName);
-
-            } else if (propertyCheck(properties, ATTRIBUTE_ID, NEW_ATTRIBUTE_NAME)) {
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                String newAttributeName = (String) properties.get(NEW_ATTRIBUTE_NAME);
-                return new ActionFeatureType_AttributeName_Rename(attributeID, newAttributeName);
-
-            } else {
-                failedConstructor(ActionFeatureType_AttributeName_Rename.class, properties);
-            }
-
-
-
-            /**
-             * Create ActionFeatureType_Typename_Update
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Update.class)) {
-            if (propertyCheck(properties, NEW_TYPENAME, APPEND)) {
-                String newTypeName = (String) properties.get(NEW_TYPENAME);
-                boolean append = (Boolean) properties.get(APPEND);
-                return new ActionFeatureType_Typename_Update(newTypeName, append);
-
-            } else if (propertyCheck(properties, NEW_TYPENAME)) {
-                String newTypeName = (String) properties.get(NEW_TYPENAME);
-                return new ActionFeatureType_Typename_Update(newTypeName);
-
-            } else {
-                failedConstructor(ActionFeatureType_Typename_Update.class, properties);
-            }
-
-
-
-            /**
-             * Create ActionFeature_Value_Replace
-             */
-        } else if (isThisClass(actionClassName, ActionFeature_Value_Replace.class)) {
-            if (propertyCheck(properties, OBJECT_FIND, OBJECT_REPLACE)) {
-                Object find = createObject((HashMap) properties.get(OBJECT_FIND));
-                Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
-                return new ActionFeature_Value_Replace(find, replace);
-
-            } else {
-                failedConstructor(ActionFeature_Value_Replace.class, properties);
-            }
-
-
-
-            /**
-             * Create ActionFeature_Value_Set
-             */
-        } else if (isThisClass(actionClassName, ActionFeature_Value_Set.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_NAME, OBJECT_REPLACE, APPEND)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
-                boolean append = (Boolean) properties.get(APPEND);
-                return new ActionFeature_Value_Set(attributeName, replace, append);
-
-            } else if (propertyCheck(properties, ATTRIBUTE_ID, OBJECT_REPLACE, APPEND)) {
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
-                boolean append = (Boolean) properties.get(APPEND);
-                return new ActionFeature_Value_Set(attributeID, replace, append);
-
-            } else if (propertyCheck(properties, ATTRIBUTE_NAME, OBJECT_REPLACE)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
-                return new ActionFeature_Value_Set(attributeName, replace);
-
-            } else if (propertyCheck(properties, ATTRIBUTE_ID, OBJECT_REPLACE)) {
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
-                return new ActionFeature_Value_Set(attributeID, replace);
-
-            } else {
-                failedConstructor(ActionFeature_Value_Set.class, properties);
-            }
-
-
-
-            /**
-             * Create ActionGeometry_Buffer
-             */
-        } else if (isThisClass(actionClassName, ActionGeometry_Buffer.class)) {
-            if (propertyCheck(properties, BUFFERSIZE)) {
-                int bufferSize = toInteger((String) properties.get(BUFFERSIZE));
-
-                return new ActionGeometry_Buffer(bufferSize);
-            } else {
-                failedConstructor(ActionGeometry_Buffer.class, properties);
-            }
-
-
-            /**
-             * Create ActionFeatureType_Typename_Case
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Case.class)) {
-            if (propertyCheck(properties, UPPERCASE)) {
-                boolean toUppercase = (Boolean) properties.get(UPPERCASE);
-
-                return new ActionFeatureType_Typename_Case(toUppercase);
-            } else {
-                failedConstructor(ActionFeatureType_Typename_Case.class, properties);
-            }
-
-
-            /**
-             * Create ActionFeatureType_Typename_Substring
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Substring.class)) {
-            if (propertyCheck(properties, BEGIN_INDEX, END_INDEX)) {
-                int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
-                int endIndex = toInteger((String) properties.get(END_INDEX));
-
-                return new ActionFeatureType_Typename_Substring(beginIndex, endIndex);
-            } else if (propertyCheck(properties, BEGIN_INDEX)) {
-                int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
-
-                return new ActionFeatureType_Typename_Substring(beginIndex);
-            } else if (propertyCheck(properties, LENGTH, REVERSE)) {
-                int length = toInteger((String) properties.get(LENGTH));
-                boolean reverse = (Boolean) properties.get(REVERSE);
-
-                return new ActionFeatureType_Typename_Substring(length, reverse);
-            } else {
-                failedConstructor(ActionFeatureType_Typename_Substring.class, properties);
-            }
-
-
-            /**
-             * Create ActionCombo_Fix_To_Oracle
-             */
-        } else if (isThisClass(actionClassName, ActionCombo_Fix_To_Oracle.class)) {
-            return new ActionCombo_Fix_To_Oracle();
-
-
-
-            /**
-             * Create ActionCombo_Fix_From_Oracle
-             */
-        } else if (isThisClass(actionClassName, ActionCombo_Fix_From_Oracle.class)) {
-            return new ActionCombo_Fix_From_Oracle();
-
-
-
-
-
-        } else if (isThisClass(actionClassName, ActionFeatureType_Set_CRS.class)) {
-            if (propertyCheck(properties, SRS)) {
-                String srs = (String) properties.get(SRS);
-
-                return new ActionFeatureType_Set_CRS(srs);
-            } else if (propertyCheck(properties, PARAMS)) {
-                HashMap metadata = (HashMap) properties.get(PARAMS);
-
-                return new ActionFeatureType_Set_CRS(metadata);
-            } else {
-                failedConstructor(ActionFeatureType_Set_CRS.class, properties);
-            }
-
-
-
-
-
-        } else if (isThisClass(actionClassName, ActionFeatureType_AttributeName_Case.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_ID, UPPERCASE)) {
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                boolean toUppercase = (Boolean) properties.get(UPPERCASE);
-
-                return new ActionFeatureType_AttributeName_Case(attributeID, toUppercase);
-            } else if (propertyCheck(properties, ATTRIBUTE_NAME, UPPERCASE)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                boolean toUppercase = (Boolean) properties.get(UPPERCASE);
-
-                return new ActionFeatureType_AttributeName_Case(attributeName, toUppercase);
-            } else {
-                failedConstructor(ActionFeatureType_AttributeName_Case.class, properties);
-            }
-
-
-
-        } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Case.class)) {
-            if (propertyCheck(properties, UPPERCASE)) {
-                boolean toUppercase = (Boolean) properties.get(UPPERCASE);
-
-                return new ActionFeatureType_AttributeNames_Case(toUppercase);
-            } else {
-                failedConstructor(ActionFeatureType_AttributeName_Case.class, properties);
-            }
-
-
-            /**
-             * ActionFeature_Value_Substring
-             */
-        } else if (isThisClass(actionClassName, ActionFeature_Value_Substring.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_NAME, END_INDEX, BEGIN_INDEX)) {
-                int endIndex = toInteger((String) properties.get(END_INDEX));
-                int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-
-                return new ActionFeature_Value_Substring(attributeName, beginIndex, endIndex);
-            } else if (propertyCheck(properties, ATTRIBUTE_NAME, BEGIN_INDEX)) {
-                int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-
-                return new ActionFeature_Value_Substring(attributeName, beginIndex);
-            } else if (propertyCheck(properties, ATTRIBUTE_ID, END_INDEX, BEGIN_INDEX)) {
-                int endIndex = toInteger((String) properties.get(END_INDEX));
-                int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-
-                return new ActionFeature_Value_Substring(attributeID, beginIndex, endIndex);
-            } else if (propertyCheck(properties, ATTRIBUTE_ID, BEGIN_INDEX)) {
-                int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-
-                return new ActionFeature_Value_Substring(attributeID, beginIndex);
-            } else {
-                failedConstructor(ActionFeature_Value_Substring.class, properties);
-            }
-
-
-            /**
-             * ActionFeature_Value_Substring_All
-             */
-        } else if (isThisClass(actionClassName, ActionFeature_Value_Substring_All.class)) {
-            if (propertyCheck(properties, END_INDEX, BEGIN_INDEX)) {
-                int endIndex = toInteger((String) properties.get(END_INDEX));
-                int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
-
-                return new ActionFeature_Value_Substring_All(beginIndex, endIndex);
-            } else if (propertyCheck(properties, BEGIN_INDEX)) {
-                int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
-
-                return new ActionFeature_Value_Substring_All(beginIndex);
-            } else {
-                failedConstructor(ActionFeature_Value_Substring_All.class, properties);
-            }
-
-
-            /**
-             * ActionFeatureType_Typename_AppendAttribute
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Typename_AppendAttribute.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_ID, LENGTH)) {
-                int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
-                int maxLength = toInteger((String) properties.get(LENGTH));
-
-                return new ActionFeatureType_Typename_AppendAttribute(attributeID, maxLength);
-            } else if (propertyCheck(properties, ATTRIBUTE_NAME, LENGTH)) {
-                String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                int maxLength = toInteger((String) properties.get(LENGTH));
-
-                return new ActionFeatureType_Typename_AppendAttribute(attributeName, maxLength);
-            } else {
-                failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
-            }
-
-
-
-            /**
-             * ActionGeometry_Make_Point
-             */
-        } else if (isThisClass(actionClassName, ActionGeometry_Make_Point.class)) {
-            if (propertyCheck(properties, ATTRIBUTE_ID_X, ATTRIBUTE_ID_Y, SRS)) {
-                int attributeIDx = toInteger((String) properties.get(ATTRIBUTE_ID_X));
-                int attributeIDy = toInteger((String) properties.get(ATTRIBUTE_ID_Y));
-                String srs = (String) properties.get(SRS);
-
-                return new ActionGeometry_Make_Point(attributeIDx, attributeIDy, srs);
-            } else if (propertyCheck(properties, ATTRIBUTE_NAME_X, ATTRIBUTE_NAME_Y, SRS)) {
-                String attributeNamex = (String) properties.get(ATTRIBUTE_NAME_X);
-                String attributeNamey = (String) properties.get(ATTRIBUTE_NAME_Y);
-                String srs = (String) properties.get(SRS);
-
-                return new ActionGeometry_Make_Point(attributeNamex, attributeNamey, srs);
-            } else {
-                failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
-            }
-
-
-
-
-            /**
-             * ActionFeatureType_Typename_Replace
-             */
-        } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Replace.class)) {
-            if (propertyCheck(properties, REGEX, REPLACEMENT)) {
-                String regex = (String) properties.get(REGEX);
-                String replacement = (String) properties.get(REPLACEMENT);
-
-                return new ActionFeatureType_Typename_Replace(regex, replacement);
-            } else {
-                failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
-            }
-
-
-
-
-            /**
-             * Action not found
-             */
         } else {
-            throw new UnsupportedOperationException(actionClassName + " is not yet implemented in ActionFactory");
+             if (isThisClass(actionClassName, ActionCombo_Recommended_Pro.class)) {
+                if (propertyCheck(properties, NEW_TYPENAME, APPEND)) {
+                    String new_typename = (String) properties.get(NEW_TYPENAME);
+                    boolean append = (Boolean) properties.get(APPEND);
+                    return new ActionCombo_Recommended_Pro(new_typename, append);
+
+                } else {
+                    failedConstructor(ActionCombo_GeometrySingle_Writer.class, properties);
+                }
+            } else if (isThisClass(actionClassName, ActionCombo_Recommended.class)) {
+                return new ActionCombo_Recommended();
+
+
+                /**
+                 * Create ActionDataStore_Writer
+                 */
+            }  else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Add.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_NAME, ATTRIBUTE_CLASS, ATTRIBUTE_ID)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    Class attributeClass = (Class) toClass((String) properties.get(ATTRIBUTE_CLASS));
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    return new ActionFeatureType_AttributeType_Add(attributeID, attributeName, attributeClass);
+
+                } else if (propertyCheck(properties, ATTRIBUTE_NAME, ATTRIBUTE_CLASS)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    Class attributeClass = (Class) toClass((String) properties.get(ATTRIBUTE_CLASS));
+                    return new ActionFeatureType_AttributeType_Add(attributeName, attributeClass);
+
+                } else {
+                    failedConstructor(ActionFeatureType_AttributeType_Add.class, properties);
+                }
+
+
+
+                /**
+                 * Create ActionFeatureType_AttributeType_Remove
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Remove.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_ID)) {
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    return new ActionFeatureType_AttributeType_Remove(attributeID);
+
+                } else if (propertyCheck(properties, ATTRIBUTE_NAME)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    return new ActionFeatureType_AttributeType_Remove(attributeName);
+
+                } else {
+                    failedConstructor(ActionFeatureType_AttributeType_Remove.class, properties);
+                }
+
+
+
+                /**
+                 * Create ActionFeatureType_Replace_Class
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_Replace_Class.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_NAME, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    Class newAttributeClass = toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
+                    boolean tryCast = (Boolean) properties.get(TRYCAST);
+                    return new ActionFeatureType_Replace_Class(attributeName, newAttributeClass, tryCast);
+
+                } else if (propertyCheck(properties, ATTRIBUTE_ID, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    Class newAttributeClass = (Class) toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
+                    boolean tryCast = (Boolean) properties.get(TRYCAST);
+                    return new ActionFeatureType_Replace_Class(attributeID, newAttributeClass, tryCast);
+
+                } else if (propertyCheck(properties, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
+                    Class newAttributeClass = (Class) toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
+                    boolean tryCast = (Boolean) properties.get(TRYCAST);
+                    return new ActionFeatureType_Replace_Class(newAttributeClass, tryCast);
+
+                } else {
+                    failedConstructor(ActionFeatureType_Replace_Class.class, properties);
+                }
+
+
+
+                /**
+                 * Create ActionFeatureType_AttributeName_Rename
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeName_Rename.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_NAME, NEW_ATTRIBUTE_NAME)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    String newAttributeName = (String) properties.get(NEW_ATTRIBUTE_NAME);
+                    return new ActionFeatureType_AttributeName_Rename(attributeName, newAttributeName);
+
+                } else if (propertyCheck(properties, ATTRIBUTE_ID, NEW_ATTRIBUTE_NAME)) {
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    String newAttributeName = (String) properties.get(NEW_ATTRIBUTE_NAME);
+                    return new ActionFeatureType_AttributeName_Rename(attributeID, newAttributeName);
+
+                } else {
+                    failedConstructor(ActionFeatureType_AttributeName_Rename.class, properties);
+                }
+
+
+
+                /**
+                 * Create ActionFeatureType_Typename_Update
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Update.class)) {
+                if (propertyCheck(properties, NEW_TYPENAME, APPEND)) {
+                    String newTypeName = (String) properties.get(NEW_TYPENAME);
+                    boolean append = (Boolean) properties.get(APPEND);
+                    return new ActionFeatureType_Typename_Update(newTypeName, append);
+
+                } else if (propertyCheck(properties, NEW_TYPENAME)) {
+                    String newTypeName = (String) properties.get(NEW_TYPENAME);
+                    return new ActionFeatureType_Typename_Update(newTypeName);
+
+                } else {
+                    failedConstructor(ActionFeatureType_Typename_Update.class, properties);
+                }
+
+
+
+                /**
+                 * Create ActionFeature_Value_Replace
+                 */
+            } else if (isThisClass(actionClassName, ActionFeature_Value_Replace.class)) {
+                if (propertyCheck(properties, OBJECT_FIND, OBJECT_REPLACE)) {
+                    Object find = createObject((HashMap) properties.get(OBJECT_FIND));
+                    Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
+                    return new ActionFeature_Value_Replace(find, replace);
+
+                } else {
+                    failedConstructor(ActionFeature_Value_Replace.class, properties);
+                }
+
+
+
+                /**
+                 * Create ActionFeature_Value_Set
+                 */
+            } else if (isThisClass(actionClassName, ActionFeature_Value_Set.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_NAME, OBJECT_REPLACE, APPEND)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
+                    boolean append = (Boolean) properties.get(APPEND);
+                    return new ActionFeature_Value_Set(attributeName, replace, append);
+
+                } else if (propertyCheck(properties, ATTRIBUTE_ID, OBJECT_REPLACE, APPEND)) {
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
+                    boolean append = (Boolean) properties.get(APPEND);
+                    return new ActionFeature_Value_Set(attributeID, replace, append);
+
+                } else if (propertyCheck(properties, ATTRIBUTE_NAME, OBJECT_REPLACE)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
+                    return new ActionFeature_Value_Set(attributeName, replace);
+
+                } else if (propertyCheck(properties, ATTRIBUTE_ID, OBJECT_REPLACE)) {
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
+                    return new ActionFeature_Value_Set(attributeID, replace);
+
+                } else {
+                    failedConstructor(ActionFeature_Value_Set.class, properties);
+                }
+
+
+
+                /**
+                 * Create ActionGeometry_Buffer
+                 */
+            } else if (isThisClass(actionClassName, ActionGeometry_Buffer.class)) {
+                if (propertyCheck(properties, BUFFERSIZE)) {
+                    int bufferSize = toInteger((String) properties.get(BUFFERSIZE));
+
+                    return new ActionGeometry_Buffer(bufferSize);
+                } else {
+                    failedConstructor(ActionGeometry_Buffer.class, properties);
+                }
+
+
+                /**
+                 * Create ActionFeatureType_Typename_Case
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Case.class)) {
+                if (propertyCheck(properties, UPPERCASE)) {
+                    boolean toUppercase = (Boolean) properties.get(UPPERCASE);
+
+                    return new ActionFeatureType_Typename_Case(toUppercase);
+                } else {
+                    failedConstructor(ActionFeatureType_Typename_Case.class, properties);
+                }
+
+
+                /**
+                 * Create ActionFeatureType_Typename_Substring
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Substring.class)) {
+                if (propertyCheck(properties, BEGIN_INDEX, END_INDEX)) {
+                    int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
+                    int endIndex = toInteger((String) properties.get(END_INDEX));
+
+                    return new ActionFeatureType_Typename_Substring(beginIndex, endIndex);
+                } else if (propertyCheck(properties, BEGIN_INDEX)) {
+                    int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
+
+                    return new ActionFeatureType_Typename_Substring(beginIndex);
+                } else if (propertyCheck(properties, LENGTH, REVERSE)) {
+                    int length = toInteger((String) properties.get(LENGTH));
+                    boolean reverse = (Boolean) properties.get(REVERSE);
+
+                    return new ActionFeatureType_Typename_Substring(length, reverse);
+                } else {
+                    failedConstructor(ActionFeatureType_Typename_Substring.class, properties);
+                }
+
+
+                /**
+                 * Create ActionCombo_Fix_To_Oracle
+                 */
+            } else if (isThisClass(actionClassName, ActionCombo_Fix_To_Oracle.class)) {
+                return new ActionCombo_Fix_To_Oracle();
+
+
+
+                /**
+                 * Create ActionCombo_Fix_From_Oracle
+                 */
+            } else if (isThisClass(actionClassName, ActionCombo_Fix_From_Oracle.class)) {
+                return new ActionCombo_Fix_From_Oracle();
+
+
+
+
+
+            } else if (isThisClass(actionClassName, ActionFeatureType_Set_CRS.class)) {
+                if (propertyCheck(properties, SRS)) {
+                    String srs = (String) properties.get(SRS);
+
+                    return new ActionFeatureType_Set_CRS(srs);
+                } else if (propertyCheck(properties, PARAMS)) {
+                    HashMap metadata = (HashMap) properties.get(PARAMS);
+
+                    return new ActionFeatureType_Set_CRS(metadata);
+                } else {
+                    failedConstructor(ActionFeatureType_Set_CRS.class, properties);
+                }
+
+
+
+
+
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeName_Case.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_ID, UPPERCASE)) {
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    boolean toUppercase = (Boolean) properties.get(UPPERCASE);
+
+                    return new ActionFeatureType_AttributeName_Case(attributeID, toUppercase);
+                } else if (propertyCheck(properties, ATTRIBUTE_NAME, UPPERCASE)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    boolean toUppercase = (Boolean) properties.get(UPPERCASE);
+
+                    return new ActionFeatureType_AttributeName_Case(attributeName, toUppercase);
+                } else {
+                    failedConstructor(ActionFeatureType_AttributeName_Case.class, properties);
+                }
+
+
+
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Case.class)) {
+                if (propertyCheck(properties, UPPERCASE)) {
+                    boolean toUppercase = (Boolean) properties.get(UPPERCASE);
+
+                    return new ActionFeatureType_AttributeNames_Case(toUppercase);
+                } else {
+                    failedConstructor(ActionFeatureType_AttributeName_Case.class, properties);
+                }
+
+
+                /**
+                 * ActionFeature_Value_Substring
+                 */
+            } else if (isThisClass(actionClassName, ActionFeature_Value_Substring.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_NAME, END_INDEX, BEGIN_INDEX)) {
+                    int endIndex = toInteger((String) properties.get(END_INDEX));
+                    int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+
+                    return new ActionFeature_Value_Substring(attributeName, beginIndex, endIndex);
+                } else if (propertyCheck(properties, ATTRIBUTE_NAME, BEGIN_INDEX)) {
+                    int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+
+                    return new ActionFeature_Value_Substring(attributeName, beginIndex);
+                } else if (propertyCheck(properties, ATTRIBUTE_ID, END_INDEX, BEGIN_INDEX)) {
+                    int endIndex = toInteger((String) properties.get(END_INDEX));
+                    int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+
+                    return new ActionFeature_Value_Substring(attributeID, beginIndex, endIndex);
+                } else if (propertyCheck(properties, ATTRIBUTE_ID, BEGIN_INDEX)) {
+                    int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+
+                    return new ActionFeature_Value_Substring(attributeID, beginIndex);
+                } else {
+                    failedConstructor(ActionFeature_Value_Substring.class, properties);
+                }
+
+
+                /**
+                 * ActionFeature_Value_Substring_All
+                 */
+            } else if (isThisClass(actionClassName, ActionFeature_Value_Substring_All.class)) {
+                if (propertyCheck(properties, END_INDEX, BEGIN_INDEX)) {
+                    int endIndex = toInteger((String) properties.get(END_INDEX));
+                    int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
+
+                    return new ActionFeature_Value_Substring_All(beginIndex, endIndex);
+                } else if (propertyCheck(properties, BEGIN_INDEX)) {
+                    int beginIndex = toInteger((String) properties.get(BEGIN_INDEX));
+
+                    return new ActionFeature_Value_Substring_All(beginIndex);
+                } else {
+                    failedConstructor(ActionFeature_Value_Substring_All.class, properties);
+                }
+
+
+                /**
+                 * ActionFeatureType_Typename_AppendAttribute
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_Typename_AppendAttribute.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_ID, LENGTH)) {
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    int maxLength = toInteger((String) properties.get(LENGTH));
+
+                    return new ActionFeatureType_Typename_AppendAttribute(attributeID, maxLength);
+                } else if (propertyCheck(properties, ATTRIBUTE_NAME, LENGTH)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    int maxLength = toInteger((String) properties.get(LENGTH));
+
+                    return new ActionFeatureType_Typename_AppendAttribute(attributeName, maxLength);
+                } else {
+                    failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
+                }
+
+
+
+                /**
+                 * ActionGeometry_Make_Point
+                 */
+            } else if (isThisClass(actionClassName, ActionGeometry_Make_Point.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_ID_X, ATTRIBUTE_ID_Y, SRS)) {
+                    int attributeIDx = toInteger((String) properties.get(ATTRIBUTE_ID_X));
+                    int attributeIDy = toInteger((String) properties.get(ATTRIBUTE_ID_Y));
+                    String srs = (String) properties.get(SRS);
+
+                    return new ActionGeometry_Make_Point(attributeIDx, attributeIDy, srs);
+                } else if (propertyCheck(properties, ATTRIBUTE_NAME_X, ATTRIBUTE_NAME_Y, SRS)) {
+                    String attributeNamex = (String) properties.get(ATTRIBUTE_NAME_X);
+                    String attributeNamey = (String) properties.get(ATTRIBUTE_NAME_Y);
+                    String srs = (String) properties.get(SRS);
+
+                    return new ActionGeometry_Make_Point(attributeNamex, attributeNamey, srs);
+                } else {
+                    failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
+                }
+
+
+
+
+                /**
+                 * ActionFeatureType_Typename_Replace
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Replace.class)) {
+                if (propertyCheck(properties, REGEX, REPLACEMENT)) {
+                    String regex = (String) properties.get(REGEX);
+                    String replacement = (String) properties.get(REPLACEMENT);
+
+                    return new ActionFeatureType_Typename_Replace(regex, replacement);
+                } else {
+                    failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
+                }
+
+
+
+
+                /**
+                 * Action not found
+                 */
+            } else {
+                throw new UnsupportedOperationException(actionClassName + " is not yet implemented in ActionFactory");
+            }
         }
 
         return null;

@@ -31,6 +31,8 @@ public class ActionDataStore_Writer extends Action {
     private Map params;
     private final boolean append;
     private final boolean dropFirst;
+    private final boolean polygonize;
+    private final String polygonizeClass;
     private Exception constructorEx;
     private HashMap<String, FeatureWriter> featureWriters = new HashMap();
     private HashMap<String, String> checked = new HashMap();
@@ -38,10 +40,27 @@ public class ActionDataStore_Writer extends Action {
     private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
 
-    public ActionDataStore_Writer(Map params, boolean append, boolean dropFirst) {
+    public ActionDataStore_Writer(Map params, Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClass){
         this.params = params;
-        this.append = append;
-        this.dropFirst = dropFirst;
+        if (append!=null)
+            this.append = append;
+        else
+            this.append=false;
+
+        if (dropFirst!=null)
+            this.dropFirst=dropFirst;
+        else
+            this.dropFirst=true;
+
+        if(polygonize!=null)
+            this.polygonize= polygonize;
+        else
+            this.polygonize=false;
+
+        if (polygonizeClass!=null)
+            this.polygonizeClass=polygonizeClass;
+        else
+            this.polygonizeClass=null;
 
         if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
@@ -55,23 +74,12 @@ public class ActionDataStore_Writer extends Action {
             constructorEx = ex;
         }
     }
+    public ActionDataStore_Writer(Map params, Boolean append, Boolean dropFirst) {
+        this(params,append,dropFirst,null,null);
+    }
 
     public ActionDataStore_Writer(Map params) {
-        this.params = params;
-        this.append = false;
-        this.dropFirst = true;
-
-        if (!params.containsKey(MAX_CONNECTIONS)) {
-            params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
-        }
-
-        try {
-            dataStore2Write = DataStoreLinker.openDataStore(params);
-            initDone = (dataStore2Write != null);
-
-        } catch (Exception ex) {
-            constructorEx = ex;
-        }
+        this(params,null,null);
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {

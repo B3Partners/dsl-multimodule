@@ -21,7 +21,7 @@ public abstract class Action {
 
     protected String attributeName = "";
     protected int attributeID = -1;
-    protected static final Log log = LogFactory.getLog(DataStoreLinker.class);
+    protected static final Log log = LogFactory.getLog(Action.class);
     public static final String THE_GEOM = "the_geom";
 
     abstract public EasyFeature execute(EasyFeature feature) throws Exception;

@@ -19,9 +19,9 @@ import nl.b3p.geotools.data.linker.ActionFactory;
  */
 public class ActionCombo_GeometrySingle_Writer extends ActionCombo {
 
-    public ActionCombo_GeometrySingle_Writer(Map params, boolean append, boolean dropFirst) {
+    public ActionCombo_GeometrySingle_Writer(Map params, boolean append, boolean dropFirst, Boolean polygonize, String polygonizeClass) {
 
-        ActionDataStore_Writer datastore = new ActionDataStore_Writer(new HashMap(params), append, dropFirst);
+        ActionDataStore_Writer datastore = new ActionDataStore_Writer(new HashMap(params), append, dropFirst, polygonize, polygonizeClass);
 
         ActionCondition_Feature_Class condition_P = new ActionCondition_Feature_Class(Point.class);
         ActionCondition_Feature_Class condition_L = new ActionCondition_Feature_Class(LineString.class);
