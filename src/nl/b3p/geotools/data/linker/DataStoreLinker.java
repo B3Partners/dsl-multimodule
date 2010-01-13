@@ -164,6 +164,7 @@ public class DataStoreLinker {
                             break;
                         }
                     }
+                    actionList.processPostCollectionActions();
                 } catch (Exception ex) {
                     actionList.close();
                     throw ex;

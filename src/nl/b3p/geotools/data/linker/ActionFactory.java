@@ -33,8 +33,14 @@ public class ActionFactory {
     public static final String PARAMS = "params";
     public static final String APPEND = "append";
     public static final String DROPFIRST = "drop";
-    public static final String POLIGONIZE = "poligonize";
-    public static final String POLIGONIZECLASS = "poligonizeclass";
+    //Property may be true or false. Set to true if you want to polygonize all the lines in the RESULTING LINE TABLE
+    public static final String POLYGONIZE = "polygonize";
+    //Set the attribute which you want to use to classificate the lines. Lines with same value will be polygonized.
+    public static final String POLYGONIZE_CLASSIFICATION_ATTRIBUTE = "polygonize_classification_attribute";
+    //Set the beginning of the value that is used to classificate the line. (substring begin)
+    public static final String POLYGONIZE_CLASSIFICATION_BEGIN="polygonize_classification_begin";
+    //Set the end of the value that is used to classificate the line. (substring end)
+    public static final String POLYGONIZE_CLASSIFICATION_END="polygonize_classification_end";
     public static final String TRYCAST = "trycast";
     public static final String OBJECT_FIND = "object_find";
     public static final String OBJECT_REPLACE = "object_replace";
@@ -59,45 +65,29 @@ public class ActionFactory {
                 isThisClass(actionClassName, ActionDataStore_Writer.class)) {
                 
             Map params=null;
-            Boolean append=null;
-            Boolean dropFirst=null;
-            String polygonizeClass=null;
-            Boolean polygonize=null;
-
+            
             if(propertyCheck(properties, PARAMS)){
                 params = (Map) properties.get(PARAMS);
-            }
-            if(propertyCheck(properties, APPEND)){
-                append = (Boolean) properties.get(APPEND);
-            }
-            if(propertyCheck(properties, DROPFIRST)){
-                dropFirst = (Boolean) properties.get(DROPFIRST);
-            }
-            if(propertyCheck(properties, POLIGONIZE)){
-                polygonize = (Boolean) properties.get(POLIGONIZE);
-            }
-            if(propertyCheck(properties, POLIGONIZECLASS)){
-                polygonizeClass = (String) properties.get(POLIGONIZECLASS);
-            }
+            }            
             /**
              * Create ActionCombo_GeometrySplitter_Writer
              */
             if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class)) {
                 if (params!=null) {
-                    return new ActionCombo_GeometrySplitter_Writer(params, append, dropFirst,polygonize,polygonizeClass);
+                    return new ActionCombo_GeometrySplitter_Writer(params, properties);
                 } else {
                     failedConstructor(ActionCombo_GeometrySplitter_Writer.class, properties);
                 }
             }else if (isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class)) {
                 if (params!=null) {
-                    return new ActionCombo_GeometrySingle_Writer(params, append, dropFirst,polygonize,polygonizeClass);
+                    return new ActionCombo_GeometrySingle_Writer(params, properties);
 
                 } else {
                     failedConstructor(ActionCombo_GeometrySingle_Writer.class, properties);
                 }
             }else if (isThisClass(actionClassName, ActionDataStore_Writer.class)) {
                 if (params!=null) {
-                   return new ActionDataStore_Writer(params, append, dropFirst,polygonize,polygonizeClass);
+                   return new ActionDataStore_Writer(params, properties);
                 }else {
                     failedConstructor(ActionDataStore_Writer.class, properties);
                 }
@@ -504,7 +494,7 @@ public class ActionFactory {
     /**
      * Check if properties map contains all properties wanted
      */
-    private static boolean propertyCheck(Map properties, String... find) {
+    public static boolean propertyCheck(Map properties, String... find) {
         boolean found = true;
 
         for (String prop : find) {

@@ -18,10 +18,10 @@ import nl.b3p.geotools.data.linker.ActionFactory;
  * @author Gertjan Al, B3Partners
  */
 public class ActionCombo_GeometrySingle_Writer extends ActionCombo {
+    public final ActionDataStore_Writer datastore;
+    public ActionCombo_GeometrySingle_Writer(Map params, Map properties) {
 
-    public ActionCombo_GeometrySingle_Writer(Map params, boolean append, boolean dropFirst, Boolean polygonize, String polygonizeClass) {
-
-        ActionDataStore_Writer datastore = new ActionDataStore_Writer(new HashMap(params), append, dropFirst, polygonize, polygonizeClass);
+        datastore = new ActionDataStore_Writer(new HashMap(params), new HashMap(properties));
 
         ActionCondition_Feature_Class condition_P = new ActionCondition_Feature_Class(Point.class);
         ActionCondition_Feature_Class condition_L = new ActionCondition_Feature_Class(LineString.class);
@@ -91,6 +91,11 @@ public class ActionCombo_GeometrySingle_Writer extends ActionCombo {
         return constructors;
     }
 
+    @Override
+    public void processPostCollectionActions(){
+        datastore.processPostCollectionActions();
+    }
+    
     public String getDescription_NL() {
         return "Pas de geometry in het SimpleFeatureType aan aan de geometry in de SimpleFeature. Let op; er mag dus maar één geometry soort worden ingeladen";
     }

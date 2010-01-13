@@ -73,4 +73,8 @@ public abstract class Action {
         // Override this if necessary
         // Used for closing iterator or reader / writer
     }
+
+    public void processPostCollectionActions(){
+        
+    }
 }

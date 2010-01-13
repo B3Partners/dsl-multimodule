@@ -17,10 +17,10 @@ import nl.b3p.geotools.data.linker.ActionFactory;
  * @author Gertjan Al, B3Partners
  */
 public class ActionCombo_GeometrySplitter_Writer extends ActionCombo {
+    public final ActionDataStore_Writer datastore;
+    public ActionCombo_GeometrySplitter_Writer(Map params, Map properties) {
 
-    public ActionCombo_GeometrySplitter_Writer(Map params, Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClass) {
-
-        ActionDataStore_Writer datastore = new ActionDataStore_Writer(new HashMap(params), append, dropFirst, polygonize, polygonizeClass);
+        datastore = new ActionDataStore_Writer(new HashMap(params), new HashMap(properties));
 
 
         ActionCondition_Feature_Class condition_P = new ActionCondition_Feature_Class(Point.class);
@@ -97,6 +97,11 @@ public class ActionCombo_GeometrySplitter_Writer extends ActionCombo {
 
         return constructors;
 
+    }
+
+    @Override
+    public void processPostCollectionActions(){
+        datastore.processPostCollectionActions();
     }
 
     public String getDescription_NL() {

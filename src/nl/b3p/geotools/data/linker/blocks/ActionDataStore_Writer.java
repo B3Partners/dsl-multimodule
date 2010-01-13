@@ -2,6 +2,8 @@ package nl.b3p.geotools.data.linker.blocks;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiLineString;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,9 +18,11 @@ import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.data.jdbc.JDBCDataStore;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.IllegalAttributeException;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.GeometryType;
 
 /**
  * Write to a datastore (file or JDBC)
@@ -32,38 +36,40 @@ public class ActionDataStore_Writer extends Action {
     private final boolean append;
     private final boolean dropFirst;
     private final boolean polygonize;
-    private final String polygonizeClass;
     private Exception constructorEx;
     private HashMap<String, FeatureWriter> featureWriters = new HashMap();
     private HashMap<String, String> checked = new HashMap();
+    private ArrayList<String> featureTypeNames = new ArrayList();
     private static final int MAX_CONNECTIONS_NR = 50;
     private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
+    private ArrayList<CollectionAction> collectionActions = new ArrayList();
 
-    public ActionDataStore_Writer(Map params, Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClass){
+    public ActionDataStore_Writer(Map params, Map properties) {// Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClassificationAttribute){
         this.params = params;
-        if (append!=null)
-            this.append = append;
-        else
-            this.append=false;
-
-        if (dropFirst!=null)
-            this.dropFirst=dropFirst;
-        else
-            this.dropFirst=true;
-
-        if(polygonize!=null)
-            this.polygonize= polygonize;
-        else
-            this.polygonize=false;
-
-        if (polygonizeClass!=null)
-            this.polygonizeClass=polygonizeClass;
-        else
-            this.polygonizeClass=null;
-
+        parseProperties(properties);
+        if (ActionFactory.propertyCheck(properties, ActionFactory.APPEND)) {
+            append = (Boolean) properties.get(ActionFactory.APPEND);
+        } else {
+            append = false;
+        }
+        if (ActionFactory.propertyCheck(properties, ActionFactory.DROPFIRST)) {
+            dropFirst = (Boolean) properties.get(ActionFactory.DROPFIRST);
+        } else {
+            dropFirst = true;
+        }
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE)) {
+            polygonize = (Boolean) properties.get(ActionFactory.POLYGONIZE);
+        } else {
+            polygonize = false;
+        }
+        
         if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
+        }
+
+        if (this.polygonize) {
+            collectionActions.add(new CollectionAction_Polygonize(new HashMap(properties)));
         }
 
         try {
@@ -74,14 +80,13 @@ public class ActionDataStore_Writer extends Action {
             constructorEx = ex;
         }
     }
-    public ActionDataStore_Writer(Map params, Boolean append, Boolean dropFirst) {
-        this(params,append,dropFirst,null,null);
-    }
+    /* public ActionDataStore_Writer(Map params, Boolean append, Boolean dropFirst) {
+    this(params,append,dropFirst,null,null);
+    }*/
 
-    public ActionDataStore_Writer(Map params) {
-        this(params,null,null);
-    }
-
+    /*public ActionDataStore_Writer(Map params) {
+    this(params,null,null);
+    }*/
     public EasyFeature execute(EasyFeature feature) throws Exception {
         if (!initDone) {
             throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file.\nUsed parameters:\n" + params.toString() + "\n\n" + constructorEx.getLocalizedMessage());
@@ -89,7 +94,10 @@ public class ActionDataStore_Writer extends Action {
         } else {
             feature = fixFeatureTypeName(feature);
             String typename = feature.getFeatureType().getTypeName();
-
+            //store the typename
+            if (!featureTypeNames.contains(typename)) {
+                featureTypeNames.add(typename);
+            }
             FeatureWriter writer;
             if (featureWriters.containsKey(typename)) {
                 writer = featureWriters.get(typename);
@@ -138,6 +146,32 @@ public class ActionDataStore_Writer extends Action {
     public void close() throws Exception {
         closeConnections();
         dataStore2Write.dispose();
+    }
+
+    @Override
+    public void processPostCollectionActions() {
+        for (int i = 0; i < collectionActions.size(); i++) {
+            CollectionAction ca = collectionActions.get(i);
+            //do the polygonize function
+            if (ca instanceof CollectionAction_Polygonize) {
+                for (int s = 0; s < featureTypeNames.size(); s++) {
+                    try {
+                        Class geometryTypeBinding = dataStore2Write.getSchema(featureTypeNames.get(s)).getGeometryDescriptor().getType().getBinding();
+                        if (LineString.class == geometryTypeBinding || MultiLineString.class == geometryTypeBinding) {
+                            FeatureSource fs = dataStore2Write.getFeatureSource(featureTypeNames.get(s));
+                            FeatureCollection fc = fs.getFeatures();
+                            ArrayList<EasyFeature> features = ca.execute(fc);
+                            for (int f = 0; f < features.size(); f++) {
+                                execute(features.get(f));
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("Error while Polygonizing the lines.", e);
+                    }
+                }
+
+            }
+        }
     }
 
     private void write(FeatureWriter writer, SimpleFeature feature) throws IOException {
@@ -237,7 +271,7 @@ public class ActionDataStore_Writer extends Action {
         return "Write to datastore: " + params.toString();
     }
 
-  public static  List<List<String>> getConstructors() {
+    public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
         constructors.add(Arrays.asList(new String[]{
@@ -256,5 +290,14 @@ public class ActionDataStore_Writer extends Action {
 
     public String getDescription_NL() {
         return "Schrijf de SimpleFeature weg naar een datastore. Als de datastore een database is, kan de SimpleFeature worden toegevoegd of kan de tabel worden geleegd voor het toevoegen";
+    }
+
+    private void parseProperties(Map properties) {
+        /* Boolean append=null;
+        Boolean dropFirst=null;
+        String polygonizeClassificationAttribute=null;
+        Boolean polygonize=null;
+        Integer polygonizeClassificationBegin=null;
+        Integer polygonizeClassificationEnd=null;*/
     }
 }

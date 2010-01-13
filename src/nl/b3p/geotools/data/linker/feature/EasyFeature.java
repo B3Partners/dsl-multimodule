@@ -93,7 +93,6 @@ public class EasyFeature {
         // Create feature attributes list
         List<Object> attributes = feature.getAttributes();
         attributes.add(attributeID, null);
-
         // Build new feature with new values array
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
     }

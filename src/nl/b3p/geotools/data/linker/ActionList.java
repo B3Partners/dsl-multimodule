@@ -92,4 +92,12 @@ public class ActionList extends ArrayList<Action> {
         }
         return result;
     }
+
+    public void processPostCollectionActions() {
+        Iterator iter = iterator();
+        while (iter.hasNext()) {
+            Action action = (Action) iter.next();
+            action.processPostCollectionActions();
+        }
+    }
 }
