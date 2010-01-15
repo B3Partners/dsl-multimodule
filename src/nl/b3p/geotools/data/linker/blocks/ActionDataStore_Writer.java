@@ -100,7 +100,6 @@ public class ActionDataStore_Writer extends Action {
             FeatureWriter writer;
             if (featureWriters.containsKey(typename)) {
                 writer = featureWriters.get(typename);
-
             } else {
 
                 if (featureWriters.size() + 1 == MAX_CONNECTIONS_NR) {
@@ -137,6 +136,8 @@ public class ActionDataStore_Writer extends Action {
                     }
                 } catch (Exception ex) {
                     log.error("Error getting geometry. Feature not written: "+feature.toString(), ex);
+                    //Remove writer so a new writer is created when the next feature is processed
+                    featureWriters.remove(typename);
                 }
             }
         }
