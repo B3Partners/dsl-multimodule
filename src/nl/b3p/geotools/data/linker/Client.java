@@ -56,6 +56,12 @@ public class Client {
         if (log4j_url == null) {
             throw new IOException("Unable to locate log4j.properties in package " + Client.class.getPackage().toString());
         }
+        //logger for geotools
+        try {
+            logging.setLoggerFactory("org.geotools.util.logging.Log4JLoggerFactory");
+        } catch (ClassNotFoundException log4jException) {
+            log.error("error: ",log4jException);
+        }
 
         Properties p = new Properties();
         p.load(log4j_url.openStream());

@@ -135,6 +135,7 @@ public class ActionDataStore_Writer extends Action {
                 }
 
             } catch (Exception ex) {
+                log.error("Error getting geometry",ex);
                 log.warn("No DefaultGeometry AttributeType found in feature " + feature.toString());
                 write(writer, feature.getFeature());
             }
@@ -183,7 +184,6 @@ public class ActionDataStore_Writer extends Action {
         } catch (IllegalAttributeException writeProblem) {
             throw new IllegalAttributeException("Could not create " + feature.getFeatureType().getTypeName() + " out of provided SimpleFeature: " + feature.getID() + "\n" + writeProblem);
         }
-
         writer.write();
     }
 
