@@ -46,7 +46,7 @@ public class ActionDataStore_Writer extends Action {
 
     public ActionDataStore_Writer(Map params, Map properties) {// Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClassificationAttribute){
         this.params = params;
-        parseProperties(properties);
+        
         if (ActionFactory.propertyCheck(properties, ActionFactory.APPEND)) {
             append = (Boolean) properties.get(ActionFactory.APPEND);
         } else {
@@ -147,7 +147,8 @@ public class ActionDataStore_Writer extends Action {
     @Override
     public void close() throws Exception {
         closeConnections();
-        dataStore2Write.dispose();
+        if (dataStore2Write!=null)
+            dataStore2Write.dispose();
     }
 
     @Override
@@ -291,14 +292,5 @@ public class ActionDataStore_Writer extends Action {
 
     public String getDescription_NL() {
         return "Schrijf de SimpleFeature weg naar een datastore. Als de datastore een database is, kan de SimpleFeature worden toegevoegd of kan de tabel worden geleegd voor het toevoegen";
-    }
-
-    private void parseProperties(Map properties) {
-        /* Boolean append=null;
-        Boolean dropFirst=null;
-        String polygonizeClassificationAttribute=null;
-        Boolean polygonize=null;
-        Integer polygonizeClassificationBegin=null;
-        Integer polygonizeClassificationEnd=null;*/
     }
 }
