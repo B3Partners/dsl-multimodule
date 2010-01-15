@@ -63,7 +63,7 @@ public class ActionDataStore_Writer extends Action {
         } else {
             polygonize = false;
         }
-        
+
         if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
         }
@@ -121,23 +121,24 @@ public class ActionDataStore_Writer extends Action {
                 featureWriters.put(typename, writer);
             }
 
-            try {
-                Geometry the_geom = (Geometry) feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName());
 
-                if (the_geom instanceof GeometryCollection) {
-                    if (((GeometryCollection) the_geom).getNumGeometries() == 0) {
-                        log.warn("Skipping feature with empty GeometryCollection; " + feature.getAttributes().toString());
+            if (feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName()) == null) {
+                log.warn("No DefaultGeometry AttributeType found in feature " + feature.toString());
+            } else {
+                try {
+                    Geometry the_geom = (Geometry) feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName());
+                    if (the_geom instanceof GeometryCollection) {
+                        if (((GeometryCollection) the_geom).getNumGeometries() == 0) {
+                            log.warn("Skipping feature with empty GeometryCollection; " + feature.getAttributes().toString());
+                        } else {
+                            write(writer, feature.getFeature());
+                        }
                     } else {
                         write(writer, feature.getFeature());
                     }
-                } else {
-                    write(writer, feature.getFeature());
+                } catch (Exception ex) {
+                    log.error("Error getting geometry. Feature not written: "+feature.toString(), ex);
                 }
-
-            } catch (Exception ex) {
-                log.error("Error getting geometry",ex);
-                log.warn("No DefaultGeometry AttributeType found in feature " + feature.toString());
-                write(writer, feature.getFeature());
             }
         }
         return feature;
