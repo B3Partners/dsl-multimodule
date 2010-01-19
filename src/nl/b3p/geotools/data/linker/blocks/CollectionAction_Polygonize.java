@@ -105,7 +105,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
                     }
                     Polygonizer polygonizer = polygonizers.get(classification);
                     Geometry featureGeom = (Geometry) feature.getDefaultGeometryProperty().getValue();
-                    if (featureGeom.isValid()) {
+                    if (featureGeom.isValid() && featureGeom.getCoordinates().length >=2) {
                         polygonizer.add(featureGeom);
                     }
                 }
@@ -120,30 +120,34 @@ public class CollectionAction_Polygonize extends CollectionAction {
             int invalidRingLines=0;
             int cutEdges=0;
             while (it.hasNext()) {
-                Object nextKey= it.next();
-                String keyString = nextKey.toString();
-                Polygonizer p = (Polygonizer) polygonizers.get(nextKey);
-                Collection c = p.getPolygons();
-                totalDangles+=p.getDangles().size();
-                invalidRingLines+=p.getInvalidRingLines().size();
-                cutEdges+=p.getCutEdges().size();
-                if (log.isDebugEnabled()){
-                    if (p.getDangles().size()>0)
-                        log.debug("Dangles for class '"+keyString+"':"+geometryCollectionToWKTString(p.getDangles()));
-                    if (p.getInvalidRingLines().size()>0)
-                        log.debug("Invalid Ring Lines for class '"+keyString+"':"+geometryCollectionToWKTString(p.getInvalidRingLines()));
-                    if (p.getCutEdges().size()>0)
-                        log.debug("Cut Edges for class '"+keyString+"':"+geometryCollectionToWKTString(p.getCutEdges()));
-                }
-                Iterator cit = c.iterator();
-                while (cit.hasNext()) {
-                    List values = new ArrayList();
-                    if (splitInClasses) {
-                        values.add(keyString);
+                try{
+                    Object nextKey= it.next();
+                    String keyString = nextKey.toString();
+                    Polygonizer p = (Polygonizer) polygonizers.get(nextKey);
+                    Collection c = p.getPolygons();
+                    totalDangles+=p.getDangles().size();
+                    invalidRingLines+=p.getInvalidRingLines().size();
+                    cutEdges+=p.getCutEdges().size();
+                    if (log.isDebugEnabled()){
+                        if (p.getDangles().size()>0)
+                            log.debug("Dangles for class '"+keyString+"':"+geometryCollectionToWKTString(p.getDangles()));
+                        if (p.getInvalidRingLines().size()>0)
+                            log.debug("Invalid Ring Lines for class '"+keyString+"':"+geometryCollectionToWKTString(p.getInvalidRingLines()));
+                        if (p.getCutEdges().size()>0)
+                            log.debug("Cut Edges for class '"+keyString+"':"+geometryCollectionToWKTString(p.getCutEdges()));
                     }
-                    values.add((Polygon) cit.next());
-                    polygonizedFeatures.add(new EasyFeature(SimpleFeatureBuilder.build(newFt, values, "" + polygonCounter)));
-                    polygonCounter++;
+                    Iterator cit = c.iterator();
+                    while (cit.hasNext()) {
+                        List values = new ArrayList();
+                        if (splitInClasses) {
+                            values.add(keyString);
+                        }
+                        values.add((Polygon) cit.next());
+                        polygonizedFeatures.add(new EasyFeature(SimpleFeatureBuilder.build(newFt, values, "" + polygonCounter)));
+                        polygonCounter++;
+                    }
+                }catch(Exception e){
+                    log.error("Error while polygonizen lines.",e);
                 }
             }
             log.info("Polygonization done.\n"+polygonCounter+" polygons created by polygonization. \n"+totalDangles +" lines are not connected with both sides (Dangles). \n"+invalidRingLines+" invalid ring lines are formed (e.g. the component lines contain a self-intersectin). \n"+cutEdges +" lines are connected with both ends but don't form part of a polygon. (Cutted Edges)");
