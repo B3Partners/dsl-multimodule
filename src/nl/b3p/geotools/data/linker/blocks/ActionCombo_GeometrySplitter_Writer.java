@@ -107,4 +107,9 @@ public class ActionCombo_GeometrySplitter_Writer extends ActionCombo {
     public String getDescription_NL() {
         return "Met deze ActionCombo kunnen punten, lijnen, vlakken, multipunten, multilijnen en multivlakken gescheiden worden opgeslagen in een datastore";
     }
+
+    @Override
+    public void close() throws Exception{
+        datastore.close();
+    }
 }

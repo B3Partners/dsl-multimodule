@@ -17,6 +17,7 @@ import org.geotools.data.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.oracle.OracleDataStoreFactory;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.util.logging.Logging;
 import org.opengis.feature.simple.SimpleFeature;
@@ -81,8 +82,9 @@ public class DataStoreLinker {
             for (int p = 0; p < typenames.length; p++) {
                 String typeName2Read = typenames[p];
 
-                SimpleFeature feature = null;
-                FeatureIterator iterator = dataStore2Read.getFeatureSource(typeName2Read).getFeatures().features();
+                SimpleFeature feature = null;                
+                FeatureCollection fc=dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
+                FeatureIterator iterator = fc.features();
 
                 boolean runOnce = true;
                 boolean dsReportsError = false;
@@ -170,7 +172,7 @@ public class DataStoreLinker {
                     throw ex;
 
                 } finally {
-                    iterator.close();
+                    fc.close(iterator);
                 }
             }
 

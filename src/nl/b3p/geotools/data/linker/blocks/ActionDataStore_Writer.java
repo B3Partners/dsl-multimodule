@@ -137,6 +137,9 @@ public class ActionDataStore_Writer extends Action {
                 } catch (Exception ex) {
                     log.error("Error getting geometry. Feature not written: "+feature.toString(), ex);
                     //Remove writer so a new writer is created when the next feature is processed
+                    if (writer!=null){
+                        writer.close();
+                    }
                     featureWriters.remove(typename);
                 }
             }

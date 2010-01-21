@@ -105,7 +105,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
                     }
                     Polygonizer polygonizer = polygonizers.get(classification);
                     Geometry featureGeom = (Geometry) feature.getDefaultGeometryProperty().getValue();
-                    if (featureGeom.isValid() && featureGeom.getCoordinates().length >=2) {
+                    if (featureGeom.isValid()) {
                         polygonizer.add(featureGeom);
                     }
                 }

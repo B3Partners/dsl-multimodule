@@ -99,4 +99,9 @@ public class ActionCombo_GeometrySingle_Writer extends ActionCombo {
     public String getDescription_NL() {
         return "Pas de geometry in het SimpleFeatureType aan aan de geometry in de SimpleFeature. Let op; er mag dus maar één geometry soort worden ingeladen";
     }
+
+    @Override
+    public void close() throws Exception{
+        datastore.close();
+    }
 }
