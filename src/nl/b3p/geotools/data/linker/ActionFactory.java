@@ -697,7 +697,7 @@ public class ActionFactory {
         actionBlocks.put(ActionCombo_Fix_From_Oracle.class.getSimpleName(), ActionCombo_Fix_From_Oracle.getConstructors());
         actionBlocks.put(ActionCombo_Fix_To_Oracle.class.getSimpleName(), ActionCombo_Fix_To_Oracle.getConstructors());
         actionBlocks.put(ActionCombo_Recommended_Pro.class.getSimpleName(), ActionCombo_Recommended_Pro.getConstructors());
-        //actionBlocks.put(ActionCombo_Recommended.class.getSimpleName(), ActionCombo_Recommended.getConstructors());
+        actionBlocks.put(ActionCombo_Recommended.class.getSimpleName(), ActionCombo_Recommended.getConstructors());
 
         //actionBlocks.put(ActionCombo_GeometrySingle_Writer.class.getSimpleName(), ActionCombo_GeometrySingle_Writer.getConstructors());
         //actionBlocks.put(ActionCombo_GeometrySplitter_Writer.class.getSimpleName(), ActionCombo_GeometrySplitter_Writer.getConstructors());

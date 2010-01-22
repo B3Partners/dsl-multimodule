@@ -4,6 +4,9 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Gertjan Al, B3Partners
  */
@@ -23,6 +26,9 @@ public class ActionCombo_Recommended extends ActionCombo {
         actionList.add(new ActionFeatureType_Set_CRS("EPSG:28992"));
     }
 
+    public static List<List<String>> getConstructors() {
+        return new ArrayList<List<String>>();
+    }
 
     public String getDescription_NL() {
         return "(geen beschrijving opgegeven)";

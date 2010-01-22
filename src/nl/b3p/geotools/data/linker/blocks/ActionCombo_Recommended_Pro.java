@@ -33,22 +33,7 @@ public class ActionCombo_Recommended_Pro extends ActionCombo {
     public ActionCombo_Recommended_Pro(String newTypeName) {
         this(newTypeName, false);
     }
-/*
-    public EasyFeature execute(EasyFeature feature) throws Exception {
-        // Trim values to 255 characters
-        Action action = new ActionFeature_Value_Substring_All(0, 255);
-        feature = action.execute(feature);
 
-        // Set typename
-        action = new ActionFeatureType_Typename_Update(newTypeName, append);
-        feature = action.execute(feature);
-
-        // Set EPSG:28992
-        action = new ActionFeatureType_Set_CRS("EPSG:28992");
-
-        return action.execute(feature);
-    }
-*/
     @Override
     public String toString() {
         return "Change typename, set EPSG to 28992 and trim values to 255 characters";
