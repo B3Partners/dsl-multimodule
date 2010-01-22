@@ -38,9 +38,9 @@ public class ActionFactory {
     //Set the attribute which you want to use to classificate the lines. Lines with same value will be polygonized.
     public static final String POLYGONIZE_CLASSIFICATION_ATTRIBUTE = "polygonize_classification_attribute";
     //Set the beginning of the value that is used to classificate the line. (substring begin)
-    public static final String POLYGONIZE_CLASSIFICATION_BEGIN="polygonize_classification_begin";
+    public static final String POLYGONIZE_CLASSIFICATION_BEGIN = "polygonize_classification_begin";
     //Set the end of the value that is used to classificate the line. (substring end)
-    public static final String POLYGONIZE_CLASSIFICATION_END="polygonize_classification_end";
+    public static final String POLYGONIZE_CLASSIFICATION_END = "polygonize_classification_end";
     public static final String TRYCAST = "trycast";
     public static final String OBJECT_FIND = "object_find";
     public static final String OBJECT_REPLACE = "object_replace";
@@ -63,32 +63,32 @@ public class ActionFactory {
         if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class) ||
                 isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class) ||
                 isThisClass(actionClassName, ActionDataStore_Writer.class)) {
-                
-            Map params=null;
-            
-            if(propertyCheck(properties, PARAMS)){
+
+            Map params = null;
+
+            if (propertyCheck(properties, PARAMS)) {
                 params = (Map) properties.get(PARAMS);
-            }            
+            }
             /**
              * Create ActionCombo_GeometrySplitter_Writer
              */
             if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class)) {
-                if (params!=null) {
+                if (params != null) {
                     return new ActionCombo_GeometrySplitter_Writer(params, properties);
                 } else {
                     failedConstructor(ActionCombo_GeometrySplitter_Writer.class, properties);
                 }
-            }else if (isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class)) {
-                if (params!=null) {
+            } else if (isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class)) {
+                if (params != null) {
                     return new ActionCombo_GeometrySingle_Writer(params, properties);
 
                 } else {
                     failedConstructor(ActionCombo_GeometrySingle_Writer.class, properties);
                 }
-            }else if (isThisClass(actionClassName, ActionDataStore_Writer.class)) {
-                if (params!=null) {
-                   return new ActionDataStore_Writer(params, properties);
-                }else {
+            } else if (isThisClass(actionClassName, ActionDataStore_Writer.class)) {
+                if (params != null) {
+                    return new ActionDataStore_Writer(params, properties);
+                } else {
                     failedConstructor(ActionDataStore_Writer.class, properties);
                 }
                 /**
@@ -96,7 +96,7 @@ public class ActionFactory {
                  */
             }
         } else {
-             if (isThisClass(actionClassName, ActionCombo_Recommended_Pro.class)) {
+            if (isThisClass(actionClassName, ActionCombo_Recommended_Pro.class)) {
                 if (propertyCheck(properties, NEW_TYPENAME, APPEND)) {
                     String new_typename = (String) properties.get(NEW_TYPENAME);
                     boolean append = (Boolean) properties.get(APPEND);
@@ -112,7 +112,7 @@ public class ActionFactory {
                 /**
                  * Create ActionDataStore_Writer
                  */
-            }  else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Add.class)) {
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Add.class)) {
                 if (propertyCheck(properties, ATTRIBUTE_NAME, ATTRIBUTE_CLASS, ATTRIBUTE_ID)) {
                     String attributeName = (String) properties.get(ATTRIBUTE_NAME);
                     Class attributeClass = (Class) toClass((String) properties.get(ATTRIBUTE_CLASS));
@@ -144,6 +144,29 @@ public class ActionFactory {
 
                 } else {
                     failedConstructor(ActionFeatureType_AttributeType_Remove.class, properties);
+                }
+
+
+
+
+                /**
+                 * Create ActionFeatureType_AttributeType_Restriction
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeType_Restriction.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_ID, LENGTH)) {
+                    int attributeID = toInteger((String) properties.get(ATTRIBUTE_ID));
+                    int length = toInteger((String) properties.get(LENGTH));
+
+                    return new ActionFeatureType_AttributeType_Restriction(attributeID, length);
+
+                } else if (propertyCheck(properties, ATTRIBUTE_NAME, LENGTH)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    int length = toInteger((String) properties.get(LENGTH));
+                    
+                    return new ActionFeatureType_AttributeType_Restriction(attributeName, length);
+
+                } else {
+                    failedConstructor(ActionFeatureType_AttributeType_Restriction.class, properties);
                 }
 
 
@@ -685,6 +708,7 @@ public class ActionFactory {
         actionBlocks.put(ActionFeatureType_AttributeName_Rename.class.getSimpleName(), ActionFeatureType_AttributeName_Rename.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeType_Add.class.getSimpleName(), ActionFeatureType_AttributeType_Add.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeType_Remove.class.getSimpleName(), ActionFeatureType_AttributeType_Remove.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeType_Restriction.class.getSimpleName(), ActionFeatureType_AttributeType_Restriction.getConstructors());
         actionBlocks.put(ActionFeatureType_Replace_Class.class.getSimpleName(), ActionFeatureType_Replace_Class.getConstructors());
         actionBlocks.put(ActionFeatureType_Replace_Class_All.class.getSimpleName(), ActionFeatureType_Replace_Class_All.getConstructors());
         actionBlocks.put(ActionFeatureType_Set_CRS.class.getSimpleName(), ActionFeatureType_Set_CRS.getConstructors());
