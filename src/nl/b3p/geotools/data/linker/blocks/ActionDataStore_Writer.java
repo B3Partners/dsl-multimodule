@@ -167,6 +167,7 @@ public class ActionDataStore_Writer extends Action {
                             FeatureSource fs = dataStore2Write.getFeatureSource(featureTypeNames.get(s));
                             FeatureCollection fc = fs.getFeatures();
                             ArrayList<EasyFeature> features = ca.execute(fc);
+                            log.info("write: "+features.size() +" Polygonized features");
                             for (int f = 0; f < features.size(); f++) {
                                 execute(features.get(f));
                             }
