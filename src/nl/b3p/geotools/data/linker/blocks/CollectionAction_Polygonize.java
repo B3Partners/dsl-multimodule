@@ -121,9 +121,10 @@ public class CollectionAction_Polygonize extends CollectionAction {
             int invalidRingLines=0;
             int cutEdges=0;
             while (it.hasNext()) {
-                try{
+                try{                    
                     Object nextKey= it.next();
                     String keyString = nextKey.toString();
+                    log.info("Start Polygonize for class: "+keyString);
                     Polygonizer p = (Polygonizer) polygonizers.get(nextKey);
                     Collection c = p.getPolygons();
                     totalDangles+=p.getDangles().size();
@@ -147,6 +148,8 @@ public class CollectionAction_Polygonize extends CollectionAction {
                         polygonizedFeatures.add(new EasyFeature(SimpleFeatureBuilder.build(newFt, values, "" + polygonCounter)));
                         polygonCounter++;
                     }
+                    //remove polygonizer
+                    polygonizers.remove(nextKey);
                 }catch(Exception e){
                     log.error("Error while polygonizen lines.",e);
                 }
