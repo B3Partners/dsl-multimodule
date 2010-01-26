@@ -68,6 +68,7 @@ public class ActionDataStore_Writer extends Action {
         }
 
         if (this.polygonize) {
+            log.info("Polygonize is configured as post action");
             collectionActions.add(new CollectionAction_Polygonize(new HashMap(properties)));
         }
 
@@ -149,6 +150,7 @@ public class ActionDataStore_Writer extends Action {
 
     @Override
     public void close() throws Exception {
+        log.info("Closing ActionDataStore Writer");
         closeConnections();
         if (dataStore2Write!=null)
             dataStore2Write.dispose();
@@ -156,6 +158,7 @@ public class ActionDataStore_Writer extends Action {
 
     @Override
     public void processPostCollectionActions() {
+        log.info("Process Post actions ActionDataStoreWriter");
         for (int i = 0; i < collectionActions.size(); i++) {
             CollectionAction ca = collectionActions.get(i);
             //do the polygonize function

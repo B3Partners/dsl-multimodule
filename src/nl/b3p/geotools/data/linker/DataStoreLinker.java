@@ -91,7 +91,6 @@ public class DataStoreLinker {
                 String dsHasErrorAttribute = "";
                 String dsErrorAttribute = "";
 
-
                 try {
                     while (iterator.hasNext()) {
                         try {
@@ -101,7 +100,9 @@ public class DataStoreLinker {
                             actionList.close();
                             throw new Exception("Could not add Features, problem with provided reader", ex);
                         }
-
+                        if (totalFeatureCount % 10000 == 0){
+                            log.info(""+totalFeatureCount + " features processed ("+typeName2Read+")");
+                        }
                         // Check if SimpleFeature contains errorReport for all posibilities in errorMapping (HashMap)
                         if (runOnce) {
                             boolean match = false;
@@ -166,6 +167,8 @@ public class DataStoreLinker {
                             break;
                         }
                     }
+                    log.info("Total of: "+totalFeatureCount + " features processed ("+typeName2Read+")");
+                    log.info("Try to do the Post actions");
                     actionList.processPostCollectionActions();
                 } catch (Exception ex) {
                     actionList.close();

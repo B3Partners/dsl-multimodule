@@ -69,6 +69,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
 
     @Override
     public ArrayList<EasyFeature> execute(FeatureCollection collection) {
+        log.info("execute Polygonize");
         FeatureIterator features = null;
         
         ArrayList<EasyFeature> polygonizedFeatures = new ArrayList();

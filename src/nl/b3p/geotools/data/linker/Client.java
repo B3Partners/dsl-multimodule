@@ -155,6 +155,7 @@ public class Client {
 
 
         } catch (Exception ex) {
+            log.error("",ex);
             // Log error
             String exception;
             if (ex.getMessage() == null) {
