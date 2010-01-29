@@ -18,7 +18,7 @@ import org.geotools.feature.FeatureCollection;
  * Created on 12-jan-2010, 11:41:49
  */
 public abstract class CollectionAction {
-    abstract public ArrayList<EasyFeature> execute(FeatureCollection collection);
+    abstract public void execute(FeatureCollection collection, Action writer);
 
     protected String geometryCollectionToWKTString(Collection c){
         if (c==null)

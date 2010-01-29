@@ -24,6 +24,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
+import org.opengis.filter.Filter;
 
 /**
  * B3partners B.V. http://www.b3partners.nl
@@ -31,12 +32,13 @@ import org.opengis.feature.type.FeatureType;
  * Created on 12-jan-2010, 11:42:19
  */
 public class CollectionAction_Polygonize extends CollectionAction {
+
     protected static final Log log = LogFactory.getLog(CollectionAction_Polygonize.class);
-    
     private final String polygonizeClassificationAttribute;
     private final Integer polygonizeClassificationBegin;
     private final Integer polygonizeClassificationEnd;
-    private HashMap<Object, Polygonizer> polygonizers;
+    private final String CLASS_STATUS_TODO = "waiting";
+    private final String CLASS_STATUS_DONE = "done";
     private final boolean splitInClasses;
     private static final String POLYGONIZED = "_poligonized";
     private static final String DEFAULT_CLASSIFICATION = "default";
@@ -63,104 +65,62 @@ public class CollectionAction_Polygonize extends CollectionAction {
         } else {
             this.splitInClasses = false;
         }
-        polygonizers = new HashMap();
-        
+
+
     }
-
+    /**
+     * Deze execute loopt meerdere malen over de de data (featureCollection) als er een classificatie is aangegeven.
+     * Per classificatie wordt er een keer doorheen gelopen. Dit om te voorkomen dat alle objecten te gelijk in het
+     * geheugen worden geladen. Dit is dus wel minder snel, maar heeft meer kans om te slagen.
+     */
     @Override
-    public ArrayList<EasyFeature> execute(FeatureCollection collection) {
+    public void execute(FeatureCollection collection, Action nextAction) {
         log.info("execute Polygonize");
-        FeatureIterator features = null;
-        
-        ArrayList<EasyFeature> polygonizedFeatures = new ArrayList();
-        try {
-            features = collection.features();
-            while (features.hasNext()) {
-                Feature feature = features.next();
-                Object classification = DEFAULT_CLASSIFICATION;
-                if (splitInClasses) {
-                    //determine classification value
-                    if (feature.getProperty(polygonizeClassificationAttribute)!=null){
-                        classification = feature.getProperty(polygonizeClassificationAttribute).getValue();
-                        if (classification!=null && (polygonizeClassificationEnd!=null || polygonizeClassificationBegin!=null)){
-                            String s= classification.toString();
-                            int begin=0;
-                            int end=s.length();
-                            if (polygonizeClassificationEnd!=null && polygonizeClassificationEnd.intValue() < s.length())
-                                end=polygonizeClassificationEnd.intValue();
-                            if (polygonizeClassificationBegin!=null){
-                                if (polygonizeClassificationBegin.intValue()>end)
-                                    begin=end;
-                                else
-                                    begin=polygonizeClassificationBegin.intValue();
-                            }
-                            classification=s.substring(begin, end);
-                        }
+        HashMap<Object, String> classificationStatuses = null;
+        SimpleFeatureType newFt = createFeatureType(collection.getSchema());
+        //HashMap<Object, Polygonizer> polygonizers = new HashMap();
+        for (int i = 0; classificationStatuses == null || i < classificationStatuses.size() ; i++) {
+            if (classificationStatuses == null) {
+                classificationStatuses = new HashMap();
+            }
+            FeatureIterator features = null;
+            Object currentClassification = null;
+            try {
+                features = collection.features();
+                Polygonizer polygonizer = new Polygonizer();
+                while (features.hasNext()) {
+                    Feature feature = features.next();
+                    Object classification = getClassification(feature);
+                    String classificationStatus = classificationStatuses.get(classification);
 
+                    if (classificationStatus == null) {
+                        classificationStatuses.put(classification, CLASS_STATUS_TODO);
+                    } else if (classificationStatus.equalsIgnoreCase(CLASS_STATUS_DONE)) {
+                        continue;
                     }
-                    if (classification == null) {
-                        classification = DEFAULT_CLASSIFICATION;
+                    if (currentClassification == null) {
+                        currentClassification = classification;
                     }
-                    if (polygonizers.get(classification) == null) {
-                        polygonizers.put(classification, new Polygonizer());
-                    }
-                    Polygonizer polygonizer = polygonizers.get(classification);
-                    Geometry featureGeom = (Geometry) feature.getDefaultGeometryProperty().getValue();
-                    if (featureGeom.isValid()) {
-                        polygonizer.add(featureGeom);
+                    if (classification.equals(currentClassification)) {
+                        Geometry featureGeom = (Geometry) feature.getDefaultGeometryProperty().getValue();
+                        if (featureGeom.isValid()) {
+                            polygonizer.add(featureGeom);
+                        }
                     }
                 }
-            }
-
-            SimpleFeatureType newFt = createFeatureType(collection.getSchema());
-            Iterator it = polygonizers.keySet().iterator();
-            
-            log.info("Try to polygonize with "+collection.size()+" line features over "+polygonizers.size()+" classifications");
-            int polygonCounter = 0;    
-            int totalDangles=0;
-            int invalidRingLines=0;
-            int cutEdges=0;
-            while (it.hasNext()) {
-                try{                    
-                    Object nextKey= it.next();
-                    String keyString = nextKey.toString();
-                    log.info("Start Polygonize for class: "+keyString);
-                    Polygonizer p = (Polygonizer) polygonizers.get(nextKey);
-                    Collection c = p.getPolygons();
-                    totalDangles+=p.getDangles().size();
-                    invalidRingLines+=p.getInvalidRingLines().size();
-                    cutEdges+=p.getCutEdges().size();
-                    if (log.isDebugEnabled()){
-                        if (p.getDangles().size()>0)
-                            log.debug("Dangles for class '"+keyString+"':"+geometryCollectionToWKTString(p.getDangles()));
-                        if (p.getInvalidRingLines().size()>0)
-                            log.debug("Invalid Ring Lines for class '"+keyString+"':"+geometryCollectionToWKTString(p.getInvalidRingLines()));
-                        if (p.getCutEdges().size()>0)
-                            log.debug("Cut Edges for class '"+keyString+"':"+geometryCollectionToWKTString(p.getCutEdges()));
-                    }
-                    Iterator cit = c.iterator();
-                    while (cit.hasNext()) {
-                        List values = new ArrayList();
-                        if (splitInClasses) {
-                            values.add(keyString);
-                        }
-                        values.add((Polygon) cit.next());
-                        polygonizedFeatures.add(new EasyFeature(SimpleFeatureBuilder.build(newFt, values, "" + polygonCounter)));
-                        polygonCounter++;
-                    }
-                    //remove polygonizer
-                    polygonizers.remove(nextKey);
-                }catch(Exception e){
-                    log.error("Error while polygonizen lines.",e);
+                if (currentClassification != null) {
+                    classificationStatuses.put(currentClassification, CLASS_STATUS_DONE);
                 }
-            }
-            log.info("Polygonization done.\n"+polygonCounter+" polygons created by polygonization. \n"+totalDangles +" lines are not connected with both sides (Dangles). \n"+invalidRingLines+" invalid ring lines are formed (e.g. the component lines contain a self-intersectin). \n"+cutEdges +" lines are connected with both ends but don't form part of a polygon. (Cutted Edges)");
-        } finally {
-            if (collection != null && features != null) {
-                collection.close(features);
+                log.info("Polygonize features with classification: " + currentClassification);
+                createPolygonsFeatures(polygonizer, currentClassification, newFt, nextAction);
+            } catch (Exception e) {
+                log.error("Error polygonizer. ", e);
+            } finally {
+                if (collection != null && features != null) {
+                    collection.close(features);
+                }
             }
         }
-        return polygonizedFeatures;
     }
 
     public void close() {
@@ -178,5 +138,72 @@ public class CollectionAction_Polygonize extends CollectionAction {
         typeBuilder.add(ft.getGeometryDescriptor().getLocalName(), Polygon.class);
 
         return typeBuilder.buildFeatureType();
+    }
+
+    private void createPolygonsFeatures(Polygonizer polygonizer, Object classification, SimpleFeatureType newFt, Action nextAction) throws Exception {
+        int successPolygonCounter = 0;
+        int totalDangles = -1;
+        int invalidRingLines = -1;
+        int cutEdges = -1;
+        Collection c = polygonizer.getPolygons();
+        if (log.isDebugEnabled()){
+            /*totalDangles = polygonizer.getDangles().size();
+            invalidRingLines = polygonizer.getInvalidRingLines().size();
+            cutEdges = polygonizer.getCutEdges().size();*/
+        }
+        /*if (log.isDebugEnabled()){
+        if (p.getDangles().size()>0)
+        log.debug("Dangles for class '"+keyString+"':"+geometryCollectionToWKTString(p.getDangles()));
+        if (p.getInvalidRingLines().size()>0)
+        log.debug("Invalid Ring Lines for class '"+keyString+"':"+geometryCollectionToWKTString(p.getInvalidRingLines()));
+        if (p.getCutEdges().size()>0)
+        log.debug("Cut Edges for class '"+keyString+"':"+geometryCollectionToWKTString(p.getCutEdges()));
+        }*/
+        log.info("Polygonization for feature " + newFt.getTypeName() + " and classification " + classification + " done.\n" + c.size() + " polygons created by polygonization. \n" + totalDangles + " lines are not connected with both sides (Dangles). \n" + invalidRingLines + " invalid ring lines are formed (e.g. the component lines contain a self-intersectin). \n" + cutEdges + " lines are connected with both ends but don't form part of a polygon. (Cutted Edges)");
+        Iterator cit = c.iterator();
+        while (cit.hasNext()) {
+            try {
+                List values = new ArrayList();
+                if (splitInClasses) {
+                    values.add(classification);
+                }
+                values.add((Polygon) cit.next());
+                nextAction.execute(new EasyFeature(SimpleFeatureBuilder.build(newFt, values, "" + successPolygonCounter)));
+                successPolygonCounter++;
+            } catch (Exception e) {
+                log.error("Error passing feature", e);
+            }
+        }
+        log.info(c.size() + " Polygons with featureName: " + newFt.getTypeName() + "and classification: " + classification + " are processed. " + successPolygonCounter + " are successful.");
+    }
+
+    private Object getClassification(Feature feature) {
+        Object classification = DEFAULT_CLASSIFICATION;
+        if (splitInClasses) {
+            //determine classification value
+            if (feature.getProperty(polygonizeClassificationAttribute) != null) {
+                classification = feature.getProperty(polygonizeClassificationAttribute).getValue();
+                if (classification != null && (polygonizeClassificationEnd != null || polygonizeClassificationBegin != null)) {
+                    String s = classification.toString();
+                    int begin = 0;
+                    int end = s.length();
+                    if (polygonizeClassificationEnd != null && polygonizeClassificationEnd.intValue() < s.length()) {
+                        end = polygonizeClassificationEnd.intValue();
+                    }
+                    if (polygonizeClassificationBegin != null) {
+                        if (polygonizeClassificationBegin.intValue() > end) {
+                            begin = end;
+                        } else {
+                            begin = polygonizeClassificationBegin.intValue();
+                        }
+                    }
+                    classification = s.substring(begin, end);
+                }
+            }
+            if (classification == null) {
+                classification = DEFAULT_CLASSIFICATION;
+            }
+        }
+        return classification;
     }
 }
