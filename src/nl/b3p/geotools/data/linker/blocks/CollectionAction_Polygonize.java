@@ -147,9 +147,9 @@ public class CollectionAction_Polygonize extends CollectionAction {
         int cutEdges = -1;
         Collection c = polygonizer.getPolygons();
         if (log.isDebugEnabled()){
-            /*totalDangles = polygonizer.getDangles().size();
+            totalDangles = polygonizer.getDangles().size();
             invalidRingLines = polygonizer.getInvalidRingLines().size();
-            cutEdges = polygonizer.getCutEdges().size();*/
+            cutEdges = polygonizer.getCutEdges().size();
         }
         /*if (log.isDebugEnabled()){
         if (p.getDangles().size()>0)
