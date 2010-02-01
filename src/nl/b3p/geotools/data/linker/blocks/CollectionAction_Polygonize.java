@@ -63,7 +63,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE_ONECLASSINMEMORY)){
             oneClassInMemory = Boolean.parseBoolean((String)properties.get(ActionFactory.POLYGONIZE_ONECLASSINMEMORY));
         }else{
-            oneClassInMemory=false;
+            oneClassInMemory=true;
         }
 
         if (this.polygonizeClassificationAttribute != null && this.polygonizeClassificationAttribute.length() > 0) {
