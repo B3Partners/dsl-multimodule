@@ -41,6 +41,8 @@ public class ActionFactory {
     public static final String POLYGONIZE_CLASSIFICATION_BEGIN = "polygonize_classification_begin";
     //Set the end of the value that is used to classificate the line. (substring end)
     public static final String POLYGONIZE_CLASSIFICATION_END = "polygonize_classification_end";
+    //Set to true if you want load every classification seperate in the memory. (takes longer, but less mem usages)
+    public static final String POLYGONIZE_ONECLASSINMEMORY = "polygonize_classification_end";
     public static final String TRYCAST = "trycast";
     public static final String OBJECT_FIND = "object_find";
     public static final String OBJECT_REPLACE = "object_replace";

@@ -42,6 +42,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
     private final boolean splitInClasses;
     private static final String POLYGONIZED = "_poligonized";
     private static final String DEFAULT_CLASSIFICATION = "default";
+    private final boolean oneClassInMemory;
 
     public CollectionAction_Polygonize(Map properties) {
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE_CLASSIFICATION_ATTRIBUTE)) {
@@ -59,6 +60,11 @@ public class CollectionAction_Polygonize extends CollectionAction {
         } else {
             polygonizeClassificationEnd = null;
         }
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE_ONECLASSINMEMORY)){
+            oneClassInMemory = Boolean.parseBoolean((String)properties.get(ActionFactory.POLYGONIZE_ONECLASSINMEMORY));
+        }else{
+            oneClassInMemory=false;
+        }
 
         if (this.polygonizeClassificationAttribute != null && this.polygonizeClassificationAttribute.length() > 0) {
             this.splitInClasses = true;
@@ -68,14 +74,58 @@ public class CollectionAction_Polygonize extends CollectionAction {
 
 
     }
+    @Override
+    public void execute(FeatureCollection collection, Action nextAction){
+        if (oneClassInMemory){
+            executeOneClassInMemory(collection, nextAction);
+        }else{
+            executeAllInMemory(collection,nextAction);
+        }
+    }
+    /**
+     * alle classificaties worden meteen in het geheugen geladen.
+     */
+    public void executeAllInMemory (FeatureCollection collection, Action nextAction){
+        log.info("execute Polygonize with all classifications at once");
+        SimpleFeatureType newFt = createFeatureType(collection.getSchema());
+        HashMap<Object, Polygonizer> polygonizers = new HashMap();
+        FeatureIterator features = null;
+        try {
+            features = collection.features();
+            while (features.hasNext()) {
+                Feature feature = features.next();
+                Object classification = getClassification(feature);
+                if (polygonizers.get(classification)==null){
+                    polygonizers.put(classification,new Polygonizer());
+                }
+                Geometry featureGeom = (Geometry) feature.getDefaultGeometryProperty().getValue();
+                if (featureGeom.isValid()) {
+                    polygonizers.get(classification).add(featureGeom);
+                }
+            }
+
+            Iterator pit=polygonizers.keySet().iterator();
+            while(pit.hasNext()){
+                Object classification = pit.next();
+                 log.info("Polygonize features with classification: " + classification);
+                Polygonizer polygonizer= polygonizers.get(classification);
+                createPolygonsFeatures(polygonizer, classification, newFt, nextAction);
+            }
+        } catch (Exception e) {
+            log.error("Error polygonizer for feature: "+newFt.getTypeName(), e);
+        } finally {
+            if (collection != null && features != null) {
+                collection.close(features);
+            }
+        }
+    }
     /**
      * Deze execute loopt meerdere malen over de de data (featureCollection) als er een classificatie is aangegeven.
      * Per classificatie wordt er een keer doorheen gelopen. Dit om te voorkomen dat alle objecten te gelijk in het
      * geheugen worden geladen. Dit is dus wel minder snel, maar heeft meer kans om te slagen.
-     */
-    @Override
-    public void execute(FeatureCollection collection, Action nextAction) {
-        log.info("execute Polygonize");
+     */    
+    public void executeOneClassInMemory(FeatureCollection collection, Action nextAction) {
+        log.info("execute Polygonize with one classification in the memory at once");
         HashMap<Object, String> classificationStatuses = null;
         SimpleFeatureType newFt = createFeatureType(collection.getSchema());
         //HashMap<Object, Polygonizer> polygonizers = new HashMap();
@@ -107,15 +157,15 @@ public class CollectionAction_Polygonize extends CollectionAction {
                             polygonizer.add(featureGeom);
                         }
                     }
-                }
-                if (currentClassification != null) {
-                    classificationStatuses.put(currentClassification, CLASS_STATUS_DONE);
-                }
+                }                
                 log.info("Polygonize features with classification: " + currentClassification);
                 createPolygonsFeatures(polygonizer, currentClassification, newFt, nextAction);
             } catch (Exception e) {
-                log.error("Error polygonizer. ", e);
+                log.error("Error polygonizer for feature: "+newFt.getTypeName()+" with classification: "+currentClassification, e);
             } finally {
+                if (currentClassification != null) {
+                    classificationStatuses.put(currentClassification, CLASS_STATUS_DONE);
+                }
                 if (collection != null && features != null) {
                     collection.close(features);
                 }
@@ -147,9 +197,9 @@ public class CollectionAction_Polygonize extends CollectionAction {
         int cutEdges = -1;
         Collection c = polygonizer.getPolygons();
         if (log.isDebugEnabled()){
-            totalDangles = polygonizer.getDangles().size();
+            /*totalDangles = polygonizer.getDangles().size();
             invalidRingLines = polygonizer.getInvalidRingLines().size();
-            cutEdges = polygonizer.getCutEdges().size();
+            cutEdges = polygonizer.getCutEdges().size();*/
         }
         /*if (log.isDebugEnabled()){
         if (p.getDangles().size()>0)
