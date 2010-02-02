@@ -6,7 +6,7 @@ package nl.b3p.geotools.data.linker.blocks;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.operation.polygonize.Polygonizer;
+import com.vividsolutions.jts.operation.polygonize.PolygonizerWithoutInvalidLists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -61,7 +61,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
             polygonizeClassificationEnd = null;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE_ONECLASSINMEMORY)){
-            oneClassInMemory = Boolean.parseBoolean((String)properties.get(ActionFactory.POLYGONIZE_ONECLASSINMEMORY));
+            oneClassInMemory = (Boolean)properties.get(ActionFactory.POLYGONIZE_ONECLASSINMEMORY);
         }else{
             oneClassInMemory=true;
         }
@@ -88,7 +88,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
     public void executeAllInMemory (FeatureCollection collection, Action nextAction){
         log.info("execute Polygonize with all classifications at once");
         SimpleFeatureType newFt = createFeatureType(collection.getSchema());
-        HashMap<Object, Polygonizer> polygonizers = new HashMap();
+        HashMap<Object, PolygonizerWithoutInvalidLists> polygonizers = new HashMap();
         FeatureIterator features = null;
         try {
             features = collection.features();
@@ -96,7 +96,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
                 Feature feature = features.next();
                 Object classification = getClassification(feature);
                 if (polygonizers.get(classification)==null){
-                    polygonizers.put(classification,new Polygonizer());
+                    polygonizers.put(classification,new PolygonizerWithoutInvalidLists());
                 }
                 Geometry featureGeom = (Geometry) feature.getDefaultGeometryProperty().getValue();
                 if (featureGeom.isValid()) {
@@ -108,7 +108,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
             while(pit.hasNext()){
                 Object classification = pit.next();
                  log.info("Polygonize features with classification: " + classification);
-                Polygonizer polygonizer= polygonizers.get(classification);
+                PolygonizerWithoutInvalidLists polygonizer= polygonizers.get(classification);
                 createPolygonsFeatures(polygonizer, classification, newFt, nextAction);
             }
         } catch (Exception e) {
@@ -137,7 +137,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
             Object currentClassification = null;
             try {
                 features = collection.features();
-                Polygonizer polygonizer = new Polygonizer();
+                PolygonizerWithoutInvalidLists polygonizer = new PolygonizerWithoutInvalidLists();
                 while (features.hasNext()) {
                     Feature feature = features.next();
                     Object classification = getClassification(feature);
@@ -190,7 +190,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
         return typeBuilder.buildFeatureType();
     }
 
-    private void createPolygonsFeatures(Polygonizer polygonizer, Object classification, SimpleFeatureType newFt, Action nextAction) throws Exception {
+    private void createPolygonsFeatures(PolygonizerWithoutInvalidLists polygonizer, Object classification, SimpleFeatureType newFt, Action nextAction) throws Exception {
         int successPolygonCounter = 0;
         int totalDangles = -1;
         int invalidRingLines = -1;
