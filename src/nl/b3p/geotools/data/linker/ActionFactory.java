@@ -62,9 +62,9 @@ public class ActionFactory {
 
     public static Action createAction(String actionClassName, Map<String, Object> properties) throws Exception {
         //if its a writer action:
-        if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class) ||
-                isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class) ||
-                isThisClass(actionClassName, ActionDataStore_Writer.class)) {
+        if (isThisClass(actionClassName, ActionCombo_GeometrySplitter_Writer.class)
+                || isThisClass(actionClassName, ActionCombo_GeometrySingle_Writer.class)
+                || isThisClass(actionClassName, ActionDataStore_Writer.class)) {
 
             Map params = null;
 
@@ -164,7 +164,7 @@ public class ActionFactory {
                 } else if (propertyCheck(properties, ATTRIBUTE_NAME, LENGTH)) {
                     String attributeName = (String) properties.get(ATTRIBUTE_NAME);
                     int length = toInteger((String) properties.get(LENGTH));
-                    
+
                     return new ActionFeatureType_AttributeType_Restriction(attributeName, length);
 
                 } else {
@@ -198,7 +198,24 @@ public class ActionFactory {
                     failedConstructor(ActionFeatureType_Replace_Class.class, properties);
                 }
 
+                /**
+                 * Create ActionFeatureType_Replace_Class_All
+                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_Replace_Class_All.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_CLASS, NEW_ATTRIBUTE_CLASS, TRYCAST)) {
+                    Class attributeClass = toClass((String) properties.get(ATTRIBUTE_CLASS));
+                    Class newAttributeClass = toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
+                    boolean tryCast = (Boolean) properties.get(TRYCAST);
+                    return new ActionFeatureType_Replace_Class_All(attributeClass, newAttributeClass, tryCast);
 
+                } else if (propertyCheck(properties, ATTRIBUTE_CLASS, NEW_ATTRIBUTE_CLASS)) {
+                    Class attributeClass = toClass((String) properties.get(ATTRIBUTE_CLASS));
+                    Class newAttributeClass = toClass((String) properties.get(NEW_ATTRIBUTE_CLASS));
+                    return new ActionFeatureType_Replace_Class_All(attributeClass, newAttributeClass, false);
+
+                } else {
+                    failedConstructor(ActionFeatureType_Replace_Class_All.class, properties);
+                }
 
                 /**
                  * Create ActionFeatureType_AttributeName_Rename
@@ -589,8 +606,8 @@ public class ActionFactory {
                 }
                 constructorString += ")\n - Missing parameter(s):" + missing + "\n\n";
                 if (missing.equals("")) {
-                    constructorString += " * Parameters appear to be fine for this action.\n   Go to class ActionFactory > createAction(...) > " + actionClass.getSimpleName() + "\n" +
-                            "   Function propertyCheck(...) probably has wrong parameters.";
+                    constructorString += " * Parameters appear to be fine for this action.\n   Go to class ActionFactory > createAction(...) > " + actionClass.getSimpleName() + "\n"
+                            + "   Function propertyCheck(...) probably has wrong parameters.";
                 }
             }
 
@@ -733,8 +750,8 @@ public class ActionFactory {
     }
 
     public static boolean isDataStoreAction(String classname) {
-        return classname.equals(ActionCombo_GeometrySingle_Writer.class.getSimpleName()) ||
-                classname.equals(ActionCombo_GeometrySplitter_Writer.class.getSimpleName()) ||
-                classname.equals(ActionDataStore_Writer.class.getSimpleName());
+        return classname.equals(ActionCombo_GeometrySingle_Writer.class.getSimpleName())
+                || classname.equals(ActionCombo_GeometrySplitter_Writer.class.getSimpleName())
+                || classname.equals(ActionDataStore_Writer.class.getSimpleName());
     }
 }

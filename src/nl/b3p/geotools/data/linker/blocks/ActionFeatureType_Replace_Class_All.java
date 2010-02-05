@@ -16,21 +16,21 @@ import nl.b3p.geotools.data.linker.feature.EasyFeature;
  */
 public class ActionFeatureType_Replace_Class_All extends Action {
 
-    private Class find;
-    private Class replace;
+    private Class attribute_class;
+    private Class new_attribute_class;
     private boolean tryCast;
 
-    public ActionFeatureType_Replace_Class_All(Class find, Class replace, boolean tryCast) {
-        this.find = find;
-        this.replace = replace;
+    public ActionFeatureType_Replace_Class_All(Class attribute_class, Class new_attribute_class, boolean tryCast) {
+        this.attribute_class = attribute_class;
+        this.new_attribute_class = new_attribute_class;
         this.tryCast = tryCast;
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
         int attributeCount = feature.getAttributeCount();
         for (int i = 0; i < attributeCount; i++) {
-            if (feature.getAttributeType(i).getBinding().equals(find)) {
-                ActionFeatureType_Replace_Class actionReplace = new ActionFeatureType_Replace_Class(i, replace, tryCast);
+            if (feature.getAttributeType(i).getBinding().equals(attribute_class)) {
+                ActionFeatureType_Replace_Class actionReplace = new ActionFeatureType_Replace_Class(i, new_attribute_class, tryCast);
                 feature = actionReplace.execute(feature);
             }
         }
@@ -43,15 +43,15 @@ public class ActionFeatureType_Replace_Class_All extends Action {
     }
 
     public String toString() {
-        return "Change " + find.toString() + " to " + replace.toString() + " and " + (tryCast ? "" : "do not ") + "try to cast the value";
+        return "Change " + attribute_class.toString() + " to " + new_attribute_class.toString() + " and " + (tryCast ? "" : "do not ") + "try to cast the value";
     }
 
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.OBJECT_FIND,
-                    ActionFactory.OBJECT_REPLACE,
+                    ActionFactory.ATTRIBUTE_CLASS,
+                    ActionFactory.NEW_ATTRIBUTE_CLASS,
                     ActionFactory.TRYCAST
                 }));
 
