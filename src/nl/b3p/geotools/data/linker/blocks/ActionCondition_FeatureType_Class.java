@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
-
 /**
  * Condition by SimpleFeatureType class on a given attibuteType
  * @author Gertjan Al, B3Partners

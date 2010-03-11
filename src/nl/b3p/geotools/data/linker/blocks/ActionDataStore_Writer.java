@@ -35,6 +35,7 @@ public class ActionDataStore_Writer extends Action {
     private final boolean append;
     private final boolean dropFirst;
     private final boolean polygonize;
+    private final boolean polygonizeWithAttr;
     private Exception constructorEx;
     private HashMap<String, FeatureWriter> featureWriters = new HashMap();
     private HashMap<String, String> checked = new HashMap();
@@ -62,7 +63,11 @@ public class ActionDataStore_Writer extends Action {
         } else {
             polygonize = false;
         }
-
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR)) {
+            polygonizeWithAttr = (Boolean) properties.get(ActionFactory.POLYGONIZEWITHATTR);
+        } else {
+            polygonizeWithAttr = false;
+        }
         if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
         }
@@ -71,6 +76,7 @@ public class ActionDataStore_Writer extends Action {
             log.info("Polygonize is configured as post action");
             collectionActions.add(new CollectionAction_Polygonize(new HashMap(properties)));
         }
+        
 
         try {
             dataStore2Write = DataStoreLinker.openDataStore(params);
@@ -78,6 +84,14 @@ public class ActionDataStore_Writer extends Action {
 
         } catch (Exception ex) {
             constructorEx = ex;
+        }
+        if (this.polygonizeWithAttr) {
+            log.info("Polygonize with attribute is configured as post action");
+            try{
+                collectionActions.add(new CollectionAction_PolygonizeWithAttr(dataStore2Write,new HashMap(properties)));
+            }catch(Exception e){
+                log.error("Can not create PolygonizeWithAttr post action",e);
+            }
         }
     }
     /* public ActionDataStore_Writer(Map params, Boolean append, Boolean dropFirst) {
@@ -175,7 +189,23 @@ public class ActionDataStore_Writer extends Action {
                         log.error("Error while Polygonizing the lines.", e);
                     }
                 }
-
+            }
+            if(ca instanceof CollectionAction_PolygonizeWithAttr){
+                DataStore ds=null;
+                try{
+                    CollectionAction_PolygonizeWithAttr cap = (CollectionAction_PolygonizeWithAttr) ca;
+                    FeatureSource fs = dataStore2Write.getFeatureSource(cap.getAttributeFeatureName());
+                    FeatureCollection fc = fs.getFeatures();
+                    ds= DataStoreLinker.openDataStore(this.params);
+                    cap.setDataStore2Write(ds);
+                    cap.execute(fc,this);
+                } catch (Exception e) {
+                    log.error("Error while Polygonizing the lines with attributes.", e);
+                }finally{
+                    if (ds!=null){
+                        ds.dispose();
+                    }
+                }
             }
         }
     }

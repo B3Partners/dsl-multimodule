@@ -43,6 +43,10 @@ public class ActionFactory {
     public static final String POLYGONIZE_CLASSIFICATION_END = "polygonize_classification_end";
     //Default: true. Set to true if you want load every classification seperate in the memory. (takes longer, but less mem usages)
     public static final String POLYGONIZE_ONECLASSINMEMORY = "polygonize_oneClassInMemory";
+    public static final String POLYGONIZEWITHATTR = "polygonizeWithAttr";
+    public static final String POLYGONIZEWITHATTR_CQLFILTER_ATTRIBUTE="polygonizeWithAttr_cqlfilter";
+    public static final String POLYGONIZEWITHATTR_ATTRIBUTEFEATURENAME_ATTRIBUTE="polygonzieWithAttr_attributeFeatureName";
+    public static final String POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE="polygonzieWithAttr_lineFeatureName";
     public static final String TRYCAST = "trycast";
     public static final String OBJECT_FIND = "object_find";
     public static final String OBJECT_REPLACE = "object_replace";
