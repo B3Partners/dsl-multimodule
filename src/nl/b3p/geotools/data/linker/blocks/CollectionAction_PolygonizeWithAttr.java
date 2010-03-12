@@ -96,17 +96,30 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
             //create a polygon featuretype and a multipolygon featuretype
             SimpleFeatureType polygonFt=createNewFeatureType(originalFt,geometryColumnIndex,Polygon.class);
             SimpleFeatureType multiPolygonFt=createNewFeatureType(originalFt,geometryColumnIndex,Polygon.class);
-
+            //walk through all features
             while (features.hasNext()) {
                 try{
                     SimpleFeature feature = (SimpleFeature) features.next();
                     String featureFilterString=new String(getCqlFilterString());
+                    //replace al the [value] with the correct value of the feature.
                     for (int i=0; i < featureNames.size() && featureFilterString.indexOf("[")>=0; i++){
                         if (featureFilterString.indexOf("["+featureNames.get(i)+"]")>=0 && feature.getProperty(featureNames.get(i))!=null){
                             String regExp="\\["+featureNames.get(i)+"\\]";
-                            String value=feature.getProperty(featureNames.get(i)).getValue().toString();
-                            if (value!=null)
-                                value="'"+value+"'";
+                            String value="''";
+                            if (feature.getProperty(featureNames.get(i)).getValue()!=null){
+                                value=feature.getProperty(featureNames.get(i)).getValue().toString();
+                                if (value!=null)
+                                    value="'"+value+"'";
+                            }else{
+                                //value is null
+                                value=" IS NULL";
+                                //= and the [] must be replaced
+                                if(featureFilterString.indexOf("=["+featureNames.get(i)+"]")>=0){
+                                    regExp="="+regExp;
+                                }else if(featureFilterString.indexOf("= ["+featureNames.get(i)+"]")>=0){
+                                    regExp="= "+regExp;
+                                }
+                            }
                             featureFilterString=featureFilterString.replaceAll(regExp,value);
                         }
                     }
@@ -114,6 +127,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         log.error("The CQL string is not correct: "+featureFilterString);
                         continue;
                     }
+                    //make the filter.
                     Filter filter= CQL.toFilter(featureFilterString);
                     //get lines
                     FeatureSource fs = dataStore2Write.getFeatureSource(getLineFeatureName());
@@ -147,6 +161,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         }
                         GeometryFactory gf= new GeometryFactory(new PrecisionModel(),srid);
                         geom = new MultiPolygon(polygons, gf);
+                        newFt=multiPolygonFt;
                     }else{
                         geom=(Geometry)p.getPolygons().toArray()[0];
                         newFt=polygonFt;
