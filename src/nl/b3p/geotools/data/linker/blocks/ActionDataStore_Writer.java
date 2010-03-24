@@ -36,6 +36,7 @@ public class ActionDataStore_Writer extends Action {
     private final boolean dropFirst;
     private final boolean polygonize;
     private final boolean polygonizeWithAttr;
+    private final boolean polygonizeSufLki;
     private Exception constructorEx;
     private HashMap<String, FeatureWriter> featureWriters = new HashMap();
     private HashMap<String, String> checked = new HashMap();
@@ -68,7 +69,11 @@ public class ActionDataStore_Writer extends Action {
         } else {
             polygonizeWithAttr = false;
         }
-        if (!params.containsKey(MAX_CONNECTIONS)) {
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZESUFLKI)) {
+            polygonizeSufLki = (Boolean) properties.get(ActionFactory.POLYGONIZESUFLKI);
+        } else {
+            polygonizeSufLki = false;
+        }if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
         }
 
@@ -76,7 +81,6 @@ public class ActionDataStore_Writer extends Action {
             log.info("Polygonize is configured as post action");
             collectionActions.add(new CollectionAction_Polygonize(new HashMap(properties)));
         }
-        
 
         try {
             dataStore2Write = DataStoreLinker.openDataStore(params);
@@ -89,6 +93,13 @@ public class ActionDataStore_Writer extends Action {
             log.info("Polygonize with attribute is configured as post action");
             try{
                 collectionActions.add(new CollectionAction_PolygonizeWithAttr(dataStore2Write,new HashMap(properties)));
+            }catch(Exception e){
+                log.error("Can not create PolygonizeWithAttr post action",e);
+            }
+        }else if (this.polygonizeSufLki) {
+            log.info("Polygonize with attribute is configured as post action");
+            try{
+                collectionActions.add(new CollectionAction_PolygonizeSufLki(dataStore2Write,new HashMap(properties)));
             }catch(Exception e){
                 log.error("Can not create PolygonizeWithAttr post action",e);
             }
