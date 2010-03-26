@@ -1,8 +1,12 @@
 package nl.b3p.geotools.data.linker.blocks;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.operation.linemerge.LineMerger;
 import com.vividsolutions.jts.operation.polygonize.Polygonizer;
 import java.util.ArrayList;
@@ -20,7 +24,6 @@ import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.PropertyDescriptor;
 import org.opengis.filter.Filter;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -70,6 +73,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
     }
     @Override
     public void execute(FeatureCollection originalCollection, Action nextAction) {
+        preExecute();
         if(cqlFilterString==null){
             log.error("CqlFilter not set!");
             return;
@@ -107,6 +111,9 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         log.info("PolygonizeWithAttr featurecount: "+featureCounter+"/"+totalFeatures);
                     }
                     SimpleFeature feature = (SimpleFeature) features.next();
+                    if (feature.getAttribute("perceelnummer").toString().equals("1559") && feature.getAttribute("gemeentecode").toString().equals("MRK02")){
+                        log.info("debug perceel found");
+                    }
                     String featureFilterString=new String(getCqlFilterString());
                     //replace al the [value] with the correct value of the feature.
                     for (int i=0; i < propertyNames.size() && featureFilterString.indexOf("[")>=0; i++){
@@ -144,16 +151,21 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         int position=correctLineFeatures.size();
                         for (int i=0; i < correctLineFeatures.size() && addLine;i++){
                             Geometry lineGeom=(Geometry) correctLineFeatures.get(i).getDefaultGeometryProperty().getValue();
-                            if(lineGeom.crosses(featureGeom) ||
-                                    lineGeom.contains(featureGeom)){
+                            if (lineGeom.equals(featureGeom))
                                 addLine=false;
-                            }else if(featureGeom.contains(lineGeom)){
-                                //if the new line contains the old line: Replace (the new one is bigger)
+                            else if (featureGeom.crosses(lineGeom))
+                                addLine=false;
+                            else if (lineGeom.buffer(0.001).contains(featureGeom))
+                                addLine=false;
+                            else if (featureGeom.buffer(0.001).contains(lineGeom)){
                                 position=i;
                             }
                         }
                         if (addLine){
                             correctLineFeatures.add(position,line);
+                            //if the position is not the last position then remove the old position (replace)
+                            if(position+1 != correctLineFeatures.size())
+                                correctLineFeatures.remove(position+1);
                         }
                     }
                     if (correctLineFeatures.size()<=1){
@@ -176,16 +188,14 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         Polygonizer p = new Polygonizer();
                         p.add(linestring);
                         //do polygonize
-                        if (p.getPolygons().size()<=0){
-                            log.debug("can't create polygon with this this line:");
-                            log.debug(linestring.toText());
-                            log.debug("Cutedges: "+p.getCutEdges().size()+" Dangles: "+p.getDangles().size()+" InvalidRingLines: "+p.getInvalidRingLines().size());
+                        if (p.getPolygons().size()<=0){                            
                             continue;
                         }
                         polygons.addAll(p.getPolygons());
                     }
                     //if there are no polygons found continue to next feature.
                     if (polygons.size()==0){
+                        log.debug("No polygons created with lines.\nQuery: "+featureFilterString);
                         continue;
                     }
                     //check if its a positive or negative geom (negative == hole)
@@ -203,7 +213,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         }
                     }
                     if (positivePolygons.size()==0){
-                        throw new Exception("no positive geometries found.");
+                        throw new Exception("no positive geometries found.\n Query: "+featureFilterString);
                     }
                     geom=positivePolygons.get(0);
                     for (int i=1; i < positivePolygons.size(); i++){
@@ -241,6 +251,12 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
             }
         }
 
+    }
+    /**
+     * PreExecute function is called by the execute function before the rest is done.
+     */
+    private void preExecute() {
+        return;
     }
     private Filter createFilterWithOnlyUsableFeatures(ArrayList<String> propertyNames) throws CQLException{
         String cqlFilter= getCqlFilterString();              
@@ -322,5 +338,121 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
 
     public Boolean isPositivePolygon(Polygon polygon, ArrayList<SimpleFeature> correctLineFeatures,SimpleFeature feature) {
         return true;
+    }
+
+    public static void main(String[] args) throws ParseException{
+        WKTReader wktreader = new WKTReader(new GeometryFactory(new PrecisionModel(), 28992));
+        ArrayList<Geometry> al = new ArrayList();
+        /*al.add(wktreader.read("LINESTRING(27464.844 396139.529,27468.19 396139.65,27474.02 396140.659,27481.07 396141.77,27483.846 396143,27484.68 396143.37,27489.37 396146.62,27494.58 396150.38,27497.66 396151.77,27500.35 396152.66,27502.507 396152.997,27503.74 396153.19,27506.83 396153.36,27511.21 396153.12,27512.935 396152.811,27515.12 396152.42,27520.54 396150.98,27525.79 396149.21,27527.78 396148.25,27530.92 396146.43,27534.8 396144.51,27538.67 396142.55,27541.54 396140.69,27545.88 396139.27,27547.947 396138.934)"));
+        al.add(wktreader.read("LINESTRING(27464.844 396139.529,27468.19 396139.65,27474.02 396140.659,27481.07 396141.77,27483.846 396143,27484.68 396143.37,27489.37 396146.62,27494.58 396150.38,27497.66 396151.77,27500.35 396152.66,27502.507 396152.997,27503.74 396153.19,27506.83 396153.36,27511.21 396153.12,27512.935 396152.811,27515.12 396152.42,27520.54 396150.98,27525.79 396149.21,27527.78 396148.25,27530.92 396146.43,27534.8 396144.51,27538.67 396142.55,27541.54 396140.69,27545.88 396139.27,27547.947 396138.934)"));
+        al.add(wktreader.read("LINESTRING(27474.722 396048.875,27464.844 396139.529)"));
+        al.add(wktreader.read("LINESTRING(27474.722 396048.875,27464.844 396139.529)"));
+        al.add(wktreader.read("LINESTRING(27477.037 396027.631,27476.889 396028.993,27476.618 396031.478,27476.293 396034.461,27476.219 396035.144,27475.941 396037.691,27474.722 396048.875)"));
+        al.add(wktreader.read("LINESTRING(27477.037 396027.631,27476.889 396028.993,27476.618 396031.478,27476.293 396034.461,27476.219 396035.144,27475.941 396037.691,27474.722 396048.875)"));
+        al.add(wktreader.read("LINESTRING(27480.047 396000,27477.051 396027.502,27477.037 396027.631)"));
+        al.add(wktreader.read("LINESTRING(27480.808 395993.019,27477.051 396027.502,27477.037 396027.631)"));
+        al.add(wktreader.read("LINESTRING(27480.808 395993.019,27480.047 396000)"));
+        al.add(wktreader.read("LINESTRING(27481.98 395982.144,27480.996 395991.301,27480.91 395992.087,27480.808 395993.019)"));
+        al.add(wktreader.read("LINESTRING(27481.98 395982.144,27480.996 395991.301,27480.91 395992.087,27480.808 395993.019)"));
+        al.add(wktreader.read("LINESTRING(27487.32 395932.43,27487.093 395934.542,27485.491 395949.456,27481.98 395982.144)"));
+        al.add(wktreader.read("LINESTRING(27487.32 395932.43,27487.093 395934.542,27485.491 395949.456,27481.98 395982.144)"));
+        al.add(wktreader.read("LINESTRING(27496.804 395844.146,27487.32 395932.43)"));
+        al.add(wktreader.read("LINESTRING(27496.804 395844.146,27487.32 395932.43)"));
+        al.add(wktreader.read("LINESTRING(27497.314 395839.332,27496.804 395844.146)"));
+        al.add(wktreader.read("LINESTRING(27497.314 395839.332,27496.804 395844.146)"));
+        al.add(wktreader.read("LINESTRING(27497.986 395839.127,27497.314 395839.332)"));
+        al.add(wktreader.read("LINESTRING(27497.986 395839.127,27497.314 395839.332)"));
+        al.add(wktreader.read("LINESTRING(27500.678 395838.59,27497.986 395839.127)"));
+        al.add(wktreader.read("LINESTRING(27500.678 395838.59,27497.986 395839.127)"));
+        al.add(wktreader.read("LINESTRING(27547.947 396138.934,27562.977 396000)"));
+        al.add(wktreader.read("LINESTRING(27547.947 396138.934,27581.189 395831.661)"));
+        al.add(wktreader.read("LINESTRING(27548.404 395837.161,27548.02 395837.22,27540 395837.69,27534.96 395837.9,27501.59 395838.52,27500.678 395838.59)"));
+        al.add(wktreader.read("LINESTRING(27548.404 395837.161,27548.02 395837.22,27540 395837.69,27534.96 395837.9,27501.59 395838.52,27500.678 395838.59)"));
+        al.add(wktreader.read("LINESTRING(27562.977 396000,27581.189 395831.661)"));
+        al.add(wktreader.read("LINESTRING(27573.24 395833.2,27565.86 395834.56,27558.92 395835.78,27554.6 395836.52,27550.12 395836.9,27548.404 395837.161)"));
+        al.add(wktreader.read("LINESTRING(27573.24 395833.2,27565.86 395834.56,27558.92 395835.78,27554.6 395836.52,27550.12 395836.9,27548.404 395837.161)"));
+        al.add(wktreader.read("LINESTRING(27581.189 395831.661,27579.94 395831.96,27573.24 395833.2)"));
+        al.add(wktreader.read("LINESTRING(27581.189 395831.661,27579.94 395831.96,27573.24 395833.2)"));*/
+        al.add(wktreader.read("LINESTRING(27573.24 395833.2,27565.86 395834.56,27558.92 395835.78,27554.6 395836.52,27550.12 395836.9,27548.404 395837.161)"));
+al.add(wktreader.read("LINESTRING(27497.986 395839.127,27497.314 395839.332)"));
+al.add(wktreader.read("LINESTRING(27548.404 395837.161,27548.02 395837.22,27540 395837.69,27534.96 395837.9,27501.59 395838.52,27500.678 395838.59)"));
+al.add(wktreader.read("LINESTRING(27581.189 395831.661,27579.94 395831.96,27573.24 395833.2)"));
+al.add(wktreader.read("LINESTRING(27480.808 395993.019,27480.047 396000)"));
+al.add(wktreader.read("LINESTRING(27481.98 395982.144,27480.996 395991.301,27480.91 395992.087,27480.808 395993.019)"));
+al.add(wktreader.read("LINESTRING(27487.32 395932.43,27487.093 395934.542,27485.491 395949.456,27481.98 395982.144)"));
+al.add(wktreader.read("LINESTRING(27497.314 395839.332,27496.804 395844.146)"));
+al.add(wktreader.read("LINESTRING(27562.977 396000,27581.189 395831.661)"));
+al.add(wktreader.read("LINESTRING(27496.804 395844.146,27487.32 395932.43)"));
+al.add(wktreader.read("LINESTRING(27500.678 395838.59,27497.986 395839.127)"));
+al.add(wktreader.read("LINESTRING(27474.722 396048.875,27464.844 396139.529)"));
+al.add(wktreader.read("LINESTRING(27464.844 396139.529,27468.19 396139.65,27474.02 396140.659,27481.07 396141.77,27483.846 396143,27484.68 396143.37,27489.37 396146.62,27494.58 396150.38,27497.66 396151.77,27500.35 396152.66,27502.507 396152.997,27503.74 396153.19,27506.83 396153.36,27511.21 396153.12,27512.935 396152.811,27515.12 396152.42,27520.54 396150.98,27525.79 396149.21,27527.78 396148.25,27530.92 396146.43,27534.8 396144.51,27538.67 396142.55,27541.54 396140.69,27545.88 396139.27,27547.947 396138.934)"));
+al.add(wktreader.read("LINESTRING(27477.037 396027.631,27476.889 396028.993,27476.618 396031.478,27476.293 396034.461,27476.219 396035.144,27475.941 396037.691,27474.722 396048.875)"));
+al.add(wktreader.read("LINESTRING(27480.047 396000,27477.051 396027.502,27477.037 396027.631)"));
+al.add(wktreader.read("LINESTRING(27547.947 396138.934,27562.977 396000)"));
+al.add(wktreader.read("LINESTRING(27573.24 395833.2,27565.86 395834.56,27558.92 395835.78,27554.6 395836.52,27550.12 395836.9,27548.404 395837.161)"));
+al.add(wktreader.read("LINESTRING(27497.986 395839.127,27497.314 395839.332)"));
+al.add(wktreader.read("LINESTRING(27548.404 395837.161,27548.02 395837.22,27540 395837.69,27534.96 395837.9,27501.59 395838.52,27500.678 395838.59)"));
+al.add(wktreader.read("LINESTRING(27581.189 395831.661,27579.94 395831.96,27573.24 395833.2)"));
+al.add(wktreader.read("LINESTRING(27474.722 396048.875,27464.844 396139.529)"));
+al.add(wktreader.read("LINESTRING(27464.844 396139.529,27468.19 396139.65,27474.02 396140.659,27481.07 396141.77,27483.846 396143,27484.68 396143.37,27489.37 396146.62,27494.58 396150.38,27497.66 396151.77,27500.35 396152.66,27502.507 396152.997,27503.74 396153.19,27506.83 396153.36,27511.21 396153.12,27512.935 396152.811,27515.12 396152.42,27520.54 396150.98,27525.79 396149.21,27527.78 396148.25,27530.92 396146.43,27534.8 396144.51,27538.67 396142.55,27541.54 396140.69,27545.88 396139.27,27547.947 396138.934)"));
+al.add(wktreader.read("LINESTRING(27477.037 396027.631,27476.889 396028.993,27476.618 396031.478,27476.293 396034.461,27476.219 396035.144,27475.941 396037.691,27474.722 396048.875)"));
+al.add(wktreader.read("LINESTRING(27480.808 395993.019,27477.051 396027.502,27477.037 396027.631)"));
+al.add(wktreader.read("LINESTRING(27481.98 395982.144,27480.996 395991.301,27480.91 395992.087,27480.808 395993.019)"));
+al.add(wktreader.read("LINESTRING(27487.32 395932.43,27487.093 395934.542,27485.491 395949.456,27481.98 395982.144)"));
+al.add(wktreader.read("LINESTRING(27497.314 395839.332,27496.804 395844.146)"));
+al.add(wktreader.read("LINESTRING(27547.947 396138.934,27581.189 395831.661)"));
+al.add(wktreader.read("LINESTRING(27496.804 395844.146,27487.32 395932.43)"));
+al.add(wktreader.read("LINESTRING(27500.678 395838.59,27497.986 395839.127)"));
+
+
+        ArrayList<Geometry> correctLines=new ArrayList();
+        for (int c=0; c < al.size(); c++){
+            Geometry featureGeom=al.get(c);
+            boolean addLine=true;
+            int position=correctLines.size();
+            for (int i=0; i < correctLines.size() && addLine;i++){
+                Geometry lineGeom=correctLines.get(i);                
+                if (lineGeom.equals(featureGeom)){
+                    addLine=false;
+                }else if (featureGeom.crosses(lineGeom))
+                    addLine=false;
+                else if (lineGeom.buffer(0.001).contains(featureGeom))
+                    addLine=false;
+                else if (featureGeom.buffer(0.001).contains(lineGeom)){
+                    position=i;
+                }
+
+            }
+            if (addLine){
+                System.out.println("add: "+featureGeom.toText());
+                System.out.println("Pos: "+position);
+                correctLines.add(position,featureGeom);
+                if(position+1 != correctLines.size())
+                    correctLines.remove(position+1);
+            }
+        }
+        LineMerger merger = new LineMerger();
+        for (int i=0; i < correctLines.size();i++){
+            Geometry lineGeom=correctLines.get(i);
+            merger.add(lineGeom);
+        }
+        //Create a polygon for every mergedlinestring
+        Collection coll=merger.getMergedLineStrings();
+        Iterator geomIt=coll.iterator();
+        Geometry geom=null;
+        ArrayList<Polygon> polygons = new ArrayList();
+        while (geomIt.hasNext()){
+            Geometry linestring=(Geometry)geomIt.next();
+            System.out.println(linestring.toText());
+            Polygonizer p = new Polygonizer();
+            p.add(linestring);
+            //do polygonize
+            Iterator it=p.getPolygons().iterator();
+            while(it.hasNext()){
+                System.out.println(((Geometry)it.next()).toText());
+            }
+            
+        }
+        //System.out.println("boe");
     }
 }
