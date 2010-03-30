@@ -110,10 +110,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     if (featureCounter % 10000 ==0){
                         log.info("PolygonizeWithAttr featurecount: "+featureCounter+"/"+totalFeatures);
                     }
-                    SimpleFeature feature = (SimpleFeature) features.next();
-                    if (feature.getAttribute("perceelnummer").toString().equals("1559") && feature.getAttribute("gemeentecode").toString().equals("MRK02")){
-                        log.info("debug perceel found");
-                    }
+                    SimpleFeature feature = (SimpleFeature) features.next();                    
                     String featureFilterString=new String(getCqlFilterString());
                     //replace al the [value] with the correct value of the feature.
                     for (int i=0; i < propertyNames.size() && featureFilterString.indexOf("[")>=0; i++){
@@ -181,7 +178,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         }
                     }
                     if (correctLineFeatures.size()<=1){
-                        log.debug("not more then 2 lines found for feature with cql: "+featureFilterString);
+                        //log.debug("not more then 2 lines found for feature with cql: "+featureFilterString);
                         continue;
                     }
                     //merge the lines
@@ -267,9 +264,10 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
     /**
      * PreExecute function is called by the execute function before the rest is done.
      */
-    private void preExecute() {
+    public void preExecute(){
         return;
     }
+
     private Filter createFilterWithOnlyUsableFeatures(ArrayList<String> propertyNames) throws CQLException{
         String cqlFilter= getCqlFilterString();              
         Filter filter = Filter.INCLUDE;
@@ -338,16 +336,26 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
     public void setCqlFilterString(String cqlFilterString){
         this.cqlFilterString=cqlFilterString;
     }
+    public void setAttributeFeatureName(String attributeFeatureName){
+        this.attributeFeatureName=attributeFeatureName;
+    }
     public String getAttributeFeatureName() {
         return attributeFeatureName;
     }
+
     public String getLineFeatureName() {
         return lineFeatureName;
     }
+    public void setLineFeatureName(String lineFeatureName){
+        this.lineFeatureName=lineFeatureName;
+    }
+    
     public void setDataStore2Write(DataStore dataStore2Write){
         this.dataStore2Write=dataStore2Write;
     }
-
+    public DataStore getDataStore2Write(){
+        return this.dataStore2Write;
+    }
     public Boolean isPositivePolygon(Polygon polygon, ArrayList<SimpleFeature> correctLineFeatures,SimpleFeature feature) {
         return true;
     }

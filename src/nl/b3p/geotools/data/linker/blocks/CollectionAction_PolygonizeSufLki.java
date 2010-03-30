@@ -3,14 +3,22 @@ package nl.b3p.geotools.data.linker.blocks;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Polygon;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
 import org.opengis.feature.simple.SimpleFeature;
 import nl.b3p.suf2.records.SUF2Record03;
 import nl.b3p.suf2.records.SUF2Record06;
+import org.geotools.data.DefaultTransaction;
+import org.geotools.data.Transaction;
+import org.geotools.data.jdbc.JDBCDataStore;
 /**
  * B3partners B.V. http://www.b3partners.nl
  * @author Roy
@@ -47,24 +55,6 @@ public class CollectionAction_PolygonizeSufLki extends CollectionAction_Polygoni
             cqlFilter.append(" =["+SUF2Record06.INDEXNUMMER+"])");
             setCqlFilterString(cqlFilter.toString());
         }
-    /*    if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR_CQLFILTER_ATTRIBUTE)) {
-            cqlFilterString = (String) properties.get(ActionFactory.POLYGONIZEWITHATTR_CQLFILTER_ATTRIBUTE);
-        } else {
-            cqlFilterString = null;
-        }
-        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR_ATTRIBUTEFEATURENAME_ATTRIBUTE)) {
-            attributeFeatureName = (String) properties.get(ActionFactory.POLYGONIZEWITHATTR_ATTRIBUTEFEATURENAME_ATTRIBUTE);
-        } else {
-            attributeFeatureName = null;
-        }
-        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE)) {
-            lineFeatureName = (String) properties.get(ActionFactory.POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE);
-        } else {
-            lineFeatureName = null;
-        }
-        if (cqlFilterString==null || attributeFeatureName==null || lineFeatureName==null){
-            throw new Exception("Missing one of the mandatory values in the properties map");
-        }*/
     }
     public Boolean isPositivePolygon(Polygon polygon, ArrayList<SimpleFeature> correctLineFeatures,SimpleFeature feature) {
         //get the perceelNummer to determine if the line is right or left oriented.
@@ -112,5 +102,41 @@ public class CollectionAction_PolygonizeSufLki extends CollectionAction_Polygoni
             }
         }
         return null;
+    }
+    @Override
+    public void preExecute() {
+        //maak 2 indexen aan op de lijnen tabel voor snellere polygonisatie van suf records.
+        if (getDataStore2Write() instanceof JDBCDataStore){
+            JDBCDataStore jdbcDS=(JDBCDataStore)getDataStore2Write();
+            Transaction t = new DefaultTransaction();
+            try {
+                Connection connection = jdbcDS.getConnection(t);
+                //Index op perceelnummer links
+                String query="CREATE INDEX ";
+                query+=getLineFeatureName()+"_"+SUF2Record03.PERCEELNUMMERLINKS;
+                query+=" ON "+getLineFeatureName();
+                query+="("+SUF2Record03.PERCEELNUMMERLINKS+")";
+
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.executeUpdate();
+
+                //Index op perceelnummer rechts
+                query="CREATE INDEX ";
+                query+=getLineFeatureName()+"_"+SUF2Record03.PERCEELNUMMERRECHTS;
+                query+=" ON "+getLineFeatureName();
+                query+="("+SUF2Record03.PERCEELNUMMERRECHTS+")";
+
+                statement = connection.prepareStatement(query);
+                statement.executeUpdate();
+                
+                t.commit();
+            } catch (Exception ex) {
+                try {
+                    t.close();
+                } catch (IOException e) {
+                    log.error("Error closing connection-transaction",e);
+                }
+            }
+        }
     }
 }
