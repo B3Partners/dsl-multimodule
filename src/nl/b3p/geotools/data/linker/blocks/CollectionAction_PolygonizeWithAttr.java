@@ -222,7 +222,8 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         }
                     }
                     if (positivePolygons.size()==0){
-                        throw new Exception("no positive geometries found.\n Query: "+featureFilterString);
+                        log.error("no positive geometries found.\n Query: "+featureFilterString);
+                        continue;
                     }
                     geom=positivePolygons.get(0);
                     for (int i=1; i < positivePolygons.size(); i++){
