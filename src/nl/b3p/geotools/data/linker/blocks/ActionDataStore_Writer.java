@@ -52,12 +52,12 @@ public class ActionDataStore_Writer extends Action {
         if (ActionFactory.propertyCheck(properties, ActionFactory.APPEND)) {
             append = (Boolean) properties.get(ActionFactory.APPEND);
         } else {
-            append = false;
+            append = true;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.DROPFIRST)) {
             dropFirst = (Boolean) properties.get(ActionFactory.DROPFIRST);
         } else {
-            dropFirst = true;
+            dropFirst = false;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE)) {
             polygonize = (Boolean) properties.get(ActionFactory.POLYGONIZE);
