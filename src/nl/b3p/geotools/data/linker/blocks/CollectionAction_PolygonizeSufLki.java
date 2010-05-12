@@ -39,8 +39,6 @@ public class CollectionAction_PolygonizeSufLki extends CollectionAction_Polygoni
             cqlFilter.append(" = ["+SUF2Record06.SECTIE+"] AND ");
             cqlFilter.append(SUF2Record03.PERCEELNUMMERLINKS);
             cqlFilter.append(" = ["+SUF2Record06.PERCEELNUMMER+"] AND ");
-            cqlFilter.append(SUF2Record03.INDEXLETTERPERCEELLINKS);
-            cqlFilter.append(" =["+SUF2Record06.INDEXLETTER+"] AND ");
             cqlFilter.append(SUF2Record03.INDEXNUMMERLINKS);
             cqlFilter.append(" =["+SUF2Record06.INDEXNUMMER+"]) OR (");
             cqlFilter.append(SUF2Record03.GEMEENTECODEPERCEELRECHTS);
@@ -49,8 +47,6 @@ public class CollectionAction_PolygonizeSufLki extends CollectionAction_Polygoni
             cqlFilter.append(" = ["+SUF2Record06.SECTIE+"] AND ");
             cqlFilter.append(SUF2Record03.PERCEELNUMMERRECHTS);
             cqlFilter.append(" =["+SUF2Record06.PERCEELNUMMER+"] AND ");
-            cqlFilter.append(SUF2Record03.INDEXLETTERPERCEELRECHTS);
-            cqlFilter.append(" =["+SUF2Record06.INDEXLETTER+"] AND ");
             cqlFilter.append(SUF2Record03.INDEXNUMMERRECHTS);
             cqlFilter.append(" =["+SUF2Record06.INDEXNUMMER+"])");
             setCqlFilterString(cqlFilter.toString());
