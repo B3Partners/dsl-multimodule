@@ -61,13 +61,31 @@ public class DataStoreLinker {
         return process(dataStore2Read, actionList, batch);
     }
 
-    /**
-     * Process all features in dataStore2Read
-     */
-    public static String process(DataStore dataStore2Read, ActionList actionList, Properties batch) throws Exception {
-        // Print actionList to log
-        //log.info(actionList.getDescription());
+    private static String createReturnMessage(Status status) {
+        if (status.processedFeatures == 0 && status.errorCount == 0) {
+            return "No features processed, was this intended?";
+        } else if (status.processedFeatures == status.totalFeatureCount && status.errorCount == 0) {
+            return "All " + status.processedFeatures + " features processed";
+        } else if (status.processedFeatures == status.totalFeatureCount) {
+            return status.processedFeatures + " features processed, but " + status.errorCount + " errors (see log)";
+        } else {
+            return status.processedFeatures + " of " + status.totalFeatureCount + " features processed.\n" + "Using parameters:\n" + "Start:  " + status.featureStart + "\n" + "End:    " + status.featureEnd + "\n" + "Errors: " + status.errorCount;
+        }
+    }
 
+    private static String[] getTypeNames(Properties batch, DataStore dataStore2Read) throws IOException {
+        String[] typenames;
+        if (batch.containsKey(READ_TYPENAME)) {
+            // One table / schema
+            typenames = new String[]{batch.getProperty(READ_TYPENAME)};
+        } else {
+            // All tables / schema's
+            typenames = dataStore2Read.getTypeNames();
+        }
+        return typenames;
+    }
+
+    private static class Status {
         String errorReport = "";
         int errorCount = 0;
 
@@ -76,125 +94,34 @@ public class DataStoreLinker {
         int featureStart = 0;
         int featureEnd = -1;
 
-        if (batch.containsKey(FEATURES_START)) {
-            featureStart = ActionFactory.toInteger(batch.getProperty(FEATURES_START));
+        public Status(Properties batch) {
+            if (batch.containsKey(FEATURES_START)) {
+                featureStart = ActionFactory.toInteger(batch.getProperty(FEATURES_START));
+            }
+            if (batch.containsKey(FEATURES_END)) {
+                featureEnd = ActionFactory.toInteger(batch.getProperty(FEATURES_END));
+            }
         }
-        if (batch.containsKey(FEATURES_END)) {
-            featureEnd = ActionFactory.toInteger(batch.getProperty(FEATURES_END));
-        }
+    }
 
+    private static class TypeNameStatus {
+        boolean runOnce = true;
+        boolean dsReportsError = false;
+
+        String dsHasErrorAttribute = "";
+        String dsErrorAttribute = "";
+    }
+
+    /**
+     * Process all features in dataStore2Read
+     */
+    public static String process(DataStore dataStore2Read, ActionList actionList, Properties batch) throws Exception {
+        Status status = new Status(batch);
 
         try {
-
-            String[] typenames;
-            if (batch.containsKey(READ_TYPENAME)) {
-                // One table / schema
-                typenames = new String[]{batch.getProperty(READ_TYPENAME)};
-            } else {
-                // All tables / schema's
-                typenames = dataStore2Read.getTypeNames();
+            for (String typeName2Read : getTypeNames(batch, dataStore2Read)) {
+                processTypeName(dataStore2Read, typeName2Read, status, actionList);
             }
-
-            for (int p = 0; p < typenames.length; p++) {
-                String typeName2Read = typenames[p];
-
-                SimpleFeature feature = null;                
-                FeatureCollection fc=dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
-                FeatureIterator iterator = fc.features();
-
-                boolean runOnce = true;
-                boolean dsReportsError = false;
-                String dsHasErrorAttribute = "";
-                String dsErrorAttribute = "";
-
-                try {
-                    while (iterator.hasNext()) {
-                        try {
-                            feature = (SimpleFeature) iterator.next();
-                            totalFeatureCount++;
-                        } catch (Exception ex) {
-                            actionList.close();
-                            throw new Exception("Could not add Features, problem with provided reader", ex);
-                        }
-                        if (totalFeatureCount % 10000 == 0){
-                            log.info(""+totalFeatureCount + " features processed ("+typeName2Read+")");
-                        }
-                        // Check if SimpleFeature contains errorReport for all posibilities in errorMapping (HashMap)
-                        if (runOnce) {
-                            boolean match = false;
-                            Iterator iter = errorMapping.keySet().iterator();
-
-                            while (iter.hasNext() && !match) {
-                                String hasErrorKey = (String) iter.next();
-
-                                if (feature.getFeatureType().getType(hasErrorKey) != null) {
-                                    String errorDesc = errorMapping.get(hasErrorKey);
-
-                                    if (feature.getFeatureType().getType(errorDesc) != null) {
-                                        // SimpleFeatureType contains errorReport
-                                        dsHasErrorAttribute = hasErrorKey;
-                                        dsErrorAttribute = errorDesc;
-
-                                        match = true;
-                                        dsReportsError = true;
-                                    }
-                                }
-                            }
-                            runOnce = false;
-                        }
-
-                        // Check if SimpleFeature is between defined start and end
-                        if (totalFeatureCount >= featureStart && ((totalFeatureCount <= featureEnd && featureEnd != -1) || (featureEnd == -1))) {
-
-                            // Does SimpleFeatureType support error handling?
-                            if (dsReportsError) {
-                                if (Boolean.parseBoolean(feature.getAttribute(dsHasErrorAttribute).toString()) ||
-                                        feature.getAttribute(dsHasErrorAttribute).toString().equals("1")) {
-
-                                    // feature contains error
-                                    errorReport += feature.getAttribute(dsErrorAttribute).toString() + "\n";
-                                    errorCount++;
-                                } else {
-                                    // feature is healty
-                                    actionList.process(new EasyFeature(feature));
-                                }
-                            } else {
-                                //
-                                if (feature.getDefaultGeometry() == null) {
-                                    // error, skip
-                                    errorCount++;
-                                    log.warn("Feature " + totalFeatureCount + " has no geometry (null); skipping feature");
-                                } else {
-                                    if (feature.getDefaultGeometry() instanceof Geometry) {
-                                        if (((Geometry) feature.getDefaultGeometry()).isValid()) {
-                                            actionList.process(new EasyFeature(feature));
-                                        } else {
-                                            errorCount++;
-                                            log.warn("Feature " + totalFeatureCount + " has no valid geometry (geometry.isValid() == false");
-                                        }
-                                    } else {
-                                        errorCount++;
-                                        log.warn("Feature " + totalFeatureCount + " doesn't contain a allowed geometry (geometry instanceof com.vividsolutions.jts.geom.Geometry == false)");
-                                    }
-                                }
-                            }
-                            processedFeatures++;
-                        }else{
-                            break;
-                        }
-                    }
-                    log.info("Total of: "+totalFeatureCount + " features processed ("+typeName2Read+")");
-                    log.info("Try to do the Post actions");
-                    actionList.processPostCollectionActions();
-                } catch (Exception ex) {
-                    actionList.close();
-                    throw ex;
-
-                } finally {
-                    fc.close(iterator);
-                }
-            }
-
             dataStore2Read.dispose();
 
         } catch (IOException ex) {
@@ -202,30 +129,107 @@ public class DataStoreLinker {
             throw new Exception("Linking DataStores failed;", ex);
         }
 
-        if (!errorReport.equals("")) {
-            errorReport = "Er zijn " + errorCount + " fouten gevonden in DataStore " + getSaveProp(batch, "read.datastore.url", "-undefined-") + ".\n" +
+        if (!status.errorReport.equals("")) {
+            status.errorReport = "Er zijn " + status.errorCount + " fouten gevonden in DataStore " + getSaveProp(batch, "read.datastore.url", "-undefined-") + ".\n" +
                     "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" +
-                    (errorReport.length() > 500 ? errorReport.substring(0, 500) + "... (see log)" : errorReport);
-            DataStoreLinkerMail.mail(batch, errorReport);
+                    (status.errorReport.length() > 500 ? status.errorReport.substring(0, 500) + "... (see log)" : status.errorReport);
+            DataStoreLinkerMail.mail(batch, status.errorReport);
         }
 
         actionList.close();
-        if (processedFeatures == 0 && errorCount == 0) {
-            return "No features processed, was this intended?";
+        
+        return createReturnMessage(status);
+    }
 
-        } else if (processedFeatures == totalFeatureCount && errorCount == 0) {
-            return "All " + processedFeatures + " features processed";
+    private static void processTypeName(DataStore dataStore2Read, String typeName2Read, Status status, ActionList actionList) throws Exception, IOException {
+        SimpleFeature feature = null;
 
-        } else if (processedFeatures == totalFeatureCount) {
-            return processedFeatures + " features processed, but " + errorCount + " errors (see log)";
+        FeatureCollection fc = dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
+        FeatureIterator iterator = fc.features();
 
-        } else {
-            return processedFeatures + " of " + totalFeatureCount + " features processed.\n" +
-                    "Using parameters:\n" +
-                    "Start:  " + featureStart + "\n" +
-                    "End:    " + featureEnd + "\n" +
-                    "Errors: " + errorCount;
+        TypeNameStatus typeNameStatus = new TypeNameStatus();
+
+        try {
+            while (iterator.hasNext()) {
+                try {
+                    feature = (SimpleFeature) iterator.next();
+                    status.totalFeatureCount++;
+                } catch (Exception ex) {
+                    actionList.close();
+                    throw new Exception("Could not add Features, problem with provided reader", ex);
+                }
+                if (processFeature(status, typeName2Read, feature, typeNameStatus, actionList))
+                    break;
+            }
+            log.info("Total of: " + status.totalFeatureCount + " features processed (" + typeName2Read + ")");
+            log.info("Try to do the Post actions");
+            actionList.processPostCollectionActions();
+        } catch (Exception ex) {
+            actionList.close();
+            throw ex;
+        } finally {
+            fc.close(iterator);
         }
+    }
+
+    private static boolean processFeature(Status status, String typeName2Read, SimpleFeature feature, TypeNameStatus typeNameStatus, ActionList actionList) throws Exception {
+        if (status.totalFeatureCount % 10000 == 0) {
+            log.info("" + status.totalFeatureCount + " features processed (" + typeName2Read + ")");
+        }
+        if (typeNameStatus.runOnce) {
+            boolean match = false;
+            Iterator iter = errorMapping.keySet().iterator();
+            while (iter.hasNext() && !match) {
+                String hasErrorKey = (String) iter.next();
+                if (feature.getFeatureType().getType(hasErrorKey) != null) {
+                    String errorDesc = errorMapping.get(hasErrorKey);
+                    if (feature.getFeatureType().getType(errorDesc) != null) {
+                        // SimpleFeatureType contains errorReport
+                        typeNameStatus.dsHasErrorAttribute = hasErrorKey;
+                        typeNameStatus.dsErrorAttribute = errorDesc;
+                        match = true;
+                        typeNameStatus.dsReportsError = true;
+                    }
+                }
+            }
+            typeNameStatus.runOnce = false;
+        }
+        if (status.totalFeatureCount >= status.featureStart && ((status.totalFeatureCount <= status.featureEnd && status.featureEnd != -1) || (status.featureEnd == -1))) {
+            // Does SimpleFeatureType support error handling?
+            if (typeNameStatus.dsReportsError) {
+                if (Boolean.parseBoolean(feature.getAttribute(typeNameStatus.dsHasErrorAttribute).toString()) || feature.getAttribute(typeNameStatus.dsHasErrorAttribute).toString().equals("1")) {
+                    // feature contains error
+                    status.errorReport += feature.getAttribute(typeNameStatus.dsErrorAttribute).toString() + "\n";
+                    status.errorCount++;
+                } else {
+                    // feature is healty
+                    actionList.process(new EasyFeature(feature));
+                }
+            } else {
+                //
+                if (feature.getDefaultGeometry() == null) {
+                    // error, skip
+                    status.errorCount++;
+                    log.warn("Feature " + status.totalFeatureCount + " has no geometry (null); skipping feature");
+                } else {
+                    if (feature.getDefaultGeometry() instanceof Geometry) {
+                        if (((Geometry) feature.getDefaultGeometry()).isValid()) {
+                            actionList.process(new EasyFeature(feature));
+                        } else {
+                            status.errorCount++;
+                            log.warn("Feature " + status.totalFeatureCount + " has no valid geometry (geometry.isValid() == false");
+                        }
+                    } else {
+                        status.errorCount++;
+                        log.warn("Feature " + status.totalFeatureCount + " doesn't contain a allowed geometry (geometry instanceof com.vividsolutions.jts.geom.Geometry == false)");
+                    }
+                }
+            }
+            status.processedFeatures++;
+        } else {
+            return true;
+        }
+        return false;
     }
 
     /**
