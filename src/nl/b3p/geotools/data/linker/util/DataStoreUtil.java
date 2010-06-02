@@ -56,7 +56,7 @@ public class DataStoreUtil {
 
             } catch (Exception e) {
                 bad.add(typename);
-                log.warn("Table '" + typename + "' contains error: " + e.getLocalizedMessage());
+                log.error("Table '" + typename + "' contains error: " + e.getLocalizedMessage());
 
             } finally {
                 if (iterator != null) {

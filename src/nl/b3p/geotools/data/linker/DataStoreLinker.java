@@ -46,6 +46,22 @@ public class DataStoreLinker {
     }
 
     /**
+     * Process a batch
+     */
+    public static String process(Properties batch) throws Exception {
+        // Build actionList from propertyfile
+        DataStore dataStore2Read = createDataStore2Read(batch);
+        ActionList actionList = createActionList(batch);
+        return process(dataStore2Read, actionList, batch);
+    }
+
+    public static String process(Map<String, Object> input, Map<String, Object> actions, Properties batch) throws Exception {
+        DataStore dataStore2Read = openDataStore(input);
+        ActionList actionList = createActionList(actions);
+        return process(dataStore2Read, actionList, batch);
+    }
+
+    /**
      * Process all features in dataStore2Read
      */
     public static String process(DataStore dataStore2Read, ActionList actionList, Properties batch) throws Exception {
@@ -213,16 +229,6 @@ public class DataStoreLinker {
     }
 
     /**
-     * Process a batch
-     */
-    public static String process(Properties batch) throws Exception {
-        // Build actionList from propertyfile
-        DataStore dataStore2Read = createDataStore2Read(batch);
-        ActionList actionList = createActionList(batch);
-        return process(dataStore2Read, actionList, batch);
-    }
-
-    /**
      * Create dataStore2Read from properties
      */
     public static DataStore createDataStore2Read(Properties batch) throws Exception {
@@ -233,8 +239,12 @@ public class DataStoreLinker {
      * Create actionList from batch
      */
     public static ActionList createActionList(Properties batch) throws Exception {
-        ActionList actionList = new ActionList();
         Map<String, Object> actionlistParams = propertiesToMaps(batch, ACTIONLIST_PREFIX + "." + ACTION_PREFIX);
+        return createActionList(actionlistParams);
+    }
+
+    public static ActionList createActionList(Map<String, Object> actionlistParams) throws Exception {
+        ActionList actionList = new ActionList();
 
         int count = 1;
         while (true) {
