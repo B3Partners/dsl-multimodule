@@ -61,30 +61,6 @@ public class DataStoreLinker {
         return process(dataStore2Read, actionList, batch);
     }
 
-    private static String createReturnMessage(Status status) {
-        if (status.processedFeatures == 0 && status.errorCount == 0) {
-            return "No features processed, was this intended?";
-        } else if (status.processedFeatures == status.totalFeatureCount && status.errorCount == 0) {
-            return "All " + status.processedFeatures + " features processed";
-        } else if (status.processedFeatures == status.totalFeatureCount) {
-            return status.processedFeatures + " features processed, but " + status.errorCount + " errors (see log)";
-        } else {
-            return status.processedFeatures + " of " + status.totalFeatureCount + " features processed.\n" + "Using parameters:\n" + "Start:  " + status.featureStart + "\n" + "End:    " + status.featureEnd + "\n" + "Errors: " + status.errorCount;
-        }
-    }
-
-    private static String[] getTypeNames(Properties batch, DataStore dataStore2Read) throws IOException {
-        String[] typenames;
-        if (batch.containsKey(READ_TYPENAME)) {
-            // One table / schema
-            typenames = new String[]{batch.getProperty(READ_TYPENAME)};
-        } else {
-            // All tables / schema's
-            typenames = dataStore2Read.getTypeNames();
-        }
-        return typenames;
-    }
-
     private static class Status {
         String errorReport = "";
         int errorCount = 0;
@@ -158,7 +134,8 @@ public class DataStoreLinker {
                     actionList.close();
                     throw new Exception("Could not add Features, problem with provided reader", ex);
                 }
-                if (processFeature(status, typeName2Read, feature, typeNameStatus, actionList))
+                boolean mustBreak = processFeature(status, typeName2Read, feature, typeNameStatus, actionList);
+                if (mustBreak)
                     break;
             }
             log.info("Total of: " + status.totalFeatureCount + " features processed (" + typeName2Read + ")");
@@ -173,28 +150,19 @@ public class DataStoreLinker {
     }
 
     private static boolean processFeature(Status status, String typeName2Read, SimpleFeature feature, TypeNameStatus typeNameStatus, ActionList actionList) throws Exception {
+        boolean mustBreak = false;
+
         if (status.totalFeatureCount % 10000 == 0) {
             log.info("" + status.totalFeatureCount + " features processed (" + typeName2Read + ")");
         }
-        if (typeNameStatus.runOnce) {
-            boolean match = false;
-            Iterator iter = errorMapping.keySet().iterator();
-            while (iter.hasNext() && !match) {
-                String hasErrorKey = (String) iter.next();
-                if (feature.getFeatureType().getType(hasErrorKey) != null) {
-                    String errorDesc = errorMapping.get(hasErrorKey);
-                    if (feature.getFeatureType().getType(errorDesc) != null) {
-                        // SimpleFeatureType contains errorReport
-                        typeNameStatus.dsHasErrorAttribute = hasErrorKey;
-                        typeNameStatus.dsErrorAttribute = errorDesc;
-                        match = true;
-                        typeNameStatus.dsReportsError = true;
-                    }
-                }
-            }
-            typeNameStatus.runOnce = false;
-        }
-        if (status.totalFeatureCount >= status.featureStart && ((status.totalFeatureCount <= status.featureEnd && status.featureEnd != -1) || (status.featureEnd == -1))) {
+
+        doRunOnce(typeNameStatus, feature);
+        
+        if (status.totalFeatureCount >= status.featureStart && (
+                    (status.totalFeatureCount <= status.featureEnd && status.featureEnd != -1) ||
+                    (status.featureEnd == -1)
+                )
+            ) {
             // Does SimpleFeatureType support error handling?
             if (typeNameStatus.dsReportsError) {
                 if (Boolean.parseBoolean(feature.getAttribute(typeNameStatus.dsHasErrorAttribute).toString()) || feature.getAttribute(typeNameStatus.dsHasErrorAttribute).toString().equals("1")) {
@@ -227,9 +195,10 @@ public class DataStoreLinker {
             }
             status.processedFeatures++;
         } else {
-            return true;
+            mustBreak = true;
         }
-        return false;
+        
+        return mustBreak;
     }
 
     /**
@@ -415,4 +384,47 @@ public class DataStoreLinker {
         }
         return map;
     }
+
+    private static String createReturnMessage(Status status) {
+        if (status.processedFeatures == 0 && status.errorCount == 0) {
+            return "No features processed, was this intended?";
+        } else if (status.processedFeatures == status.totalFeatureCount && status.errorCount == 0) {
+            return "All " + status.processedFeatures + " features processed";
+        } else if (status.processedFeatures == status.totalFeatureCount) {
+            return status.processedFeatures + " features processed, but " + status.errorCount + " errors (see log)";
+        } else {
+            return status.processedFeatures + " of " + status.totalFeatureCount + " features processed.\n" + "Using parameters:\n" + "Start:  " + status.featureStart + "\n" + "End:    " + status.featureEnd + "\n" + "Errors: " + status.errorCount;
+        }
+    }
+
+    private static void doRunOnce(TypeNameStatus typeNameStatus, SimpleFeature feature) {
+        if (typeNameStatus.runOnce) {
+            for (String hasErrorKey : errorMapping.keySet()) {
+                if (feature.getFeatureType().getType(hasErrorKey) != null) {
+                    String errorDesc = errorMapping.get(hasErrorKey);
+                    if (feature.getFeatureType().getType(errorDesc) != null) {
+                        // SimpleFeatureType contains errorReport
+                        typeNameStatus.dsHasErrorAttribute = hasErrorKey;
+                        typeNameStatus.dsErrorAttribute = errorDesc;
+                        typeNameStatus.dsReportsError = true;
+                        break;
+                    }
+                }
+            }
+            typeNameStatus.runOnce = false;
+        }
+    }
+
+    private static String[] getTypeNames(Properties batch, DataStore dataStore2Read) throws IOException {
+        String[] typenames;
+        if (batch.containsKey(READ_TYPENAME)) {
+            // One table / schema
+            typenames = new String[]{batch.getProperty(READ_TYPENAME)};
+        } else {
+            // All tables / schema's
+            typenames = dataStore2Read.getTypeNames();
+        }
+        return typenames;
+    }
+
 }
