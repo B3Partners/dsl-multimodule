@@ -45,8 +45,9 @@ public class ActionFactory {
     public static final String POLYGONIZE_ONECLASSINMEMORY = "polygonize_oneClassInMemory";
     public static final String POLYGONIZEWITHATTR = "polygonizeWithAttr";
     public static final String POLYGONIZEWITHATTR_CQLFILTER_ATTRIBUTE="polygonizeWithAttr_cqlfilter";
-    public static final String POLYGONIZEWITHATTR_ATTRIBUTEFEATURENAME_ATTRIBUTE="polygonzieWithAttr_attributeFeatureName";
-    public static final String POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE="polygonzieWithAttr_lineFeatureName";
+    public static final String POLYGONIZEWITHATTR_ATTRIBUTEFEATURENAME_ATTRIBUTE="polygonizeWithAttr_attributeFeatureName";
+    public static final String POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE="polygonizeWithAttr_lineFeatureName";
+    public static final String POLYGONIZEWITHATTR_LINECLOSETOLERANCE_ATTRIBUTE="polygonizeWithAttr_lineCloseTolerance";
     public static final String POLYGONIZESUFLKI = "polygonizeSufLki";
     public static final String TRYCAST = "trycast";
     public static final String OBJECT_FIND = "object_find";
