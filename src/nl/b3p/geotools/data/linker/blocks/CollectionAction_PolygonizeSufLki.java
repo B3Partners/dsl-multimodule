@@ -50,10 +50,7 @@ public class CollectionAction_PolygonizeSufLki extends CollectionAction_Polygoni
             cqlFilter.append(SUF2Record03.INDEXNUMMERRECHTS);
             cqlFilter.append(" =["+SUF2Record06.INDEXNUMMER+"])");
             setCqlFilterString(cqlFilter.toString());
-        }
-        //set a lineclosetolerance because LKI is not accurate enough.
-        /*if (lineCloseTolerance==0)
-            lineCloseTolerance=0.001;*/
+        }        
     }
     public Boolean isPositivePolygon(Polygon polygon, ArrayList<SimpleFeature> correctLineFeatures,SimpleFeature feature) {
         //get the perceelNummer to determine if the line is right or left oriented.

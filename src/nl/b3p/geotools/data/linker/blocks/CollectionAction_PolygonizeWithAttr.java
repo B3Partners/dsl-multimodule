@@ -59,6 +59,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
      * if < 0: always close
      * if ==0: never close if not closed
      * if > 0: close when distance is smaller then the lineCloseTolerance
+     * default: 0.001
     */
     protected double lineCloseTolerance= 0;
 
@@ -81,7 +82,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR_LINECLOSETOLERANCE_ATTRIBUTE)) {
             lineCloseTolerance = Double.parseDouble((String) properties.get(ActionFactory.POLYGONIZEWITHATTR_LINECLOSETOLERANCE_ATTRIBUTE));
         } else {
-            lineCloseTolerance = 0;
+            lineCloseTolerance = 0.001;
         }
         if (attributeFeatureName == null || lineFeatureName == null) {
             throw new Exception("Missing one of the mandatory values in the properties map");
