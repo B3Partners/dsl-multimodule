@@ -7,8 +7,6 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.operation.linemerge.LineMerger;
 import com.vividsolutions.jts.operation.polygonize.Polygonizer;
 import java.io.IOException;
@@ -41,8 +39,7 @@ import org.geotools.data.DataStoreFinder;
  * B3partners B.V. http://www.b3partners.nl
  * @author Roy
  * Created on 11-mrt-2010, 10:01:19
- *
- * Deze functie is niet heel erg specifiek SUF-lki. Op 2 plekken zitten specifieke dingen in.
+ *  
  */
 public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
 
@@ -120,7 +117,8 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
             SimpleFeatureType polygonFt = createNewFeatureType(originalFt, geometryColumnIndex, Polygon.class);
             SimpleFeatureType multiPolygonFt = createNewFeatureType(originalFt, geometryColumnIndex, Polygon.class);
             //walk through all features
-            int featureCounter = -1;
+            int featureCounter = 0;
+            int successcounter =0;
             int totalFeatures = collection.size();
             while (features.hasNext()) {
                 featureCounter++;
@@ -188,11 +186,12 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     List<Object> attributes = feature.getAttributes();
                     attributes.set(geometryColumnIndex, geom);
                     nextAction.execute(new EasyFeature(SimpleFeatureBuilder.build(newFt, attributes, "" + id)));
-
+                    successcounter++;
                 } catch (Exception e) {
                     log.error("Error creating feature Polygon (in polygonize function): ", e);
                 }
             }
+            log.info("Tried to make: "+featureCounter+" polygons/multipolygons. Successfully created: "+successcounter+ " polygons/multipolygons. Thats a rate of: "+(successcounter/featureCounter*100)+"%");
         } catch (Exception e) {
             log.error("Error polygonizer for feature: " + originalCollection.getSchema().getName().getLocalPart(), e);
         } finally {
