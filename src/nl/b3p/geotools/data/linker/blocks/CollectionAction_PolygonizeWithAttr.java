@@ -141,7 +141,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     ArrayList<Polygon> polygons=createPolygonWithLines(correctLineFeatures);
                     //if there are no polygons found continue to next feature.
                     if (polygons.size() == 0) {
-                        log.debug("No polygons created with lines.\nQuery: " + featureFilterString);
+                        log.debug("No polygons created with lines.\nQuery: " + filter.toString());
                         continue;
                     }
                     //check if its a positive or negative geom (negative == hole)
@@ -159,7 +159,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                         }
                     }
                     if (positivePolygons.size() == 0) {
-                        log.error("no positive geometries found.\n Query: " + featureFilterString);
+                        log.error("no positive geometries found.\n Query: " + filter.toString());
                         continue;
                     }
                     Geometry geom = null;
@@ -336,14 +336,15 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
             //do polygonize
             if (p.getPolygons().size() <= 0) {
                 if (log.isDebugEnabled()){
-                    log.debug("No polygon created with: "+linestring.toText()+" cause: \n");
+                    String logMessage="No polygon created with: "+linestring.toText()+" cause:";
                     if(p.getCutEdges().size()>0){
-                        log.debug("Geometry has Cut Edges");
+                        log.debug("\nGeometry has Cut Edges");
                     }if (p.getDangles().size()>0){
-                        log.debug("Geometry has Dangles");
+                        log.debug("\nGeometry has Dangles");
                     }if (p.getInvalidRingLines().size()>0){
-                        log.debug("Geometry has Invalid Ring Lines");
+                        log.debug("\nGeometry has Invalid Ring Lines");
                     }
+                    log.debug(logMessage);
                 }
                 continue;
             }
