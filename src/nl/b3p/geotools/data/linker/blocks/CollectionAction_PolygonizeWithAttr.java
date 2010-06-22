@@ -191,7 +191,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     log.error("Error creating feature Polygon (in polygonize function): ", e);
                 }
             }
-            log.info("Tried to make: "+featureCounter+" polygons/multipolygons. Successfully created: "+successcounter+ " polygons/multipolygons. Thats a rate of: "+((successcounter/featureCounter)*100)+"%");
+            log.info("Tried to make: "+featureCounter+" polygons/multipolygons. Successfully created: "+successcounter+ " polygons/multipolygons. That's a rate of: "+((successcounter/featureCounter)*100)+"%");
         } catch (Exception e) {
             log.error("Error polygonizer for feature: " + originalCollection.getSchema().getName().getLocalPart(), e);
         } finally {
