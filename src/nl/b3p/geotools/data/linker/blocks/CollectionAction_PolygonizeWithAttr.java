@@ -185,13 +185,13 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     //replace the geometry in the values
                     List<Object> attributes = feature.getAttributes();
                     attributes.set(geometryColumnIndex, geom);
-                    nextAction.execute(new EasyFeature(SimpleFeatureBuilder.build(newFt, attributes, "" + id)));
                     successcounter++;
+                    nextAction.execute(new EasyFeature(SimpleFeatureBuilder.build(newFt, attributes, "" + id)));                    
                 } catch (Exception e) {
                     log.error("Error creating feature Polygon (in polygonize function): ", e);
                 }
             }
-            log.info("Tried to make: "+featureCounter+" polygons/multipolygons. Successfully created: "+successcounter+ " polygons/multipolygons. Thats a rate of: "+(successcounter/featureCounter*100)+"%");
+            log.info("Tried to make: "+featureCounter+" polygons/multipolygons. Successfully created: "+successcounter+ " polygons/multipolygons. Thats a rate of: "+((successcounter/featureCounter)*100)+"%");
         } catch (Exception e) {
             log.error("Error polygonizer for feature: " + originalCollection.getSchema().getName().getLocalPart(), e);
         } finally {
