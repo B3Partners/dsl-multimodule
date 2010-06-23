@@ -191,7 +191,10 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     log.error("Error creating feature Polygon (in polygonize function): ", e);
                 }
             }
-            log.info("Tried to make: "+featureCounter+" polygons/multipolygons. Successfully created: "+successcounter+ " polygons/multipolygons. That's a rate of: "+((successcounter/featureCounter)*100)+"%");
+            float xSuccess=successcounter;
+            float xFeatures=featureCounter;
+            float rate=xSuccess/xFeatures*100;
+            log.info("Tried to make: "+featureCounter+" polygons/multipolygons. Successfully created: "+successcounter+ " polygons/multipolygons. That's a rate of: "+rate+"%");
         } catch (Exception e) {
             log.error("Error polygonizer for feature: " + originalCollection.getSchema().getName().getLocalPart(), e);
         } finally {
@@ -338,11 +341,11 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                 if (log.isDebugEnabled()){
                     String logMessage="No polygon created with: "+linestring.toText()+" cause:";
                     if(p.getCutEdges().size()>0){
-                        log.debug("\nGeometry has Cut Edges");
+                        logMessage+="\nGeometry has Cut Edges";
                     }if (p.getDangles().size()>0){
-                        log.debug("\nGeometry has Dangles");
+                        logMessage+="\nGeometry has Dangles";
                     }if (p.getInvalidRingLines().size()>0){
-                        log.debug("\nGeometry has Invalid Ring Lines");
+                        logMessage+="\nGeometry has Invalid Ring Lines";
                     }
                     log.debug(logMessage);
                 }
