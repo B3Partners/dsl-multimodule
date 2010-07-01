@@ -122,7 +122,9 @@ public class Client {
                                 throw new UnsupportedDataTypeException("File \"" + args[i] + "\" not supported; Use .properties or .xml");
                             }
 
-                            info = DataStoreLinker.process(batch);
+                            DataStoreLinker dsl = new DataStoreLinker(batch);
+                            dsl.process();
+                            info = dsl.getFinishedMessage();
 
                             Date endTime = Calendar.getInstance().getTime();
                             info += giveTimeInfo(startTime, endTime);

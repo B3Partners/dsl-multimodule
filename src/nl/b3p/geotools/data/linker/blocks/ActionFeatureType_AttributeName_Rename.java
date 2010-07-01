@@ -14,6 +14,7 @@ import org.geotools.feature.AttributeTypeBuilder;
 public class ActionFeatureType_AttributeName_Rename extends Action {
 
     private String newAttributeName;
+    protected String description = "Met deze Action kan bij een SimpleFeatureType de attribuutNaam worden gewijzigd.";
 
     public ActionFeatureType_AttributeName_Rename(String attributeName, String newAttributeName) {
         this.attributeName = attributeName;
@@ -61,6 +62,6 @@ public class ActionFeatureType_AttributeName_Rename extends Action {
     }
 
     public String getDescription_NL() {
-        return "Met deze Action kan bij een SimpleFeatureType de attribuutNaam worden gewijzigd.";
+        return description;
     }
 }

@@ -28,6 +28,19 @@ public class DataStoreLinkerMail {
         mail(smtpServer, to, from, subject, message);
     }
 
+    public static void mail(nl.b3p.datastorelinker.entity.Process process, String message) {
+        mail(process, message, process.getMail().getSubject());
+    }
+
+    public static void mail(nl.b3p.datastorelinker.entity.Process process, String message, String subject) {
+        String smtpServer = process.getMail().getSmtpHost();
+        // TODO: defaults in een localization file zetten
+        String from = process.getMail().getFromEmailAddress();
+        String to = process.getMail().getToEmailAddress();
+
+        mail(smtpServer, to, from, subject, message);
+    }
+
     private static void mail(String smtpServer, String to, String from, String subject, String body) {
         if (!(smtpServer).equals("") && !body.equals("")) {
             try {
