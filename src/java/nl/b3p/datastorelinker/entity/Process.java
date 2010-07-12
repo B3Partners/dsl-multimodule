@@ -52,7 +52,8 @@ import org.xml.sax.InputSource;
     "featuresEnd",
     "drop",
     "writerType",
-    "mail"
+    "mail",
+    "schedule"
 })
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlSeeAlso({
@@ -101,6 +102,9 @@ public class Process implements Serializable {
     @JoinColumn(name = "mail_id", referencedColumnName = "id")
     @ManyToOne(optional = true)
     private Mail mail;
+    @JoinColumn(name = "schedule", referencedColumnName = "id")
+    @ManyToOne(optional = true)
+    private Schedule schedule;
 
     public Process() {
     }
@@ -260,6 +264,14 @@ public class Process implements Serializable {
 
     public void setMail(Mail mail) {
         this.mail = mail;
+    }
+
+    public Schedule getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(Schedule schedule) {
+        this.schedule = schedule;
     }
 
 }

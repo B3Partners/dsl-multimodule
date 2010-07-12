@@ -6,16 +6,22 @@
 package nl.b3p.datastorelinker.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
@@ -24,48 +30,42 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Erik van de Pol
  */
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl", propOrder={
-    "smtpHost",
-    "toEmailAddress",
-    "subject",
-    "fromEmailAddress"
-})
+@XmlType(namespace="http://www.b3partners.nl/schemas/dsl")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlSeeAlso({
     Process.class
 })
 @Entity
-@Table(name = "mail")
-public class Mail implements Serializable {
+@Table(name = "schedule")
+public class Schedule implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
     @Basic(optional = false)
-    @Column(name = "smtp_host")
-    private String smtpHost;
-    @Basic(optional = false)
-    @Column(name = "to_email_address")
-    private String toEmailAddress;
-    @Column(name = "subject")
-    private String subject;
-    @Column(name = "from_email_address")
-    private String fromEmailAddress;
-    @OneToMany(mappedBy = "mail")
+    @Column(name = "cron_expression", nullable = false, length = 120)
+    private String cronExpression;
+    @Column(name = "from_date")
+    @Temporal(TemporalType.DATE)
+    private Date fromDate;
+    @OneToMany(mappedBy = "schedule")
     private List<Process> processList;
+    @JoinColumn(name = "schedule_type", referencedColumnName = "id", nullable = false)
+    @ManyToOne(optional = false)
+    private ScheduleType scheduleType;
 
-    public Mail() {
+    public Schedule() {
     }
 
-    public Mail(Long id) {
+    public Schedule(Long id) {
         this.id = id;
     }
 
-    public Mail(Long id, String smtpHost, String toEmailAddress) {
+    public Schedule(Long id, String cronExpression) {
         this.id = id;
-        this.smtpHost = smtpHost;
-        this.toEmailAddress = toEmailAddress;
+        this.cronExpression = cronExpression;
     }
 
     @XmlTransient
@@ -77,38 +77,20 @@ public class Mail implements Serializable {
         this.id = id;
     }
 
-    @XmlElement(required=true)
-    public String getSmtpHost() {
-        return smtpHost;
+    public String getCronExpression() {
+        return cronExpression;
     }
 
-    public void setSmtpHost(String smtpHost) {
-        this.smtpHost = smtpHost;
+    public void setCronExpression(String cronExpression) {
+        this.cronExpression = cronExpression;
     }
 
-    @XmlElement(required=true)
-    public String getToEmailAddress() {
-        return toEmailAddress;
+    public Date getFromDate() {
+        return fromDate;
     }
 
-    public void setToEmailAddress(String toEmailAddress) {
-        this.toEmailAddress = toEmailAddress;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getFromEmailAddress() {
-        return fromEmailAddress;
-    }
-
-    public void setFromEmailAddress(String fromEmailAddress) {
-        this.fromEmailAddress = fromEmailAddress;
+    public void setFromDate(Date fromDate) {
+        this.fromDate = fromDate;
     }
 
     @XmlTransient
@@ -118,6 +100,15 @@ public class Mail implements Serializable {
 
     public void setProcessList(List<Process> processList) {
         this.processList = processList;
+    }
+
+    @XmlTransient
+    public ScheduleType getScheduleType() {
+        return scheduleType;
+    }
+
+    public void setScheduleType(ScheduleType scheduleType) {
+        this.scheduleType = scheduleType;
     }
 
     @Override
@@ -130,10 +121,10 @@ public class Mail implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Mail)) {
+        if (!(object instanceof Schedule)) {
             return false;
         }
-        Mail other = (Mail) object;
+        Schedule other = (Schedule) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -142,7 +133,7 @@ public class Mail implements Serializable {
 
     @Override
     public String toString() {
-        return "nl.b3p.datastorelinker.entity.Mail[id=" + id + "]";
+        return "nl.b3p.datastorelinker.entity.Schedule[id=" + id + "]";
     }
 
 }
