@@ -30,7 +30,10 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Erik van de Pol
  */
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl")
+@XmlType(namespace="http://www.b3partners.nl/schemas/dsl", propOrder={
+    "cronExpression",
+    "fromDate"
+})
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlSeeAlso({
     Process.class
@@ -47,6 +50,9 @@ public class Schedule implements Serializable {
     @Basic(optional = false)
     @Column(name = "cron_expression", nullable = false, length = 120)
     private String cronExpression;
+    @Basic(optional = false)
+    @Column(name = "job_name", nullable = false, length = 120)
+    private String jobName;
     @Column(name = "from_date")
     @Temporal(TemporalType.DATE)
     private Date fromDate;
@@ -83,6 +89,15 @@ public class Schedule implements Serializable {
 
     public void setCronExpression(String cronExpression) {
         this.cronExpression = cronExpression;
+    }
+
+    @XmlTransient
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
     }
 
     public Date getFromDate() {
