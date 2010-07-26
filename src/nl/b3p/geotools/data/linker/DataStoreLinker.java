@@ -55,7 +55,7 @@ public class DataStoreLinker implements Runnable {
     protected Properties batch;
 
     protected nl.b3p.datastorelinker.entity.Process process;
-    protected boolean disposed = false;
+    protected boolean disposed;
 
 
     public synchronized Status getStatus() {
@@ -67,7 +67,7 @@ public class DataStoreLinker implements Runnable {
     }
 
     public DataStoreLinker(nl.b3p.datastorelinker.entity.Process process) throws Exception {
-        this.process = process;
+        init(process);
         dataStore2Read = openDataStore();
         actionList = createActionList();
         postInit();
@@ -75,7 +75,6 @@ public class DataStoreLinker implements Runnable {
 
     public DataStoreLinker(Properties batch) throws Exception {
         init(batch);
-        // Build actionList from propertyfile
         dataStore2Read = createDataStore2Read(batch);
         actionList = createActionList(batch);
         postInit();
@@ -88,20 +87,18 @@ public class DataStoreLinker implements Runnable {
         postInit();
     }
 
-    private void init(Properties batch) throws ConfigurationException, IOException {
-        this.batch = batch;
-        reset();
+    private void init(nl.b3p.datastorelinker.entity.Process process) throws ConfigurationException, IOException {
+        this.process = process;
+        disposed = false;
+        status = new Status(process);
+        typeNameStatus = new TypeNameStatus();
     }
 
-    protected synchronized void reset() throws ConfigurationException, IOException {
-        if (process != null)
-            status = new Status(process);
-        else if (batch != null)
-            status = new Status(batch);
-        else
-            throw new ConfigurationException("Provide either an xml configuration file or a properties configuration file.");
+    private void init(Properties batch) throws ConfigurationException, IOException {
+        this.batch = batch;
+        disposed = false;
+        status = new Status(batch);
         typeNameStatus = new TypeNameStatus();
-        calculateSizes();
     }
 
     /**
@@ -122,7 +119,8 @@ public class DataStoreLinker implements Runnable {
         status.setTotalFeatureSize(totalFeatureSize);
     }
 
-    private void postInit() {
+    private void postInit() throws IOException {
+        calculateSizes();
         log.info("dsl init complete.");
     }
 
@@ -146,7 +144,9 @@ public class DataStoreLinker implements Runnable {
      * Process all features in dataStore2Read
      */
     public void process() throws Exception {
-        reset();
+        if (disposed)
+            throw new Exception("Dsl already used. Please create a new instance of this class");
+        
         try {
             for (String typeName2Read : getTypeNames()) {
                 processTypeName(typeName2Read);
