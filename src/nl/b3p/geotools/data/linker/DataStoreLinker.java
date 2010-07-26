@@ -113,9 +113,11 @@ public class DataStoreLinker implements Runnable {
      */
     private void calculateSizes() throws IOException {
         int totalFeatureSize = 0;
-        for (String typeName2Read : getTypeNames()) {
-            FeatureCollection fc = dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
-            totalFeatureSize += fc.size();
+        if (dataStore2Read!=null){
+            for (String typeName2Read : getTypeNames()) {
+                FeatureCollection fc = dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
+                totalFeatureSize += fc.size();
+            }
         }
         status.setTotalFeatureSize(totalFeatureSize);
     }
