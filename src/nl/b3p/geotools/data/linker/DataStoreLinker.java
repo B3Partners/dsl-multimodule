@@ -201,7 +201,7 @@ public class DataStoreLinker implements Runnable {
         boolean mustBreak = false;
 
         if (status.getTotalFeatureCount() % 10000 == 0) {
-            log.info("" + status.getTotalFeatureCount() + " features processed (" + typeName2Read + ")");
+            log.info("" + status.getTotalFeatureCount() +"/"+status.getTotalFeatureSize() + " features processed (" + typeName2Read + ")");
         }
 
         doRunOnce(feature);
