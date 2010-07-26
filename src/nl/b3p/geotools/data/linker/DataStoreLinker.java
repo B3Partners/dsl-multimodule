@@ -88,7 +88,7 @@ public class DataStoreLinker implements Runnable {
         postInit();
     }
 
-    protected void init(Properties batch) throws ConfigurationException, IOException {
+    private void init(Properties batch) throws ConfigurationException, IOException {
         this.batch = batch;
         reset();
     }
@@ -104,6 +104,13 @@ public class DataStoreLinker implements Runnable {
         calculateSizes();
     }
 
+    /**
+     * Calculating the size can take a very long time depending on the implementation
+     * of the chosen datastore. Some implementations walk through all features
+     * to calculate the size.
+     * 
+     * @throws IOException
+     */
     private void calculateSizes() throws IOException {
         int totalFeatureSize = 0;
         for (String typeName2Read : getTypeNames()) {
@@ -113,7 +120,7 @@ public class DataStoreLinker implements Runnable {
         status.setTotalFeatureSize(totalFeatureSize);
     }
 
-    protected void postInit() {
+    private void postInit() {
         log.info("dsl init complete.");
     }
 
@@ -471,10 +478,10 @@ public class DataStoreLinker implements Runnable {
                 }
 
                 if (value.toLowerCase().equals("false")) {
-                    stepIn.put(keypart, new Boolean(false));
+                    stepIn.put(keypart, false);
 
                 } else if (value.toLowerCase().equals("true")) {
-                    stepIn.put(keypart, new Boolean(true));
+                    stepIn.put(keypart, true);
 
                 } else if (keypart.toLowerCase().equals("url")) {
                     File file = new File(value);
