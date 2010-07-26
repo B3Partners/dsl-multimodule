@@ -126,6 +126,8 @@ public class CollectionAction_PolygonizeSufLki extends CollectionAction_Polygoni
                 
                 t.commit();
             } catch (Exception ex) {
+                log.error("Error while creating index: ",ex);
+            } finally{
                 try {
                     t.close();
                 } catch (IOException e) {

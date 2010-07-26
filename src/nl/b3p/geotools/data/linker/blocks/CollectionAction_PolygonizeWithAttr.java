@@ -134,10 +134,14 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     //get lines
                     FeatureSource fs = dataStore2Write.getFeatureSource(getLineFeatureName());
                     FeatureCollection fc = fs.getFeatures(filter);
-
+                    ArrayList<SimpleFeature> correctLineFeatures=null;
                     FeatureIterator lineFeatures = fc.features();
-                    ArrayList<SimpleFeature> correctLineFeatures = filterInvalidLines(lineFeatures);
-
+                    //always close a featureCollection with a FeatureIterator
+                    try{                    
+                        correctLineFeatures = filterInvalidLines(lineFeatures);
+                    }finally{
+                        fc.close(lineFeatures);
+                    }
                     ArrayList<Polygon> polygons=createPolygonWithLines(correctLineFeatures);
                     //if there are no polygons found continue to next feature.
                     if (polygons.size() == 0) {
@@ -277,23 +281,33 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
         ArrayList<SimpleFeature> correctLineFeatures = new ArrayList();
         while (lineFeatures.hasNext()) {
             SimpleFeature line = (SimpleFeature) lineFeatures.next();
-            Geometry featureGeom = (Geometry) line.getDefaultGeometryProperty().getValue();
-            boolean addLine = true;
+            boolean addLine = false;
+             //list of remove indexes
             ArrayList<Integer> removeIndex = new ArrayList();
-            for (int i = 0; i < correctLineFeatures.size() && addLine; i++) {
-                Geometry lineGeom = (Geometry) correctLineFeatures.get(i).getDefaultGeometryProperty().getValue();
-                //don't add if the geom is already added
-                if (lineGeom.equals(featureGeom)) {
-                    addLine = false;
-                    //don't add if the line is crossing a already added line (otherwise we get a invalid polygon)
-                } else if (featureGeom.crosses(lineGeom)) {
-                    addLine = false;
-                } //check for contains with a 0.5mm buffer (rounding problems with kadaster files.)
-                else if (lineGeom.buffer(0.0005).contains(featureGeom)) {
-                    addLine = false;
-                } else if (featureGeom.buffer(0.0005).contains(lineGeom)) {
-                    removeIndex.add(new Integer(i));
+            if (line!=null &&
+                    line.getDefaultGeometryProperty()!=null &&
+                    line.getDefaultGeometryProperty().getValue()!=null){
+                addLine=true;
+                //get the geometry
+                Geometry featureGeom = (Geometry) line.getDefaultGeometryProperty().getValue();
+                //walk the correct lines and check
+                for (int i = 0; i < correctLineFeatures.size() && addLine; i++) {
+                    Geometry lineGeom = (Geometry) correctLineFeatures.get(i).getDefaultGeometryProperty().getValue();
+                    //don't add if the geom is already added
+                    if (lineGeom.equals(featureGeom)) {
+                        addLine = false;
+                        //don't add if the line is crossing a already added line (otherwise we get a invalid polygon)
+                    } else if (featureGeom.crosses(lineGeom)) {
+                        addLine = false;
+                    } //check for contains with a 0.5mm buffer (rounding problems with kadaster files.)
+                    else if (lineGeom.buffer(0.0005).contains(featureGeom)) {
+                        addLine = false;
+                    } else if (featureGeom.buffer(0.0005).contains(lineGeom)) {
+                        removeIndex.add(new Integer(i));
+                    }
                 }
+            }else{
+                log.error("Feature has no (line)geometry!");
             }
             if (addLine) {
                 if (removeIndex.size() > 0) {
