@@ -36,8 +36,8 @@ import nl.b3p.datastorelinker.util.Util;
  * @author Erik van de Pol
  */
 @XmlType(namespace="http://www.b3partners.nl/schemas/dsl", propOrder={
-    "name",
-    "type",
+    //"name",
+    "dbtype",
     "host",
     "databaseName",
     "username",
@@ -59,7 +59,7 @@ import nl.b3p.datastorelinker.util.Util;
 @Table(name = "database")
 @NamedQueries({
     @NamedQuery(name = "Database.findInput", query =
-        "select distinct d from Database d left join d.inoutList l where l.type.id = null or l.type.id = 1")
+        "select distinct d from Database d left join d.inoutList l where l.type.id = null or l.type.id = 1 order by d.name")
 })
 public class Database implements Serializable, Mappable {
     private static final long serialVersionUID = 1L;
@@ -144,7 +144,8 @@ public class Database implements Serializable, Mappable {
         this.id = id;
     }
 
-    @XmlElement(required=false)
+    //@XmlElement(required=false)
+    @XmlTransient
     public String getName() {
         return name;
     }
@@ -258,13 +259,23 @@ public class Database implements Serializable, Mappable {
         this.inoutList = inoutList;
     }
 
-    @XmlElement(required=true, name="type")
+    @XmlTransient
     public DatabaseType getType() {
         return type;
     }
 
     public void setType(DatabaseType type) {
         this.type = type;
+    }
+
+    @XmlElement(required=true, name="dbtype")
+    public String getDbtype() {
+        return type.getName();
+    }
+
+    public void setDbtype(String typeName) {
+        this.type = new DatabaseType();
+        this.type.setName(typeName);
     }
 
     @Override

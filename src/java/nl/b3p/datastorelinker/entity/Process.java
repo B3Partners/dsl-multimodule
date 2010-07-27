@@ -44,7 +44,7 @@ import org.xml.sax.InputSource;
  */
 @XmlRootElement
 @XmlType(namespace="http://www.b3partners.nl/schemas/dsl", propOrder={
-    "name",
+    //"name",
     "input",
     "output",
     "actions",
@@ -52,8 +52,7 @@ import org.xml.sax.InputSource;
     "featuresEnd",
     "drop",
     "writerType",
-    "mail",
-    "schedule"
+    "mail"
 })
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlSeeAlso({
@@ -68,7 +67,7 @@ public class Process implements Serializable {
     private static final String DEFAULT_WRITER_TYPE = "ActionCombo_GeometrySplitter_Writer";
 
     @XmlTransient
-    private final static Log log = Log.getInstance(nl.b3p.datastorelinker.entity.File.class);
+    private final static Log log = Log.getInstance(nl.b3p.datastorelinker.entity.Process.class);
 
     @Id
     @Basic(optional = false)
@@ -139,7 +138,8 @@ public class Process implements Serializable {
         this.id = id;
     }
 
-    @XmlElement(required=false)
+    //@XmlElement(required=false)
+    @XmlTransient
     public String getName() {
         return name;
     }
@@ -266,6 +266,7 @@ public class Process implements Serializable {
         this.mail = mail;
     }
 
+    @XmlTransient
     public Schedule getSchedule() {
         return schedule;
     }

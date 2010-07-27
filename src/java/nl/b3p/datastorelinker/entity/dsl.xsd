@@ -1,42 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<xs:schema version="1.0" targetNamespace="http://www.b3partners.nl/schemas/dsl" xmlns:dsl="http://www.b3partners.nl/schemas/dsl" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:dsl="http://www.b3partners.nl/schemas/dsl" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.b3partners.nl/schemas/dsl" version="1.0">
 	<xs:element name="process" type="dsl:process"/>
 	<xs:complexType name="process">
-		<xs:sequence>
-			<xs:element name="id" type="xs:long" minOccurs="0"/>
-			<xs:element name="name" type="xs:string"/>
+		<xs:all>
+			<xs:element name="name" type="xs:string" minOccurs="0"/>
 			<xs:element name="input" type="dsl:inout"/>
+			<xs:element name="actions" type="dsl:actionsType" minOccurs="0"/>
 			<xs:element name="output" type="dsl:inout"/>
-			<xs:element name="actions" type="xs:string" minOccurs="0"/>
-		</xs:sequence>
+			<xs:element name="featuresStart" type="xs:int" minOccurs="0"/>
+			<xs:element name="featuresEnd" type="xs:int" minOccurs="0"/>
+			<xs:element name="drop" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="writerType" type="xs:string" minOccurs="0"/>
+			<xs:element name="mail" type="dsl:mail" minOccurs="0"/>
+		</xs:all>
 	</xs:complexType>
 	<xs:complexType name="inout">
-		<xs:sequence>
-			<xs:element name="id" type="xs:long" minOccurs="0"/>
-			<xs:element name="name" type="xs:string"/>
-			<xs:element name="type" type="xs:int"/>
-			<xs:element name="datatype" type="dsl:inoutDatatype"/>
+		<xs:all>
 			<xs:element name="file" type="dsl:file" minOccurs="0"/>
 			<xs:element name="database" type="dsl:database" minOccurs="0"/>
 			<xs:element name="tableName" type="xs:string" minOccurs="0"/>
-		</xs:sequence>
-	</xs:complexType>
-	<xs:complexType name="inoutDatatype">
-		<xs:sequence>
-			<xs:element name="id" type="xs:int"/>
-			<xs:element name="name" type="xs:string" minOccurs="0"/>
-		</xs:sequence>
+		</xs:all>
 	</xs:complexType>
 	<xs:complexType name="file">
-		<xs:sequence>
-			<xs:element name="id" type="xs:long" minOccurs="0"/>
+		<xs:all>
 			<xs:element name="name" type="xs:string"/>
-		</xs:sequence>
+		</xs:all>
 	</xs:complexType>
 	<xs:complexType name="database">
-		<xs:sequence>
-			<xs:element name="id" type="xs:long" minOccurs="0"/>
-			<xs:element name="name" type="xs:string"/>
+		<xs:all>
+			<xs:element name="name" type="xs:string" minOccurs="0"/>
 			<xs:element name="type" type="dsl:databaseType"/>
 			<xs:element name="host" type="xs:string" minOccurs="0"/>
 			<xs:element name="databaseName" type="xs:string" minOccurs="0"/>
@@ -50,18 +42,47 @@
 			<xs:element name="srs" type="xs:string" minOccurs="0"/>
 			<xs:element name="colX" type="xs:string" minOccurs="0"/>
 			<xs:element name="colY" type="xs:string" minOccurs="0"/>
-		</xs:sequence>
+		</xs:all>
 	</xs:complexType>
 	<xs:complexType name="databaseType">
-		<xs:sequence>
-			<xs:element name="id" type="xs:int"/>
+		<xs:all>
+			<xs:element name="name" type="xs:string"/>
+		</xs:all>
+	</xs:complexType>
+	<xs:complexType name="inoutDatatype">
+		<xs:all>
 			<xs:element name="name" type="xs:string" minOccurs="0"/>
-		</xs:sequence>
+		</xs:all>
+	</xs:complexType>
+	<xs:complexType name="mail">
+		<xs:all>
+			<xs:element name="smtpHost" type="xs:string"/>
+			<xs:element name="toEmailAddress" type="xs:string"/>
+			<xs:element name="subject" type="xs:string" minOccurs="0"/>
+			<xs:element name="fromEmailAddress" type="xs:string" minOccurs="0"/>
+		</xs:all>
 	</xs:complexType>
 	<xs:complexType name="inoutType">
-		<xs:sequence>
+		<xs:all>
 			<xs:element name="id" type="xs:int"/>
 			<xs:element name="name" type="xs:string" minOccurs="0"/>
-		</xs:sequence>
+		</xs:all>
+	</xs:complexType>
+	<xs:complexType name="actionsType">
+		<xs:all>
+			<xs:element name="type" type="xs:string"/>
+			<xs:element name="parameters" type="dsl:parametersType" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+	<xs:complexType name="parametersType">
+		<xs:all>
+			<xs:element name="parameter" type="dsl:parameterType" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+	<xs:complexType name="parameterType">
+		<xs:all>
+			<xs:element name="paramId" type="xs:string"/>
+			<xs:element name="value" type="xs:string"/>
+		</xs:all>
 	</xs:complexType>
 </xs:schema>

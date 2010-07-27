@@ -1,0 +1,18 @@
+<!-- copy/paste this codepart to a newly auto-generated dsl-xsd -->
+	<xs:complexType name="actionsType">
+		<xs:all>
+			<xs:element name="type" type="xs:string"/>
+			<xs:element name="parameters" type="dsl:parametersType" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+	<xs:complexType name="parametersType">
+		<xs:all>
+			<xs:element name="parameter" type="dsl:parameter" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>	
+	<xs:complexType name="parameterType">
+		<xs:all>
+			<xs:element name="paramId" type="xs:string"/>
+			<xs:element name="value" type="xs:string"/>
+		</xs:all>
+	</xs:complexType>
