@@ -1,15 +1,17 @@
 package nl.b3p.geotools.data.linker;
 
-import java.text.SimpleDateFormat;
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.util.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  *
  * @author Gertjan Al, B3Partners
  */
 public class DataStoreLinkerMail {
+    private static final Log log = LogFactory.getLog(DataStoreLinkerMail.class);
 
     public static void mail(Properties batch, String message) {
         String smtpServer = DataStoreLinker.getSaveProp(batch, "log.mail.smtp.host", "");
@@ -42,6 +44,7 @@ public class DataStoreLinkerMail {
     }
 
     private static void mail(String smtpServer, String to, String from, String subject, String body) {
+        log.debug("Sending process complete mail.");
         if (!(smtpServer).equals("") && !body.equals("")) {
             try {
                 Properties props = System.getProperties();
@@ -67,6 +70,7 @@ public class DataStoreLinkerMail {
                 //Send the message
                 Transport.send(msg);
             } catch (Exception ex) {
+                log.warn("Error sending email after dsl process complete.", ex);
             }
         }
     }

@@ -157,7 +157,8 @@ public class DataStoreLinker implements Runnable {
             dispose();
         }
 
-        if (!status.getErrorReport().equals("")) {
+        log.info("Error report: " + status.getErrorReport());
+        //if (!status.getErrorReport().equals("")) {
             if (batch != null) {
                 status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + getSaveProp(batch, "read.datastore.url", "-undefined-") + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + (status.getErrorReport().length() > 500 ? status.getErrorReport().substring(0, 500) + "... (see log)" : status.getErrorReport()));
                 DataStoreLinkerMail.mail(batch, status.getErrorReport());
@@ -166,7 +167,7 @@ public class DataStoreLinker implements Runnable {
                 DataStoreLinkerMail.mail(process, status.getErrorReport());
             }
             
-        }
+        //}
     }
 
     private void processTypeName(String typeName2Read) throws Exception, IOException {
@@ -218,7 +219,7 @@ public class DataStoreLinker implements Runnable {
                     status.setErrorReport(status.getErrorReport() + feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString() + "\n");
                     status.setErrorCount(status.getErrorCount() + 1);
                 } else {
-                    // feature is healty
+                    // feature is healthy
                     actionList.process(new EasyFeature(feature));
                 }
             } else {
