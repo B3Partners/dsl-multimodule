@@ -25,7 +25,6 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import nl.b3p.datastorelinker.util.Mappable;
@@ -35,9 +34,10 @@ import nl.b3p.datastorelinker.util.Util;
  *
  * @author Erik van de Pol
  */
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl", propOrder={
+@XmlType(name="database", propOrder={
     //"name",
-    "dbtype",
+    //"dbtype",
+    "type",
     "host",
     "databaseName",
     "username",
@@ -52,9 +52,6 @@ import nl.b3p.datastorelinker.util.Util;
     "colY"
 })
 @XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlSeeAlso({
-    DatabaseType.class
-})
 @Entity
 @Table(name = "database")
 @NamedQueries({
@@ -98,6 +95,7 @@ public class Database implements Serializable, Mappable {
     @XmlTransient
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "database")
     private List<Inout> inoutList;
+    //@XmlTransient
     @JoinColumn(name = "type_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     private DatabaseType type;
@@ -259,7 +257,8 @@ public class Database implements Serializable, Mappable {
         this.inoutList = inoutList;
     }
 
-    @XmlTransient
+    //@XmlTransient
+    @XmlElement(required=true, name="type")
     public DatabaseType getType() {
         return type;
     }
@@ -268,7 +267,8 @@ public class Database implements Serializable, Mappable {
         this.type = type;
     }
 
-    @XmlElement(required=true, name="dbtype")
+    @XmlTransient
+    //@XmlElement(required=true, name="dbtype")
     public String getDbtype() {
         return type.getName();
     }

@@ -16,14 +16,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
@@ -31,46 +28,50 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Erik van de Pol
  */
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl", propOrder={
+@XmlType(name="inout"/*, propOrder={
     "file",
     "database",
     "tableName"
-})
-@XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlSeeAlso({
-    Database.class,
-    File.class,
-    InoutDatatype.class
-})
+}*/)
+@XmlAccessorType(XmlAccessType.FIELD)
 @Entity
 @Table(name = "inout")
 public class Inout implements Serializable {
+    @XmlTransient
     private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
     @Column(name = "id")
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @XmlTransient
     private Long id;
     @JoinColumn(name = "type_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @XmlTransient
     private InoutType type;
     @Column(name = "table_name")
     private String tableName;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "input")
+    @XmlTransient
     private List<Process> inputProcessList;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "output")
+    @XmlTransient
     private List<Process> outputProcessList;
     @JoinColumn(name = "database_id", referencedColumnName = "id")
     @ManyToOne
+    //@XmlElement(name="database")
     private Database database;
     @JoinColumn(name = "file_id", referencedColumnName = "id")
     @ManyToOne
+    //@XmlElement(name="file")
     private File file;
     @JoinColumn(name = "datatype_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @XmlTransient
     private InoutDatatype datatype;
     @Basic(optional = false)
     @Column(name = "name")
+    @XmlTransient
     private String name;
 
     public Inout() {
@@ -80,7 +81,6 @@ public class Inout implements Serializable {
         this.id = id;
     }
 
-    @XmlTransient
     public Long getId() {
         return id;
     }
@@ -89,8 +89,6 @@ public class Inout implements Serializable {
         this.id = id;
     }
 
-    @XmlTransient
-    //@XmlElement(required=true, name="type")
     public InoutType getType() {
         return type;
     }
@@ -107,7 +105,6 @@ public class Inout implements Serializable {
         this.tableName = tableName;
     }
 
-    @XmlTransient
     public List<Process> getInputProcessList() {
         return inputProcessList;
     }
@@ -116,7 +113,6 @@ public class Inout implements Serializable {
         this.inputProcessList = inputProcessList;
     }
 
-    @XmlTransient
     public List<Process> getOutputProcessList() {
         return outputProcessList;
     }
@@ -125,7 +121,6 @@ public class Inout implements Serializable {
         this.outputProcessList = outputProcessList;
     }
 
-    @XmlElement(name="database")
     public Database getDatabase() {
         return database;
     }
@@ -134,7 +129,6 @@ public class Inout implements Serializable {
         this.database = database;
     }
 
-    @XmlElement(name="file")
     public File getFile() {
         return file;
     }
@@ -143,8 +137,6 @@ public class Inout implements Serializable {
         this.file = file;
     }
 
-    @XmlTransient
-    //@XmlElement(required=true, name="datatype")
     public InoutDatatype getDatatype() {
         return datatype;
     }
@@ -153,8 +145,6 @@ public class Inout implements Serializable {
         this.datatype = datatype;
     }
 
-    //@XmlElement(required=true)
-    @XmlTransient
     public String getName() {
         return name;
     }

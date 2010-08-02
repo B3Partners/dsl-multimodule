@@ -31,7 +31,7 @@ import nl.b3p.datastorelinker.util.Util;
  *
  * @author Erik van de Pol
  */
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl")
+@XmlType(name="file")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @Entity
 @Table(name = "file")

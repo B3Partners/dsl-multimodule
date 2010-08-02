@@ -12,8 +12,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -23,8 +21,6 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "schedule_type")
-@NamedQueries({
-    @NamedQuery(name = "ScheduleType.findAll", query = "SELECT s FROM ScheduleType s")})
 public class ScheduleType implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id

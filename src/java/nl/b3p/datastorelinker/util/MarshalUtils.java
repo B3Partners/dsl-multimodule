@@ -6,17 +6,22 @@
 package nl.b3p.datastorelinker.util;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import net.sourceforge.stripes.util.Log;
 import org.jdom.Document;
 import org.jdom.JDOMException;
@@ -33,12 +38,26 @@ public class MarshalUtils {
 
     private final static String JAXB_ELEMENTS_PACKAGE = "nl.b3p.datastorelinker.entity";
 
+    private final static String DSL_NAMESPACE = "http://www.b3partners.nl/schemas/dsl";
+    private final static String DSL_PREFIX = "dsl";
+    // There is something weird going on with the paths being read in getResourceAsStream.
+    // Both below will work (if dsl.xsd is there). Notice the first does not have a leading slash.
+    // It does not work with a leading slash in it.
+    private static final String DSL_XSD_PATH = "nl/b3p/datastorelinker/entity/dsl.xsd";
+    //private static final String DSL_XSD_PATH = "/dsl.xsd";
+
+
     public static String marshalProcess(nl.b3p.datastorelinker.entity.Process process) throws JAXBException {
         return marshal(process, null);
     }
 
     public static String marshalProcess(nl.b3p.datastorelinker.entity.Process process, Schema schema) throws JAXBException {
-        return marshal(process, schema);
+        JAXBElement<nl.b3p.datastorelinker.entity.Process> jaxbProcess =
+                new JAXBElement<nl.b3p.datastorelinker.entity.Process>(
+                        new QName(DSL_NAMESPACE, "process", DSL_PREFIX),
+                        nl.b3p.datastorelinker.entity.Process.class,
+                        process);
+        return marshal(jaxbProcess, schema);
     }
 
     public static String marshal(Object object) throws JAXBException {
@@ -53,6 +72,7 @@ public class MarshalUtils {
         log.debug("this.getClass().getClassLoader(): " + MarshalUtils.class.getClassLoader().toString());
 */
         JAXBContext jaxbContext = JAXBContext.newInstance(JAXB_ELEMENTS_PACKAGE);
+        log.debug(jaxbContext);
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setSchema(schema);
         marshaller.setProperty("jaxb.formatted.output", true);
@@ -86,6 +106,21 @@ public class MarshalUtils {
         return unmarshal(w3cDomDoc, clazz, schema);
     }
 
+    public static nl.b3p.datastorelinker.entity.Process unmarshalProcess(InputStream xmlDocument) throws JAXBException, ParserConfigurationException, SAXException, IOException {
+        return unmarshalProcess(xmlDocument, null);
+    }
+
+    public static nl.b3p.datastorelinker.entity.Process unmarshalProcess(InputStream xmlDocument, Schema schema) throws JAXBException, ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = factory.newDocumentBuilder();
+        org.w3c.dom.Document w3cXmlDocument =
+                documentBuilder.parse(new InputSource(xmlDocument));
+
+        JAXBElement<nl.b3p.datastorelinker.entity.Process> jaxbProcess =
+                unmarshal(w3cXmlDocument, nl.b3p.datastorelinker.entity.Process.class, schema);
+        return jaxbProcess.getValue();
+    }
+
     public static nl.b3p.datastorelinker.entity.Process unmarshalProcess(Document xmlDocument) throws JAXBException, JDOMException {
         return unmarshalProcess(xmlDocument, null);
     }
@@ -115,6 +150,13 @@ public class MarshalUtils {
         JAXBElement<nl.b3p.datastorelinker.entity.Process> jaxbProcess =
                 unmarshal(w3cXmlDocument, nl.b3p.datastorelinker.entity.Process.class, schema);
         return jaxbProcess.getValue();
+    }
+
+    public static Schema getDslSchema() throws SAXException {
+        InputStream schemaStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(DSL_XSD_PATH);
+        log.debug("schemaStream: " + schemaStream);
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        return schemaFactory.newSchema(new StreamSource(schemaStream));
     }
 
 }

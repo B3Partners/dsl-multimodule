@@ -11,6 +11,7 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -24,7 +25,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.parsers.DocumentBuilder;
@@ -43,7 +44,7 @@ import org.xml.sax.InputSource;
  * @author Erik van de Pol
  */
 @XmlRootElement
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl", propOrder={
+@XmlType(name="processType"/*, propOrder={
     //"name",
     "input",
     "output",
@@ -53,17 +54,17 @@ import org.xml.sax.InputSource;
     "drop",
     "writerType",
     "mail"
-})
-@XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlSeeAlso({
-    Inout.class
-})
+}*/)
+@XmlAccessorType(XmlAccessType.FIELD)
 @Entity
 @Table(name = "process")
 public class Process implements Serializable {
+    @XmlTransient
     private static final long serialVersionUID = 1L;
 
+    @XmlTransient
     private static final boolean DEFAULT_DROP = true;
+    @XmlTransient
     private static final String DEFAULT_WRITER_TYPE = "ActionCombo_GeometrySplitter_Writer";
 
     @XmlTransient
@@ -73,18 +74,23 @@ public class Process implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @XmlTransient
     private Long id;
     @Basic(optional = false)
     @Column(name = "name")
+    @XmlTransient
     private String name;
     @Basic(optional = false)
     @Column(name = "actions")
+    @XmlTransient
     private String actions;
     @JoinColumn(name = "input_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @XmlElement(required=true, name="input")
     private Inout input;
     @JoinColumn(name = "output_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
+    @XmlElement(required=true, name="output")
     private Inout output;
     @Basic(optional = true)
     @Column(name = "features_start")
@@ -99,10 +105,11 @@ public class Process implements Serializable {
     @Column(name = "writer_type")
     private String writerType = DEFAULT_WRITER_TYPE;
     @JoinColumn(name = "mail_id", referencedColumnName = "id")
-    @ManyToOne(optional = true)
+    @ManyToOne(optional = false, cascade = CascadeType.ALL)
     private Mail mail;
     @JoinColumn(name = "schedule", referencedColumnName = "id")
     @ManyToOne(optional = true)
+    @XmlTransient
     private Schedule schedule;
 
     public Process() {
@@ -126,10 +133,6 @@ public class Process implements Serializable {
         return outputMap;
     }
 
-    //@XmlAttribute
-    //@XmlID
-    //@XmlJavaTypeAdapter(XmlIdAdapter.class)
-    @XmlTransient
     public Long getId() {
         return id;
     }
@@ -138,8 +141,6 @@ public class Process implements Serializable {
         this.id = id;
     }
 
-    //@XmlElement(required=false)
-    @XmlTransient
     public String getName() {
         return name;
     }
@@ -148,7 +149,6 @@ public class Process implements Serializable {
         this.name = name;
     }
 
-    @XmlTransient
     public String getActionsString() {
         return actions;
     }
@@ -183,7 +183,6 @@ public class Process implements Serializable {
         }
     }
 
-    @XmlElement(required=true, name="input")
     public Inout getInput() {
         return input;
     }
@@ -192,7 +191,6 @@ public class Process implements Serializable {
         this.input = input;
     }
 
-    @XmlElement(required=true, name="output")
     public Inout getOutput() {
         return output;
     }
@@ -266,7 +264,6 @@ public class Process implements Serializable {
         this.mail = mail;
     }
 
-    @XmlTransient
     public Schedule getSchedule() {
         return schedule;
     }

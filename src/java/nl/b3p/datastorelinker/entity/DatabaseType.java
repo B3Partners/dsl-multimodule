@@ -12,8 +12,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -26,7 +24,7 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Erik van de Pol
  */
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl")
+@XmlType(name="databaseType")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @Entity
 @Table(name = "database_type")

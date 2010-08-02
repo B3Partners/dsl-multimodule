@@ -22,7 +22,6 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
@@ -30,14 +29,11 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Erik van de Pol
  */
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl", propOrder={
+@XmlType(name="schedule", propOrder={
     "cronExpression",
     "fromDate"
 })
 @XmlAccessorType(XmlAccessType.PROPERTY)
-@XmlSeeAlso({
-    Process.class
-})
 @Entity
 @Table(name = "schedule")
 public class Schedule implements Serializable {

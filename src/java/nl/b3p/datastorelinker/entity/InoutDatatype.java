@@ -23,7 +23,7 @@ import javax.xml.bind.annotation.XmlType;
  *
  * @author Erik van de Pol
  */
-@XmlType(namespace="http://www.b3partners.nl/schemas/dsl")
+@XmlType(name="inoutDatatype")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @Entity
 @Table(name = "inout_datatype")
