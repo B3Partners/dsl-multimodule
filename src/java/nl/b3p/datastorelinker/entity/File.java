@@ -44,6 +44,12 @@ public class File implements Serializable, Mappable {
     @Basic(optional = false)
     @Column(name = "name")
     private String name;
+    @Basic(optional = false)
+    @Column(name = "directory")
+    private String directory;
+    @Basic(optional = false)
+    @Column(name = "is_directory")
+    private Boolean isDirectory;
     @Id
     @Basic(optional = false)
     @Column(name = "id")
@@ -99,6 +105,22 @@ public class File implements Serializable, Mappable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDirectory() {
+        return directory;
+    }
+
+    public void setDirectory(String directory) {
+        this.directory = directory;
+    }
+
+    public Boolean getIsDirectory() {
+        return isDirectory;
+    }
+
+    public void setIsDirectory(Boolean isDirectory) {
+        this.isDirectory = isDirectory;
     }
 
     @XmlTransient
