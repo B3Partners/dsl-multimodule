@@ -75,10 +75,15 @@ public class File implements Serializable, Mappable {
     }
 
     public Map<String, Object> toMap(String keyPrefix) {
+        if (isDirectory) {
+            // TODO: throw ex?
+            log.error("Attempt to run dsl with a directory as input");
+        }
+
         Map<String, Object> map = new HashMap<String, Object>();
 
         Object qname;
-        java.io.File file = new java.io.File(name);
+        java.io.File file = new java.io.File(directory, name);
         if (file.exists()) {
             //qname = file.toURI().getPath();
             try {
