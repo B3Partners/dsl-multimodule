@@ -94,6 +94,7 @@ public class File implements Serializable, Mappable {
                 qname = name;
             }
         } else {
+            log.error("File does not exist: " + file);
             qname = name;
         }
 
