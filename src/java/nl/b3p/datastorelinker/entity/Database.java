@@ -17,6 +17,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -53,7 +54,7 @@ import nl.b3p.datastorelinker.util.Util;
 })
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @Entity
-@Table(name = "database")
+@Table(name = "database_inout")
 @NamedQueries({
     @NamedQuery(name = "Database.findInput", query =
         "select distinct d from Database d left join d.inoutList l where l.type.id = null or l.type.id = 1 order by d.name")
@@ -63,12 +64,13 @@ public class Database implements Serializable, Mappable {
     @Id
     @Basic(optional = false)
     @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
     @Basic(optional = false)
     @Column(name = "name")
     private String name;
-    @Column(name = "host")
+    @Column(name = "host_name")
+    @Lob
     private String host;
     @Column(name = "database_name")
     private String databaseName;
@@ -76,13 +78,13 @@ public class Database implements Serializable, Mappable {
     private String username;
     @Column(name = "password")
     private String password;
-    @Column(name = "schema")
+    @Column(name = "db_schema")
     private String schema;
     @Column(name = "port")
     private Integer port;
     @Column(name = "instance")
     private String instance;
-    @Column(name = "alias")
+    @Column(name = "db_alias")
     private String alias;
     @Column(name = "url")
     private String url;

@@ -41,7 +41,7 @@ public class Schedule implements Serializable {
     @Id
     @Basic(optional = false)
     @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
     @Basic(optional = false)
     @Column(name = "cron_expression", nullable = false, length = 120)

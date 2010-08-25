@@ -18,6 +18,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -35,6 +36,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import net.sourceforge.stripes.util.Log;
+import org.hibernate.annotations.GenericGenerator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -73,7 +75,10 @@ public class Process implements Serializable {
     @Id
     @Basic(optional = false)
     @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue
+    // default GeneratedValue strategy is AUTO
+    // wat weer default naar SEQUENCE in Oracle maar ook in Postgres
+    // (hier verwachtte ik IDENTITY; volgens de documentatie ook)
     @XmlTransient
     private Long id;
     @Basic(optional = false)
@@ -82,6 +87,7 @@ public class Process implements Serializable {
     private String name;
     @Basic(optional = false)
     @Column(name = "actions")
+    @Lob
     @XmlTransient
     private String actions;
     @JoinColumn(name = "input_id", referencedColumnName = "id")
@@ -99,7 +105,7 @@ public class Process implements Serializable {
     @Column(name = "features_end")
     private Integer featuresEnd;
     @Basic(optional = false)
-    @Column(name = "drop")
+    @Column(name = "drop_table")
     private Boolean drop = DEFAULT_DROP;
     @Basic(optional = false)
     @Column(name = "writer_type")

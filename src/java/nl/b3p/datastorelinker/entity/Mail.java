@@ -39,7 +39,7 @@ public class Mail implements Serializable {
     @Id
     @Basic(optional = false)
     @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
     @Basic(optional = false)
     @Column(name = "smtp_host")

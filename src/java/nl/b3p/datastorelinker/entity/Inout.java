@@ -35,14 +35,14 @@ import javax.xml.bind.annotation.XmlType;
 }*/)
 @XmlAccessorType(XmlAccessType.FIELD)
 @Entity
-@Table(name = "inout")
+@Table(name = "input_output")
 public class Inout implements Serializable {
     @XmlTransient
     private static final long serialVersionUID = 1L;
     @Id
     @Basic(optional = false)
     @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue
     @XmlTransient
     private Long id;
     @JoinColumn(name = "type_id", referencedColumnName = "id")

@@ -34,7 +34,7 @@ import nl.b3p.datastorelinker.util.Util;
 @XmlType(name="file")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @Entity
-@Table(name = "file")
+@Table(name = "file_inout")
 public class File implements Serializable, Mappable {
     private static final long serialVersionUID = 1L;
 
@@ -53,7 +53,7 @@ public class File implements Serializable, Mappable {
     @Id
     @Basic(optional = false)
     @Column(name = "id")
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue
     private Long id;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "file")
     private List<Inout> inoutList;
