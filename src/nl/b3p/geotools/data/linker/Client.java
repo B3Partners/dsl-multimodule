@@ -18,13 +18,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 import javax.activation.UnsupportedDataTypeException;
-import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import nl.b3p.datastorelinker.util.MarshalUtils;
+import nl.b3p.datastorelinker.util.Util;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,7 +43,6 @@ public class Client {
     private static final String TO_XML = "toXml";
     private static final String PRINT_STATS = "printStats";
     private static final String NO_MAIL = "noMail";
-    private static final String DSL_XSD_PATH = "/nl/b3p/datastorelinker/entity/dsl.xsd";
 
     static {
         projectProperties.put(PRINT_STATS, false);
@@ -128,7 +124,8 @@ public class Client {
                                 batch.loadFromXML(input);
                                 if (batch.size() == 1 && batch.containsKey("process")) {
                                     // we are dealing with new version xml here
-                                    process = parseAndCheckInputXml(input);
+                                    process = (nl.b3p.datastorelinker.entity.Process)
+                                        MarshalUtils.unmarshalProcess(input, MarshalUtils.getDslSchema());
                                 }
                             } else if (args[i].toLowerCase().endsWith(".properties")) {
                                 batch.load(input);
@@ -264,12 +261,4 @@ public class Client {
         }
     }
 
-    private static nl.b3p.datastorelinker.entity.Process parseAndCheckInputXml(InputStream xmlStream) throws SAXException, JAXBException, ParserConfigurationException, IOException {
-        InputStream schemaStream = Client.class.getClass().getResourceAsStream(DSL_XSD_PATH);
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        Schema dslSchema = schemaFactory.newSchema(new StreamSource(schemaStream));
-
-        return (nl.b3p.datastorelinker.entity.Process)
-                MarshalUtils.unmarshalProcess(xmlStream, dslSchema);
-    }
 }

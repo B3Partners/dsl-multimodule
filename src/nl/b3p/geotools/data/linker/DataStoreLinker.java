@@ -18,6 +18,7 @@ import nl.b3p.datastorelinker.entity.Database;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFactorySpi;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.oracle.OracleDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
@@ -356,7 +357,6 @@ public class DataStoreLinker implements Runnable {
         Database database = process.getInput().getDatabase();
         nl.b3p.datastorelinker.entity.File file = process.getInput().getFile();
 
-        Map params = null;
         if (database != null) {
             return openDataStore(database);
         } else if (file != null) { // TODO: this should be a file now; change xsd to reflect this choice
@@ -378,6 +378,14 @@ public class DataStoreLinker implements Runnable {
      * Open a dataStore (save). Don't use DataStoreFinder.getDataStore(...) by yourself (Oracle workaround)
      */
     public static DataStore openDataStore(Map params) throws Exception {
+        log.debug("openDataStore with: " + params);
+        log.debug("available datastores: ");
+        Iterator<DataStoreFactorySpi> iter = DataStoreFinder.getAvailableDataStores();
+        while (iter.hasNext()) {
+            DataStoreFactorySpi dsfSpi = iter.next();
+            log.debug(dsfSpi + " :: " + dsfSpi.getDescription() + " :: " + dsfSpi.getDisplayName());
+        }
+
         DataStore dataStore;
         String errormsg = "DataStore could not be found using parameters";
 
@@ -420,13 +428,18 @@ public class DataStoreLinker implements Runnable {
             if (params.containsKey("url")) {
                 if (params.get("url") instanceof URL) {
                     URL url = (URL) params.get("url");
+                    log.debug("Checking url exists: " + url);
                     File file = new File(url.toURI());
+
+                    log.debug("Checking file url exists: " + file.getAbsolutePath());
                     return file.exists();
 
                 } else if (params.get("url") instanceof String) {
                     String url = params.get("url").toString();
+                    log.debug("Checking url exists: " + url);
                     File file = new File(url);
 
+                    log.debug("Checking file url exists: " + file.getAbsolutePath());
                     return file.exists();
                 }
             }
