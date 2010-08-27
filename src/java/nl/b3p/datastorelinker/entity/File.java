@@ -14,16 +14,17 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import net.sourceforge.stripes.util.Log;
+import nl.b3p.datastorelinker.util.DirContent;
 import nl.b3p.datastorelinker.util.Mappable;
 import nl.b3p.datastorelinker.util.Util;
 
@@ -57,6 +58,9 @@ public class File implements Serializable, Mappable {
     private Long id;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "file")
     private List<Inout> inoutList;
+
+    @Transient
+    private DirContent dirContent;
 
     public File() {
     }
@@ -145,6 +149,15 @@ public class File implements Serializable, Mappable {
 
     public void setInoutList(List<Inout> inoutList) {
         this.inoutList = inoutList;
+    }
+
+    @XmlTransient
+    public DirContent getDirContent() {
+        return dirContent;
+    }
+
+    public void setDirContent(DirContent dirContent) {
+        this.dirContent = dirContent;
     }
 
     @Override

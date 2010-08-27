@@ -70,7 +70,6 @@ public class Database implements Serializable, Mappable {
     @Column(name = "name")
     private String name;
     @Column(name = "host_name")
-    @Lob
     private String host;
     @Column(name = "database_name")
     private String databaseName;
