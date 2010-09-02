@@ -20,7 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFactorySpi;
 import org.geotools.data.DataStoreFinder;
-import org.geotools.data.oracle.OracleDataStoreFactory;
+//import org.geotools.data.oracle.OracleDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.jdom.Element;
@@ -390,19 +390,7 @@ public class DataStoreLinker implements Runnable {
         String errormsg = "DataStore could not be found using parameters";
 
         try {
-            // Workaround to enable use of Oracle DataStore
-            if (params.containsKey("dbtype")) {
-                if (params.get("dbtype").equals("oracle")) {
-                    // Load Oracle Database
-                    dataStore = (new OracleDataStoreFactory()).createDataStore(params);
-                } else {
-                    // Load regular Database
-                    dataStore = DataStoreFinder.getDataStore(params);
-                }
-            } else {
-                // Load regular Datastore
-                dataStore = DataStoreFinder.getDataStore(params);
-            }
+            dataStore = DataStoreFinder.getDataStore(params);
         } catch (NullPointerException nullEx) {
             if (!urlExists(params)) {
                 throw new Exception("URL in parameters seems to point to a non-existing file \n\n" + params.toString());

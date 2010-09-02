@@ -5,8 +5,6 @@ import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,11 +15,11 @@ import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
-import org.geotools.data.jdbc.JDBCDataStore;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.IllegalAttributeException;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.filter.Filter;
 
 /**
  * Write to a datastore (file or JDBC)
@@ -119,6 +117,13 @@ public class ActionDataStore_Writer extends Action {
         } else {
             feature = fixFeatureTypeName(feature);
             String typename = feature.getFeatureType().getTypeName();
+            //get the correct typename from the datastore
+            String newTypeName=correctTypeName(typename, dataStore2Write);
+            //if not the same (case sensitive) then change the typename
+            if (!newTypeName.equals(typename)){
+                feature.setTypeName(newTypeName);
+                typename=newTypeName;
+            }
             //store the typename
             if (!featureTypeNames.contains(typename)) {
                 featureTypeNames.add(typename);
@@ -133,12 +138,13 @@ public class ActionDataStore_Writer extends Action {
                     close();
                     dataStore2Write = DataStoreLinker.openDataStore(params);
                     log.warn("Closing all connections (too many featureWriters loaded)");
-                }
-
+                }                
                 if (!checked.containsKey(params.toString() + typename)) {
                     checkSchema(feature.getFeatureType());
                     checked.put(params.toString() + typename, "");
                     processedTypes++;
+                    //correct the typename after a possible creation of the schema
+                    typename=correctTypeName(typename, dataStore2Write);
                 }
 
                 writer = dataStore2Write.getFeatureWriterAppend(typename, Transaction.AUTO_COMMIT);
@@ -243,8 +249,10 @@ public class ActionDataStore_Writer extends Action {
         }
         featureWriters.clear();
     }
-
-    private void checkSchema(SimpleFeatureType featureType) throws Exception {
+    /**
+     * Check the schema and return the name.
+     */
+    private String checkSchema(SimpleFeatureType featureType) throws Exception {
         if (initDone) {
             //boolean typeExists = false;
             //String[] typeNamesFound = dataStore2Write.getTypeNames();
@@ -254,27 +262,31 @@ public class ActionDataStore_Writer extends Action {
             /*
             for (int i = 0; i < typeNamesFound.length; i++) {
             if (typename2Write.equals(typeNamesFound[i])) {
-            typeExists = true;
+                    typeExists=true;
             break;
-            }
+                }
             }
              */
 
             if (dropFirst && typeExists) {
+                //Drop doesn't exist (yet) so do a remove and update.
+                removeAllFeatures(dataStore2Write, typename2Write);
+                //update
+                dataStore2Write.updateSchema(typename2Write, featureType);
                 // Check if DataStore is a Database
-                if (dataStore2Write instanceof JDBCDataStore) {
+                /*if (dataStore2Write instanceof JDBCDataStore) {
                     // Drop table
                     JDBCDataStore database = (JDBCDataStore) dataStore2Write;
                     Connection con = database.getConnection(Transaction.AUTO_COMMIT);
                     con.setAutoCommit(true);
 
                     // TODO make this function work with all databases
-                    PreparedStatement ps = con.prepareStatement("DROP TABLE \"" + featureType.getTypeName() + "\"; DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + featureType.getTypeName() + "'");
+                    PreparedStatement ps = con.prepareStatement("DROP TABLE \"" + typename2Write + "\"; DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + featureType.getTypeName() + "'");
                     ps.execute();
 
                     con.close();
                 }
-                typeExists = false;
+                typeExists = false;*/
             }
 
 
@@ -284,22 +296,24 @@ public class ActionDataStore_Writer extends Action {
                 log.info("Creating new table with name: " + featureType.getTypeName());
 
             } else if (!append) {
-
+                removeAllFeatures(dataStore2Write, typename2Write);
                 // Check if DataStore is a Database
-                if (dataStore2Write instanceof JDBCDataStore) {
+                /*if (dataStore2Write instanceof JDBCDataStore) {
                     // Empty table
                     JDBCDataStore database = (JDBCDataStore) dataStore2Write;
                     Connection con = database.getConnection(Transaction.AUTO_COMMIT);
                     con.setAutoCommit(true);
 
                     // TODO make this function work with all databases
-                    PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + featureType.getTypeName() + "\"");
+                    PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
                     ps.execute();
 
                     con.close();
-                }
+                }*/
             }
+            return typename2Write;
         }
+        return null;
     }
 
     private EasyFeature fixFeatureTypeName(EasyFeature feature) throws Exception {
@@ -336,5 +350,27 @@ public class ActionDataStore_Writer extends Action {
 
     public String getDescription_NL() {
         return "Schrijf de SimpleFeature weg naar een datastore. Als de datastore een database is, kan de SimpleFeature worden toegevoegd of kan de tabel worden geleegd voor het toevoegen";
+    }
+
+    private String correctTypeName(String typeName, DataStore dataStore2Write) throws IOException {
+        String[] typeNames= dataStore2Write.getTypeNames();
+        for (int i=0; i < typeNames.length; i++){
+            if (typeNames[i].equalsIgnoreCase(typeName)){
+                return typeNames[i];
+            }
+        }
+        return typeName;
+    }
+    private void removeAllFeatures(DataStore datastore, String typeName) throws IOException, Exception{
+        DefaultTransaction transaction = new DefaultTransaction("removeTransaction");
+        FeatureStore<SimpleFeatureType, SimpleFeature> store = (FeatureStore<SimpleFeatureType, SimpleFeature>) datastore.getFeatureSource( typeName );
+
+        store.removeFeatures(Filter.INCLUDE);
+        try{
+            transaction.commit();
+        }catch(Exception e){
+            transaction.rollback();
+            throw e;
+        }
     }
 }
