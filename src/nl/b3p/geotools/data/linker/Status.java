@@ -38,6 +38,10 @@ public class Status {
             featureEnd = process.getFeaturesEnd();
     }
 
+    public synchronized String getTruncatedErrorReport() {
+        return (errorReport.length() > 500 ? errorReport.substring(0, 500) + "... (see log)" : errorReport);
+    }
+
     public synchronized String getErrorReport() {
         return errorReport;
     }

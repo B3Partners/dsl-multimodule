@@ -159,16 +159,15 @@ public class DataStoreLinker implements Runnable {
         }
 
         log.info("Error report: " + status.getErrorReport());
-        //if (!status.getErrorReport().equals("")) {
+        if (!status.getErrorReport().equals("")) {
             if (batch != null) {
-                status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + getSaveProp(batch, "read.datastore.url", "-undefined-") + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + (status.getErrorReport().length() > 500 ? status.getErrorReport().substring(0, 500) + "... (see log)" : status.getErrorReport()));
+                status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + getSaveProp(batch, "read.datastore.url", "-undefined-") + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + status.getTruncatedErrorReport());
                 DataStoreLinkerMail.mail(batch, status.getErrorReport());
             } else if (process != null) {
-                status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore.\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + (status.getErrorReport().length() > 500 ? status.getErrorReport().substring(0, 500) + "... (see log)" : status.getErrorReport()));
+                status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + status.getTruncatedErrorReport());
                 DataStoreLinkerMail.mail(process, status.getErrorReport());
             }
-            
-        //}
+        }
     }
 
     private void processTypeName(String typeName2Read) throws Exception, IOException {
@@ -297,8 +296,8 @@ public class DataStoreLinker implements Runnable {
         }
 
         // Finally: add output database to action list:
-        newActionList.add(ActionFactory.createAction(
-                "ActionCombo_GeometrySplitter_Writer",
+        newActionList.add(ActionFactory.createAction(process.getWriterType(),
+                //"ActionCombo_GeometrySplitter_Writer",
                 process.toOutputMap()));
 
         return newActionList;

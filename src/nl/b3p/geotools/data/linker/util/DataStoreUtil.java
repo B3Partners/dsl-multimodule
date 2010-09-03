@@ -28,43 +28,48 @@ public class DataStoreUtil {
         List<String> good = new ArrayList<String>();
         List<String> bad = new ArrayList<String>();
 
-        DataStore dataStore = DataStoreLinker.openDataStore(inputParameters);
+        DataStore dataStore = null;
+        try {
+            dataStore = DataStoreLinker.openDataStore(inputParameters);
 
-        if (dataStore == null) {
-            return null;
-        }
+            if (dataStore == null) {
+                return null;
+            }
 
-        for (String typename : dataStore.getTypeNames()) {
-            FeatureIterator iterator = null;
-            try {
-                iterator = dataStore.getFeatureSource(typename).getFeatures().features();
-                if (iterator.hasNext()) {
-                    Feature feature = iterator.next();
-                    if (feature != null) {
-                        good.add(typename);
-                        //typenameMap.put(typename, translateFeature(feature));
+            for (String typename : dataStore.getTypeNames()) {
+                FeatureIterator iterator = null;
+                try {
+                    iterator = dataStore.getFeatureSource(typename).getFeatures().features();
+                    if (iterator.hasNext()) {
+                        Feature feature = iterator.next();
+                        if (feature != null) {
+                            good.add(typename);
+                            //typenameMap.put(typename, translateFeature(feature));
+                        }
+                    }
+
+                } catch (DataSourceException e) {
+                    bad.add(typename);
+                    log.error("Error reading features, cause: " + e.getLocalizedMessage());
+
+                } catch (NoSuchElementException e) {
+                    bad.add(typename);
+                    log.warn("Table '" + typename + "' contains unsupported datatypes? " + e.getLocalizedMessage());
+
+                } catch (Exception e) {
+                    bad.add(typename);
+                    log.error("Table '" + typename + "' contains error: " + e.getLocalizedMessage());
+
+                } finally {
+                    if (iterator != null) {
+                        iterator.close();
                     }
                 }
-
-            } catch (DataSourceException e) {
-                bad.add(typename);
-                log.error("Error reading features, cause: " + e.getLocalizedMessage());
-
-            } catch (NoSuchElementException e) {
-                bad.add(typename);
-                log.warn("Table '" + typename + "' contains unsupported datatypes? " + e.getLocalizedMessage());
-
-            } catch (Exception e) {
-                bad.add(typename);
-                log.error("Table '" + typename + "' contains error: " + e.getLocalizedMessage());
-
-            } finally {
-                if (iterator != null) {
-                    iterator.close();
-                }
             }
+        } finally {
+            if (dataStore != null)
+                dataStore.dispose();
         }
-        dataStore.dispose();
 
         return new DataTypeList(good, bad);
     }
