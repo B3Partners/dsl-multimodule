@@ -11,11 +11,10 @@ import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -24,6 +23,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  *
@@ -38,25 +39,42 @@ import javax.xml.bind.annotation.XmlType;
 @Table(name = "schedule")
 public class Schedule implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    public enum Type {
+        HOUR,
+        DAY,
+        WEEK,
+        MONTH,
+        YEAR,
+        ADVANCED
+    }
+
     @Id
     @Basic(optional = false)
     @Column(name = "id", nullable = false)
     @GeneratedValue
     private Long id;
+
     @Basic(optional = false)
     @Column(name = "cron_expression", nullable = false, length = 120)
     private String cronExpression;
+
     @Basic(optional = false)
     @Column(name = "job_name", nullable = false, length = 120)
     private String jobName;
+
     @Column(name = "from_date")
     @Temporal(TemporalType.DATE)
     private Date fromDate;
+
     @OneToMany(mappedBy = "schedule")
     private List<Process> processList;
-    @JoinColumn(name = "schedule_type", referencedColumnName = "id", nullable = false)
-    @ManyToOne(optional = false)
-    private ScheduleType scheduleType;
+
+    @Basic(optional = false)
+    @Column(name = "schedule_type")
+    @Enumerated(EnumType.STRING)
+    private Schedule.Type scheduleType = Schedule.Type.ADVANCED;
+    
 
     public Schedule() {
     }
@@ -79,6 +97,7 @@ public class Schedule implements Serializable {
         this.id = id;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getCronExpression() {
         return cronExpression;
     }
@@ -114,11 +133,11 @@ public class Schedule implements Serializable {
     }
 
     @XmlTransient
-    public ScheduleType getScheduleType() {
+    public Schedule.Type getScheduleType() {
         return scheduleType;
     }
 
-    public void setScheduleType(ScheduleType scheduleType) {
+    public void setScheduleType(Schedule.Type scheduleType) {
         this.scheduleType = scheduleType;
     }
 

@@ -11,16 +11,18 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
@@ -36,39 +38,65 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @Entity
 @Table(name = "input_output")
+@NamedQueries({
+    @NamedQuery(name = "Inout.find", query =
+        "from Inout where type = :typeName order by name")
+})
 public class Inout implements Serializable {
+
+    public enum Type {
+        INPUT,
+        OUTPUT
+    }
+
+    public enum Datatype {
+        FILE,
+        DATABASE
+    }
+
     @XmlTransient
     private static final long serialVersionUID = 1L;
+
     @Id
     @Basic(optional = false)
     @Column(name = "id")
     @GeneratedValue
     @XmlTransient
     private Long id;
-    @JoinColumn(name = "type_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
+
+    @Basic(optional = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "input_output_type")
     @XmlTransient
-    private InoutType type;
+    private Inout.Type type;
+
     @Column(name = "table_name")
     private String tableName;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "input")
     @XmlTransient
     private List<Process> inputProcessList;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "output")
     @XmlTransient
     private List<Process> outputProcessList;
+
     @JoinColumn(name = "database_id", referencedColumnName = "id")
     @ManyToOne
     //@XmlElement(name="database")
     private Database database;
+
     @JoinColumn(name = "file_id", referencedColumnName = "id")
     @ManyToOne
     //@XmlElement(name="file")
     private File file;
-    @JoinColumn(name = "datatype_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
+
+    @Basic(optional = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "input_output_datatype")
     @XmlTransient
-    private InoutDatatype datatype;
+    private Inout.Datatype datatype;
+    
     @Basic(optional = false)
     @Column(name = "name")
     @XmlTransient
@@ -89,11 +117,11 @@ public class Inout implements Serializable {
         this.id = id;
     }
 
-    public InoutType getType() {
+    public Inout.Type getType() {
         return type;
     }
 
-    public void setType(InoutType type) {
+    public void setType(Inout.Type type) {
         this.type = type;
     }
 
@@ -137,11 +165,11 @@ public class Inout implements Serializable {
         this.file = file;
     }
 
-    public InoutDatatype getDatatype() {
+    public Inout.Datatype getDatatype() {
         return datatype;
     }
 
-    public void setDatatype(InoutDatatype datatype) {
+    public void setDatatype(Inout.Datatype datatype) {
         this.datatype = datatype;
     }
 

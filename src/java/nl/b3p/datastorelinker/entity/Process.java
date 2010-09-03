@@ -15,7 +15,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
@@ -26,9 +25,10 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
@@ -36,7 +36,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import net.sourceforge.stripes.util.Log;
-import org.hibernate.annotations.GenericGenerator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -81,42 +80,59 @@ public class Process implements Serializable {
     // (hier verwachtte ik IDENTITY; volgens de documentatie ook)
     @XmlTransient
     private Long id;
+
     @Basic(optional = false)
     @Column(name = "name")
     @XmlTransient
     private String name;
+
     @Basic(optional = false)
     @Column(name = "actions")
     @Lob
     @XmlTransient
     private String actions;
+
     @JoinColumn(name = "input_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     @XmlElement(required=true, name="input")
     private Inout input;
+
     @JoinColumn(name = "output_id", referencedColumnName = "id")
     @ManyToOne(optional = false)
     @XmlElement(required=true, name="output")
     private Inout output;
+
     @Basic(optional = true)
     @Column(name = "features_start")
     private Integer featuresStart;
+
     @Basic(optional = true)
     @Column(name = "features_end")
     private Integer featuresEnd;
+
     @Basic(optional = false)
     @Column(name = "drop_table")
     private Boolean drop = DEFAULT_DROP;
+
     @Basic(optional = false)
     @Column(name = "writer_type")
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     private String writerType = DEFAULT_WRITER_TYPE;
+
     @JoinColumn(name = "mail_id", referencedColumnName = "id")
     @ManyToOne(optional = false, cascade = CascadeType.ALL)
     private Mail mail;
+
     @JoinColumn(name = "schedule", referencedColumnName = "id")
-    @ManyToOne(optional = true)
+    @ManyToOne(optional = true, cascade = CascadeType.ALL)
     @XmlTransient
     private Schedule schedule;
+
+    @JoinColumn(name = "process_status_id", referencedColumnName = "id")
+    @ManyToOne(optional = false, cascade = CascadeType.ALL)
+    @XmlTransient
+    private ProcessStatus processStatus;
+    
 
     public Process() {
     }
@@ -163,7 +179,7 @@ public class Process implements Serializable {
         this.actions = actions;
     }
 
-    @XmlAnyElement
+    @XmlAnyElement(lax=true)
     public Element getActions() {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -276,6 +292,14 @@ public class Process implements Serializable {
 
     public void setSchedule(Schedule schedule) {
         this.schedule = schedule;
+    }
+
+    public ProcessStatus getProcessStatus() {
+        return processStatus;
+    }
+
+    public void setProcessStatus(ProcessStatus processStatus) {
+        this.processStatus = processStatus;
     }
 
 }

@@ -11,7 +11,6 @@ import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -20,6 +19,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  *
@@ -36,23 +37,30 @@ import javax.xml.bind.annotation.XmlType;
 @Table(name = "mail")
 public class Mail implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @Id
     @Basic(optional = false)
     @Column(name = "id")
     @GeneratedValue
     private Long id;
+
     @Basic(optional = false)
     @Column(name = "smtp_host")
     private String smtpHost;
+
     @Basic(optional = false)
     @Column(name = "to_email_address")
     private String toEmailAddress;
+
     @Column(name = "subject")
     private String subject;
+
     @Column(name = "from_email_address")
     private String fromEmailAddress;
+
     @OneToMany(mappedBy = "mail")
     private List<Process> processList;
+    
 
     public Mail() {
     }
@@ -77,6 +85,7 @@ public class Mail implements Serializable {
     }
 
     @XmlElement(required=true)
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getSmtpHost() {
         return smtpHost;
     }
@@ -86,6 +95,7 @@ public class Mail implements Serializable {
     }
 
     @XmlElement(required=true)
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getToEmailAddress() {
         return toEmailAddress;
     }
@@ -94,6 +104,7 @@ public class Mail implements Serializable {
         this.toEmailAddress = toEmailAddress;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getSubject() {
         return subject;
     }
@@ -102,6 +113,7 @@ public class Mail implements Serializable {
         this.subject = subject;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getFromEmailAddress() {
         return fromEmailAddress;
     }

@@ -23,6 +23,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import net.sourceforge.stripes.util.Log;
 import nl.b3p.datastorelinker.util.DirContent;
 import nl.b3p.datastorelinker.util.Mappable;
@@ -109,6 +111,7 @@ public class File implements Serializable, Mappable {
     }
 
     @XmlElement(required=true)
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getName() {
         return name;
     }
@@ -117,6 +120,7 @@ public class File implements Serializable, Mappable {
         this.name = name;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getDirectory() {
         return directory;
     }

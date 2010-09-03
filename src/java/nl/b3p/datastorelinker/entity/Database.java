@@ -13,12 +13,10 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -28,6 +26,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import nl.b3p.datastorelinker.util.Mappable;
 import nl.b3p.datastorelinker.util.Util;
 
@@ -56,50 +57,94 @@ import nl.b3p.datastorelinker.util.Util;
 @Entity
 @Table(name = "database_inout")
 @NamedQueries({
-    @NamedQuery(name = "Database.findInput", query =
+/*    @NamedQuery(name = "Database.findInput", query =
         "select distinct d from Database d left join d.inoutList l where l.type.id = null or l.type.id = 1 order by d.name")
+*/    @NamedQuery(name = "Database.find", query =
+        "from Database where typeInout = :typeInout order by name")
 })
 public class Database implements Serializable, Mappable {
     private static final long serialVersionUID = 1L;
+
+    public enum Type {
+        POSTGIS("postgis"),
+        ORACLE("oracle"),
+        MSACCESS("msaccess");
+
+        private String geotoolsDbtype;
+               
+        private Type(String geotoolsDbtype) {
+            this.geotoolsDbtype = geotoolsDbtype;
+        }
+
+        public String getGeotoolsDbtype() {
+            return geotoolsDbtype;
+        }
+    }
+
+    public enum TypeInout {
+        INPUT,
+        OUTPUT
+    }
+    
     @Id
     @Basic(optional = false)
     @Column(name = "id")
     @GeneratedValue
     private Long id;
+
     @Basic(optional = false)
     @Column(name = "name")
     private String name;
+
     @Column(name = "host_name")
     private String host;
+
     @Column(name = "database_name")
     private String databaseName;
+
     @Column(name = "username")
     private String username;
+
     @Column(name = "password")
     private String password;
+
     @Column(name = "db_schema")
     private String schema;
+
     @Column(name = "port")
     private Integer port;
+
     @Column(name = "instance")
     private String instance;
+
     @Column(name = "db_alias")
     private String alias;
+
     @Column(name = "url")
     private String url;
+
     @Column(name = "srs")
     private String srs;
+
     @Column(name = "col_x")
     private String colX;
+
     @Column(name = "col_y")
     private String colY;
+
     @XmlTransient
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "database")
     private List<Inout> inoutList;
-    //@XmlTransient
-    @JoinColumn(name = "type_id", referencedColumnName = "id")
-    @ManyToOne(optional = false)
-    private DatabaseType type;
+    
+    @Basic(optional = false)
+    @Column(name = "database_type")
+    @Enumerated(EnumType.STRING)
+    private Database.Type type;
+
+    @Basic(optional = false)
+    @Column(name = "inout_type")
+    @Enumerated(EnumType.STRING)
+    private Database.TypeInout typeInout;
 
     public Database() {
     }
@@ -115,7 +160,7 @@ public class Database implements Serializable, Mappable {
     public Map<String, Object> toMap(String keyPrefix) {
         Map<String, Object> map = new HashMap<String, Object>();
 
-        Util.addToMapIfNotNull(map, "dbtype", type.getName(), keyPrefix);
+        Util.addToMapIfNotNull(map, "dbtype", type.getGeotoolsDbtype(), keyPrefix);
         Util.addToMapIfNotNull(map, "host", host, keyPrefix);
         Util.addToMapIfNotNull(map, "port", port, keyPrefix);
         Util.addToMapIfNotNull(map, "database", databaseName, keyPrefix);
@@ -153,6 +198,7 @@ public class Database implements Serializable, Mappable {
         this.name = name;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getHost() {
         return host;
     }
@@ -161,6 +207,7 @@ public class Database implements Serializable, Mappable {
         this.host = host;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getDatabaseName() {
         return databaseName;
     }
@@ -169,6 +216,7 @@ public class Database implements Serializable, Mappable {
         this.databaseName = databaseName;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getUsername() {
         return username;
     }
@@ -177,6 +225,7 @@ public class Database implements Serializable, Mappable {
         this.username = username;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getPassword() {
         return password;
     }
@@ -185,6 +234,7 @@ public class Database implements Serializable, Mappable {
         this.password = password;
     }
 
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
     public String getSchema() {
         return schema;
     }
@@ -201,6 +251,7 @@ public class Database implements Serializable, Mappable {
         this.port = port;
     }
 
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
     public String getInstance() {
         return instance;
     }
@@ -209,6 +260,7 @@ public class Database implements Serializable, Mappable {
         this.instance = instance;
     }
 
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
     public String getAlias() {
         return alias;
     }
@@ -217,6 +269,7 @@ public class Database implements Serializable, Mappable {
         this.alias = alias;
     }
 
+    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getUrl() {
         return url;
     }
@@ -225,6 +278,7 @@ public class Database implements Serializable, Mappable {
         this.url = url;
     }
 
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
     public String getSrs() {
         return srs;
     }
@@ -233,6 +287,7 @@ public class Database implements Serializable, Mappable {
         this.srs = srs;
     }
 
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
     public String getColX() {
         return colX;
     }
@@ -241,6 +296,7 @@ public class Database implements Serializable, Mappable {
         this.colX = colX;
     }
 
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
     public String getColY() {
         return colY;
     }
@@ -260,23 +316,20 @@ public class Database implements Serializable, Mappable {
 
     //@XmlTransient
     @XmlElement(required=true, name="type")
-    public DatabaseType getType() {
+    public Database.Type getType() {
         return type;
     }
 
-    public void setType(DatabaseType type) {
+    public void setType(Database.Type type) {
         this.type = type;
     }
 
-    @XmlTransient
-    //@XmlElement(required=true, name="dbtype")
-    public String getDbtype() {
-        return type.getName();
+    public TypeInout getTypeInout() {
+        return typeInout;
     }
 
-    public void setDbtype(String typeName) {
-        this.type = new DatabaseType();
-        this.type.setName(typeName);
+    public void setTypeInout(TypeInout typeInout) {
+        this.typeInout = typeInout;
     }
 
     @Override
