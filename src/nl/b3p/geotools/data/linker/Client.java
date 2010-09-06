@@ -140,7 +140,7 @@ public class Client {
                                 dsl = new DataStoreLinker(batch);
                             
                             dsl.process();
-                            info = dsl.getFinishedMessage();
+                            info = dsl.getStatus().getFinishedMessage();
 
                             Date endTime = Calendar.getInstance().getTime();
                             info += giveTimeInfo(startTime, endTime);

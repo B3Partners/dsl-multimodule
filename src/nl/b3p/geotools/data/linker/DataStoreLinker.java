@@ -153,20 +153,21 @@ public class DataStoreLinker implements Runnable {
                 processTypeName(typeName2Read);
             }
         } catch (IOException ex) {
-            throw new Exception("Linking DataStores failed;", ex);
+            throw new Exception("Linking DataStores failed: " + ex.getMessage(), ex);
         } finally {
+            //log.info("Error report: " + status.getErrorReport());
+            log.info("Error report: " + status.getNonFatalErrorReport("\n", 3));
+            // TODO: zet -> van DataStore -> naar DataStore in report.
+            //if (status.getErrorCount() > 0) {
+                if (batch != null) {
+                    //status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + getSaveProp(batch, "read.datastore.url", "-undefined-") + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + status.getTruncatedErrorReport());
+                    DataStoreLinkerMail.mail(batch, status.getNonFatalErrorReport("\n", 3));
+                } else if (process != null) {
+                    //status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + status.getTruncatedErrorReport());
+                    DataStoreLinkerMail.mail(process, status.getNonFatalErrorReport("\n", 3));
+                }
+            //}
             dispose();
-        }
-
-        log.info("Error report: " + status.getErrorReport());
-        if (!status.getErrorReport().equals("")) {
-            if (batch != null) {
-                status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + getSaveProp(batch, "read.datastore.url", "-undefined-") + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + status.getTruncatedErrorReport());
-                DataStoreLinkerMail.mail(batch, status.getErrorReport());
-            } else if (process != null) {
-                status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + status.getTruncatedErrorReport());
-                DataStoreLinkerMail.mail(process, status.getErrorReport());
-            }
         }
     }
 
@@ -182,13 +183,17 @@ public class DataStoreLinker implements Runnable {
             while (iterator.hasNext()) {
                 try {
                     feature = (SimpleFeature) iterator.next();
-                    status.setTotalFeatureCount(status.getTotalFeatureCount() + 1);
+                    status.incrementTotalFeatureCount();
                 } catch (Exception ex) {
                     throw new Exception("Could not add Features, problem with provided reader", ex);
                 }
                 boolean mustBreak = processFeature(typeName2Read, feature);
                 if (mustBreak)
                     break;
+
+                // TODO: rollback? option to rollback or not?
+                if (status.isInterrupted())
+                    throw new InterruptedException("User canceled the process.");
             }
             log.info("Total of: " + status.getTotalFeatureCount() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
@@ -217,40 +222,27 @@ public class DataStoreLinker implements Runnable {
                 if (Boolean.parseBoolean(feature.getAttribute(typeNameStatus.getDsHasErrorAttribute()).toString()) || feature.getAttribute(typeNameStatus.getDsHasErrorAttribute()).toString().equals("1")) {
                     // feature contains error
                     status.setErrorReport(status.getErrorReport() + feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString() + "\n");
-                    status.setErrorCount(status.getErrorCount() + 1);
+                    status.addNonFatalError(feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString(), status.getTotalFeatureCount());
                 } else {
                     // feature is healthy
                     actionList.process(new EasyFeature(feature));
                 }
             } else {
-                //
                 if (feature.getDefaultGeometry() == null) {
-                    // error, skip
-                    status.setErrorCount(status.getErrorCount() + 1);
-                    log.warn("Feature " + status.getTotalFeatureCount() + " has no geometry (null); skipping feature");
+                    status.addNonFatalError("Feature has no geometry (null); skipping feature.", status.getTotalFeatureCount());
+                } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
+                    status.addNonFatalError("Feature doesn't contain an allowed geometry (geometry instanceof com.vividsolutions.jts.geom.Geometry == false)", status.getTotalFeatureCount());
+                } else if (!(((Geometry)feature.getDefaultGeometry()).isValid())) {
+                    status.addNonFatalError("Feature has no valid geometry (geometry.isValid() == false", status.getTotalFeatureCount());
                 } else {
-                    if (feature.getDefaultGeometry() instanceof Geometry) {
-                        if (((Geometry) feature.getDefaultGeometry()).isValid()) {
-                            actionList.process(new EasyFeature(feature));
-                        } else {
-                            status.setErrorCount(status.getErrorCount() + 1);
-                            log.warn("Feature " + status.getTotalFeatureCount() + " has no valid geometry (geometry.isValid() == false");
-                        }
-                    } else {
-                        status.setErrorCount(status.getErrorCount() + 1);
-                        log.warn("Feature " + status.getTotalFeatureCount() + " doesn't contain a allowed geometry (geometry instanceof com.vividsolutions.jts.geom.Geometry == false)");
-                    }
+                    actionList.process(new EasyFeature(feature));
                 }
             }
-            status.setProcessedFeatures(status.getProcessedFeatures() + 1);
+            status.incrementProcessedFeatures();
         } else {
             mustBreak = true;
         }
 
-        // TODO: rollback? option to rollback or not?
-        if (status.isInterrupted())
-            throw new InterruptedException("User canceled the process.");
-        
         return mustBreak;
     }
 
@@ -500,18 +492,6 @@ public class DataStoreLinker implements Runnable {
             }
         }
         return map;
-    }
-
-    public String getFinishedMessage() {
-        if (status.getProcessedFeatures() == 0 && status.getErrorCount() == 0) {
-            return "No features processed, was this intended?";
-        } else if (status.getProcessedFeatures() == status.getTotalFeatureCount() && status.getErrorCount() == 0) {
-            return "All " + status.getProcessedFeatures() + " features processed";
-        } else if (status.getProcessedFeatures() == status.getTotalFeatureCount()) {
-            return status.getProcessedFeatures() + " features processed, but " + status.getErrorCount() + " errors (see log)";
-        } else {
-            return status.getProcessedFeatures() + " of " + status.getTotalFeatureCount() + " features processed.\n" + "Using parameters:\n" + "Start:  " + status.getFeatureStart() + "\n" + "End:    " + status.getFeatureEnd() + "\n" + "Errors: " + status.getErrorCount();
-        }
     }
 
     private void doRunOnce(SimpleFeature feature) {
