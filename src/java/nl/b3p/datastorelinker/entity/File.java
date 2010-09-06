@@ -110,6 +110,11 @@ public class File implements Serializable, Mappable {
         return map;
     }
 
+    @XmlTransient
+    public String getDefaultName() {
+        return "";
+    }
+
     @XmlElement(required=true)
     @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getName() {
