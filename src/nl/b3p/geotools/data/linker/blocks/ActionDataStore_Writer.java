@@ -371,6 +371,8 @@ public class ActionDataStore_Writer extends Action {
         }catch(Exception e){
             transaction.rollback();
             throw e;
+        }finally{
+            transaction.close();
         }
     }
 }
