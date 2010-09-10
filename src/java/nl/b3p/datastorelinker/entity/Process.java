@@ -36,6 +36,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import net.sourceforge.stripes.util.Log;
+import org.jdom.Namespace;
+import org.jdom.input.DOMBuilder;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.DOMOutputter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -182,9 +186,13 @@ public class Process implements Serializable {
     @XmlAnyElement(lax=true)
     public Element getActions() {
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            org.jdom.Document jdoc = new SAXBuilder().build(new StringReader(actions));
+            //jdoc.getRootElement().addNamespaceDeclaration(Namespace.getNamespace("http://www.b3partners.nl/schemas/dsl"));
+            Document doc = new DOMOutputter().output(jdoc);
+
+            /*DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(new InputSource(new StringReader(actions)));
+            Document doc = builder.parse(new InputSource(new StringReader(actions)));*/
             return doc.getDocumentElement();
         } catch(Exception ex) {
             log.error(ex);

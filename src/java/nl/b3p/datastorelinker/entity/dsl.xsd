@@ -29,7 +29,7 @@
 	<xsd:complexType name="database">
 		<xsd:all>
 			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="type" type="dsl:databaseType"/>
+			<xsd:element name="dbtype" type="xsd:string"/>
 			<xsd:element name="host" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="databaseName" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="username" type="xsd:string" minOccurs="0"/>
@@ -42,11 +42,6 @@
 			<xsd:element name="srs" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="colX" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="colY" type="xsd:string" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="databaseType">
-		<xsd:all>
-			<xsd:element name="name" type="xsd:string"/>
 		</xsd:all>
 	</xsd:complexType>
 	<xsd:complexType name="inoutDatatype">

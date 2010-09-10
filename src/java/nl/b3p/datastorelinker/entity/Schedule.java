@@ -19,27 +19,18 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  *
  * @author Erik van de Pol
  */
-@XmlType(name="schedule", propOrder={
-    "cronExpression",
-    "fromDate"
-})
-@XmlAccessorType(XmlAccessType.PROPERTY)
 @Entity
 @Table(name = "schedule")
 public class Schedule implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    @XmlType(name="schedule_type")
     public enum Type {
         HOUR,
         DAY,
@@ -88,7 +79,6 @@ public class Schedule implements Serializable {
         this.cronExpression = cronExpression;
     }
 
-    @XmlTransient
     public Long getId() {
         return id;
     }
@@ -97,7 +87,6 @@ public class Schedule implements Serializable {
         this.id = id;
     }
 
-    @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getCronExpression() {
         return cronExpression;
     }
@@ -106,7 +95,6 @@ public class Schedule implements Serializable {
         this.cronExpression = cronExpression;
     }
 
-    @XmlTransient
     public String getJobName() {
         return jobName;
     }
@@ -123,7 +111,6 @@ public class Schedule implements Serializable {
         this.fromDate = fromDate;
     }
 
-    @XmlTransient
     public List<Process> getProcessList() {
         return processList;
     }
@@ -132,7 +119,6 @@ public class Schedule implements Serializable {
         this.processList = processList;
     }
 
-    @XmlTransient
     public Schedule.Type getScheduleType() {
         return scheduleType;
     }

@@ -40,11 +40,9 @@ public class MarshalUtils {
 
     private final static String DSL_NAMESPACE = "http://www.b3partners.nl/schemas/dsl";
     private final static String DSL_PREFIX = "dsl";
-    // There is something weird going on with the paths being read in getResourceAsStream.
-    // Both below will work (if dsl.xsd is there). Notice the first does not have a leading slash.
-    // It does not work with a leading slash in it.
-    private static final String DSL_XSD_PATH = "nl/b3p/datastorelinker/entity/dsl.xsd";
-    //private static final String DSL_XSD_PATH = "/dsl.xsd";
+
+    //private final static String DSL_XSD_PATH = "nl/b3p/datastorelinker/entity/dsl.xsd";
+    private final static String DSL_XSD_PATH = "nl/b3p/datastorelinker/entity/dsl_test4.xsd";
 
 
     public static String marshalProcess(nl.b3p.datastorelinker.entity.Process process) throws JAXBException {
@@ -112,6 +110,7 @@ public class MarshalUtils {
 
     public static nl.b3p.datastorelinker.entity.Process unmarshalProcess(InputStream xmlDocument, Schema schema) throws JAXBException, ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
         DocumentBuilder documentBuilder = factory.newDocumentBuilder();
         org.w3c.dom.Document w3cXmlDocument =
                 documentBuilder.parse(new InputSource(xmlDocument));
@@ -143,6 +142,7 @@ public class MarshalUtils {
         log.debug("this.getClass().getClassLoader(): " + MarshalUtils.class.getClassLoader().toString());
 */
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
         DocumentBuilder documentBuilder = factory.newDocumentBuilder();
         org.w3c.dom.Document w3cXmlDocument =
                 documentBuilder.parse(new InputSource(new StringReader(xmlDocument)));

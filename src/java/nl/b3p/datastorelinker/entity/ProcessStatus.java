@@ -16,6 +16,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlType;
 import net.sourceforge.stripes.util.Log;
 
 /**
@@ -29,6 +30,7 @@ public class ProcessStatus implements Serializable {
 
     private final static Log log = Log.getInstance(ProcessStatus.class);
 
+    @XmlType(name="ps_type")
     public enum Type {
         HAS_NEVER_RUN,
         RUNNING,

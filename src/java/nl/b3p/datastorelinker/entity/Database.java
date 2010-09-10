@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package nl.b3p.datastorelinker.entity;
 
 import java.io.Serializable;
@@ -24,6 +23,8 @@ import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
@@ -36,9 +37,8 @@ import nl.b3p.datastorelinker.util.Util;
  *
  * @author Erik van de Pol
  */
-@XmlType(name="database", propOrder={
+@XmlType(name = "database", propOrder = {
     //"name",
-    //"dbtype",
     "type",
     "host",
     "databaseName",
@@ -57,27 +57,43 @@ import nl.b3p.datastorelinker.util.Util;
 @Entity
 @Table(name = "database_inout")
 @NamedQueries({
-/*    @NamedQuery(name = "Database.findInput", query =
-        "select distinct d from Database d left join d.inoutList l where l.type.id = null or l.type.id = 1 order by d.name")
-*/    @NamedQuery(name = "Database.find", query =
-        "from Database where typeInout = :typeInout order by name")
+    /*    @NamedQuery(name = "Database.findInput", query =
+    "select distinct d from Database d left join d.inoutList l where l.type.id = null or l.type.id = 1 order by d.name")
+     */@NamedQuery(name = "Database.find", query =
+    "from Database where typeInout = :typeInout order by name")
 })
 public class Database implements Serializable, Mappable {
+
     private static final long serialVersionUID = 1L;
 
+    @XmlType(name="database_type")
+    @XmlEnum
     public enum Type {
+
+        @XmlEnumValue("postgis")
         POSTGIS("postgis"),
+        @XmlEnumValue("oracle")
         ORACLE("oracle"),
+        @XmlEnumValue("msaccess")
         MSACCESS("msaccess");
 
-        private String geotoolsDbtype;
-               
-        private Type(String geotoolsDbtype) {
-            this.geotoolsDbtype = geotoolsDbtype;
+        private final String value;
+
+        Type(String v) {
+            value = v;
         }
 
-        public String getGeotoolsDbtype() {
-            return geotoolsDbtype;
+        public String value() {
+            return value;
+        }
+
+        public static Type fromValue(String v) {
+            for (Type c : Type.values()) {
+                if (c.value.equals(v)) {
+                    return c;
+                }
+            }
+            throw new IllegalArgumentException(v.toString());
         }
     }
 
@@ -91,56 +107,40 @@ public class Database implements Serializable, Mappable {
     @Column(name = "id")
     @GeneratedValue
     private Long id;
-
     @Basic(optional = false)
     @Column(name = "name")
     private String name;
-
     @Column(name = "host_name")
     private String host;
-
     @Column(name = "database_name")
     private String databaseName;
-
     @Column(name = "username")
     private String username;
-
     @Column(name = "password")
     private String password;
-
     @Column(name = "db_schema")
     private String schema;
-
     @Column(name = "port")
     private Integer port;
-
     @Column(name = "instance")
     private String instance;
-
     @Column(name = "db_alias")
     private String alias;
-
     @Column(name = "url")
     private String url;
-
     @Column(name = "srs")
     private String srs;
-
     @Column(name = "col_x")
     private String colX;
-
     @Column(name = "col_y")
     private String colY;
-
     @XmlTransient
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "database")
     private List<Inout> inoutList;
-    
     @Basic(optional = false)
     @Column(name = "database_type")
     @Enumerated(EnumType.STRING)
     private Database.Type type;
-
     @Basic(optional = false)
     @Column(name = "inout_type")
     @Enumerated(EnumType.STRING)
@@ -160,7 +160,7 @@ public class Database implements Serializable, Mappable {
     public Map<String, Object> toMap(String keyPrefix) {
         Map<String, Object> map = new HashMap<String, Object>();
 
-        Util.addToMapIfNotNull(map, "dbtype", type.getGeotoolsDbtype(), keyPrefix);
+        Util.addToMapIfNotNull(map, "dbtype", type.value(), keyPrefix);
         Util.addToMapIfNotNull(map, "host", host, keyPrefix);
         Util.addToMapIfNotNull(map, "port", port, keyPrefix);
         Util.addToMapIfNotNull(map, "database", databaseName, keyPrefix);
@@ -315,7 +315,7 @@ public class Database implements Serializable, Mappable {
     }
 
     //@XmlTransient
-    @XmlElement(required=true, name="type")
+    @XmlElement(required = true, name = "dbtype")
     public Database.Type getType() {
         return type;
     }
@@ -324,6 +324,7 @@ public class Database implements Serializable, Mappable {
         this.type = type;
     }
 
+    @XmlTransient
     public TypeInout getTypeInout() {
         return typeInout;
     }
@@ -356,5 +357,4 @@ public class Database implements Serializable, Mappable {
     public String toString() {
         return "nl.b3p.datastorelinker.entity.Database[id=" + id + "]";
     }
-
 }

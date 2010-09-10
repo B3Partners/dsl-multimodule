@@ -134,6 +134,7 @@ public class File implements Serializable, Mappable {
         this.directory = directory;
     }
 
+    @XmlTransient
     public Boolean getIsDirectory() {
         return isDirectory;
     }

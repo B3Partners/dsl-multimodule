@@ -44,11 +44,15 @@ import javax.xml.bind.annotation.XmlType;
 })
 public class Inout implements Serializable {
 
+    @XmlTransient
+    //@XmlType(name="inout_type")
     public enum Type {
         INPUT,
         OUTPUT
     }
 
+    @XmlTransient
+    //@XmlType(name="inout_datatype")
     public enum Datatype {
         FILE,
         DATABASE
