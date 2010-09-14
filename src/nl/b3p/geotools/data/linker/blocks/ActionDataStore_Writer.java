@@ -51,7 +51,7 @@ public class ActionDataStore_Writer extends Action {
 
     public ActionDataStore_Writer(Map params, Map properties) {// Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClassificationAttribute){
         this.params = params;
-        
+
         if (ActionFactory.propertyCheck(properties, ActionFactory.APPEND)) {
             append = (Boolean) properties.get(ActionFactory.APPEND);
         } else {
@@ -143,7 +143,7 @@ public class ActionDataStore_Writer extends Action {
                     close();
                     dataStore2Write = DataStoreLinker.openDataStore(params);
                     log.warn("Closing all connections (too many featureWriters loaded)");
-                }                
+                }
                 if (!checked.containsKey(params.toString() + typename)) {
                     checkSchema(feature.getFeatureType());
                     checked.put(params.toString() + typename, "");
@@ -205,7 +205,7 @@ public class ActionDataStore_Writer extends Action {
                         if (LineString.class == geometryTypeBinding || MultiLineString.class == geometryTypeBinding) {
                             FeatureSource fs = dataStore2Write.getFeatureSource(featureTypeNames.get(s));
                             FeatureCollection fc = fs.getFeatures();
-                            ca.execute(fc,this);                            
+                            ca.execute(fc,this);
                         }
                     } catch (Exception e) {
                         log.error("Error while Polygonizing the lines.", e);
@@ -281,10 +281,11 @@ public class ActionDataStore_Writer extends Action {
                 // Check if DataStore is a Database
                 if (dataStore2Write instanceof JDBCDataStore) {
                     // Drop table
-                    JDBCDataStore database = (JDBCDataStore) dataStore2Write;
-
-                    Connection con = database.getDataSource().getConnection();
+                    JDBCDataStore database = null;
+                    Connection con = null;
                     try{
+                        database = (JDBCDataStore) dataStore2Write;
+                        con = database.getDataSource().getConnection();
                         con.setAutoCommit(true);
 
                         // TODO make this function work with all databases
@@ -300,7 +301,8 @@ public class ActionDataStore_Writer extends Action {
                             ps.execute();
                         }
                     }finally{
-                        con.close();
+                        if (database != null)
+                            database.closeSafe(con);
                     }
                 }
                 typeExists = false;

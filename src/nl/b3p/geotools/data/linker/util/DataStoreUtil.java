@@ -16,6 +16,7 @@ import org.geotools.data.DataSourceException;
 import org.geotools.data.DataStore;
 import org.geotools.feature.FeatureIterator;
 import org.opengis.feature.Feature;
+import org.opengis.feature.simple.SimpleFeature;
 
 /**
  *
@@ -37,14 +38,16 @@ public class DataStoreUtil {
             }
 
             for (String typename : dataStore.getTypeNames()) {
-                FeatureIterator iterator = null;
+                FeatureIterator<SimpleFeature> iterator = null;
                 try {
                     iterator = dataStore.getFeatureSource(typename).getFeatures().features();
                     if (iterator.hasNext()) {
-                        Feature feature = iterator.next();
+                        SimpleFeature feature = iterator.next();
                         if (feature != null) {
+                            // we can also test for allowed geometries and such:
+                            //String error = DataStoreLinker.testFeature(feature);
+                            //if (error == null) ...
                             good.add(typename);
-                            //typenameMap.put(typename, translateFeature(feature));
                         }
                     }
 

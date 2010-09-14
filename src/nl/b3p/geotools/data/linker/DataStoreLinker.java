@@ -10,11 +10,13 @@ import java.io.IOException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import nl.b3p.datastorelinker.entity.Database;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
@@ -153,7 +155,7 @@ public class DataStoreLinker implements Runnable {
                 processTypeName(typeName2Read);
             }
         } catch (IOException ex) {
-            throw new Exception("Linking DataStores failed: " + ex.getMessage(), ex);
+            throw new Exception("Linking DataStores failed", ex);
         } finally {
             //log.info("Error report: " + status.getErrorReport());
             log.info("Error report: " + status.getNonFatalErrorReport("\n", 3));
@@ -212,31 +214,12 @@ public class DataStoreLinker implements Runnable {
 
         doRunOnce(feature);
         
-        if (status.getTotalFeatureCount() >= status.getFeatureStart() && (
-                    (status.getTotalFeatureCount() <= status.getFeatureEnd() && status.getFeatureEnd() != -1) ||
-                    (status.getFeatureEnd() == -1)
-                )
-            ) {
-            // Does SimpleFeatureType support error handling?
-            if (typeNameStatus.isDsReportsError()) {
-                if (Boolean.parseBoolean(feature.getAttribute(typeNameStatus.getDsHasErrorAttribute()).toString()) || feature.getAttribute(typeNameStatus.getDsHasErrorAttribute()).toString().equals("1")) {
-                    // feature contains error
-                    status.setErrorReport(status.getErrorReport() + feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString() + "\n");
-                    status.addNonFatalError(feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString(), status.getTotalFeatureCount());
-                } else {
-                    // feature is healthy
-                    actionList.process(new EasyFeature(feature));
-                }
+        if (mustProcessMoreFeatures()) {
+            String error = testFeature(feature, typeNameStatus);
+            if (error == null) {
+                actionList.process(new EasyFeature(feature));
             } else {
-                if (feature.getDefaultGeometry() == null) {
-                    status.addNonFatalError("Feature has no geometry (null); skipping feature.", status.getTotalFeatureCount());
-                } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
-                    status.addNonFatalError("Feature doesn't contain an allowed geometry (geometry instanceof com.vividsolutions.jts.geom.Geometry == false)", status.getTotalFeatureCount());
-                } else if (!(((Geometry)feature.getDefaultGeometry()).isValid())) {
-                    status.addNonFatalError("Feature has no valid geometry (geometry.isValid() == false", status.getTotalFeatureCount());
-                } else {
-                    actionList.process(new EasyFeature(feature));
-                }
+                status.addNonFatalError(error, status.getTotalFeatureCount());
             }
             status.incrementProcessedFeatures();
         } else {
@@ -244,6 +227,47 @@ public class DataStoreLinker implements Runnable {
         }
 
         return mustBreak;
+    }
+    
+    private boolean mustProcessMoreFeatures() {
+        return status.getTotalFeatureCount() >= status.getFeatureStart() && (
+                    (status.getTotalFeatureCount() <= status.getFeatureEnd() && status.getFeatureEnd() != -1) ||
+                    (status.getFeatureEnd() == -1)
+                );
+    }
+
+    /**
+     * Returns error string or null if no error occurred during testing.
+     * @param feature
+     * @return
+     */
+    public static String testFeature(SimpleFeature feature) {
+        return testFeature(feature, null);
+    }
+    
+    /**
+     * Returns error string or null if no error occurred during testing.
+     * @param feature
+     * @return
+     */
+    private static String testFeature(SimpleFeature feature, TypeNameStatus typeNameStatus) {
+        // Does SimpleFeatureType support error handling?
+        if (typeNameStatus != null && typeNameStatus.isDsReportsError()) {
+            if (Boolean.parseBoolean(feature.getAttribute(typeNameStatus.getDsHasErrorAttribute()).toString()) || feature.getAttribute(typeNameStatus.getDsHasErrorAttribute()).toString().equals("1")) {
+                // feature contains error
+                //status.setErrorReport(status.getErrorReport() + feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString() + "\n");
+                return feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString();
+            }
+        } else {
+            if (feature.getDefaultGeometry() == null) {
+                return "Feature heeft geen geometrie. Feature wordt overgeslagen.";
+            } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
+                return "Feature bevat geen toegestane geometrie.";
+            } else if (!(((Geometry)feature.getDefaultGeometry()).isValid())) {
+                return "Feature bevat geen valide geometrie";
+            }
+        }
+        return null;
     }
 
     /**
@@ -256,35 +280,50 @@ public class DataStoreLinker implements Runnable {
     private ActionList createActionList() throws Exception {
         ActionList newActionList = new ActionList();
 
-        Element actionsElement = new DOMBuilder().build(process.getActions());
-        for (Object actionObject : actionsElement.getChildren("action")) {
-            Element actionElement = (Element)actionObject;
+        org.w3c.dom.Element actions = process.getActions();
+        if (actions != null) {
+            Element actionsElement = new DOMBuilder().build(actions);
+            for (Object actionObject : actionsElement.getChildren("action")) {
+                Element actionElement = (Element)actionObject;
 
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            Element parametersElement = actionElement.getChild("parameters");
-            if (parametersElement != null) {
-                for (Object parameterObject : parametersElement.getChildren("parameter")) {
-                    Element parameterElement = (Element)parameterObject;
+                Map<String, Object> parameters = new HashMap<String, Object>();
+                Element parametersElement = actionElement.getChild("parameters");
+                if (parametersElement != null) {
+                    for (Object parameterObject : parametersElement.getChildren("parameter")) {
+                        Element parameterElement = (Element)parameterObject;
 
-                    String key = parameterElement.getChildTextTrim("paramId");
-                    Object value = parameterElement.getChildTextTrim("value");
-                    
-                    String type = parameterElement.getChildTextTrim("type");
-                    if (type.equalsIgnoreCase("boolean")) {
-                        value = Boolean.valueOf(value.toString());
-                    } else if (key.equalsIgnoreCase("url")) {
-                        File file = new File(value.toString());
-                        if (file.exists())
-                            value = file.toURI().toURL();
+                        String key = parameterElement.getChildTextTrim("paramId");
+                        Object value = parameterElement.getChildTextTrim("value");
+
+                        try {
+                            value = Integer.valueOf(value.toString());
+                        } catch(NumberFormatException nfe) {
+                            try {
+                                value = parseBoolean(value.toString());
+                            } catch(Exception pex) {
+                            }
+                        }
+
+                        /*String type = parameterElement.getChildTextTrim("type");
+
+                        if (type.equalsIgnoreCase("boolean")) {
+                            value = Boolean.valueOf(value.toString());
+                        } else if (type.equalsIgnoreCase("number")) {
+                            value = Integer.valueOf(value.toString());
+                        } else if (key.equalsIgnoreCase("url")) {
+                            File file = new File(value.toString());
+                            if (file.exists())
+                                value = file.toURI().toURL();
+                        }*/
+
+                        parameters.put(key, value);
                     }
-
-                    parameters.put(key, value);
                 }
-            }
 
-            newActionList.add(ActionFactory.createAction(
-                    actionElement.getChildTextTrim("type"),
-                    parameters));
+                newActionList.add(ActionFactory.createAction(
+                        actionElement.getChildTextTrim("type"),
+                        parameters));
+            }
         }
 
         // Finally: add output database to action list:
@@ -293,6 +332,16 @@ public class DataStoreLinker implements Runnable {
                 process.toOutputMap()));
 
         return newActionList;
+    }
+
+    private Boolean parseBoolean(String bool) throws Exception {
+        if (bool.equalsIgnoreCase("true")) {
+            return Boolean.TRUE;
+        } else if (bool.equalsIgnoreCase("false")) {
+            return Boolean.FALSE;
+        } else {
+            throw new Exception("The following value should be a boolean value (true or false): " + bool);
+        }
     }
 
     /**

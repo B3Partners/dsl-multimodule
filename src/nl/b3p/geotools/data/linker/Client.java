@@ -121,12 +121,12 @@ public class Client {
                             process = null;
 
                             if (args[i].toLowerCase().endsWith(".xml")) {
-                                batch.loadFromXML(input);
-                                if (batch.size() == 1 && batch.containsKey("process")) {
+                                //batch.loadFromXML(input);
+                                //if (batch.size() == 1 && batch.containsKey("process")) {
                                     // we are dealing with new version xml here
                                     process = (nl.b3p.datastorelinker.entity.Process)
                                         MarshalUtils.unmarshalProcess(input, MarshalUtils.getDslSchema());
-                                }
+                                //}
                             } else if (args[i].toLowerCase().endsWith(".properties")) {
                                 batch.load(input);
                             } else {
