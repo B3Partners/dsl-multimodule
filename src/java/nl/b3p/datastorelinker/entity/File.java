@@ -81,7 +81,7 @@ public class File implements Serializable, Mappable {
     }
 
     public Map<String, Object> toMap(String keyPrefix) {
-        if (isDirectory) {
+        if (isDirectory != null && isDirectory) {
             // TODO: throw ex?
             log.error("Attempt to run dsl with a directory as input");
         }

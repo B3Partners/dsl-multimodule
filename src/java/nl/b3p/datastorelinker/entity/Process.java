@@ -29,20 +29,17 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import net.sourceforge.stripes.util.Log;
+import nl.b3p.datastorelinker.util.Namespaces;
 import org.jdom.Namespace;
-import org.jdom.input.DOMBuilder;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.DOMOutputter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
 
 /**
  *
@@ -184,10 +181,12 @@ public class Process implements Serializable {
     }
 
     @XmlAnyElement(lax=true)
+    //@XmlElement(required=false)
     public Element getActions() {
         try {
+            log.debug("getActions: " + actions);
             org.jdom.Document jdoc = new SAXBuilder().build(new StringReader(actions));
-            //jdoc.getRootElement().addNamespaceDeclaration(Namespace.getNamespace("http://www.b3partners.nl/schemas/dsl"));
+            assignDslNS(jdoc.getRootElement());
             Document doc = new DOMOutputter().output(jdoc);
 
             /*DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -197,6 +196,14 @@ public class Process implements Serializable {
         } catch(Exception ex) {
             log.error(ex);
             return null;
+        }
+    }
+
+    private void assignDslNS(org.jdom.Element elem) {
+        // This is very ugly; there has to be a better way to do this.
+        elem.setNamespace(Namespace.getNamespace(Namespaces.DSL_NAMESPACE));
+        for (Object childElem : elem.getChildren()) {
+            assignDslNS((org.jdom.Element)childElem);
         }
     }
 
@@ -211,6 +218,7 @@ public class Process implements Serializable {
             log.error(ex);
             this.actions = "";
         }
+        log.debug("setActions: " + actions);
     }
 
     public Inout getInput() {
@@ -227,31 +235,6 @@ public class Process implements Serializable {
 
     public void setOutput(Inout output) {
         this.output = output;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Process)) {
-            return false;
-        }
-        Process other = (Process) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "nl.b3p.datastorelinker.entity.Process[id=" + id + "]";
     }
 
     public Integer getFeaturesStart() {
@@ -308,6 +291,31 @@ public class Process implements Serializable {
 
     public void setProcessStatus(ProcessStatus processStatus) {
         this.processStatus = processStatus;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Process)) {
+            return false;
+        }
+        Process other = (Process) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "nl.b3p.datastorelinker.entity.Process[id=" + id + "]";
     }
 
 }

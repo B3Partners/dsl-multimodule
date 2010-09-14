@@ -30,6 +30,7 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import net.sourceforge.stripes.util.Log;
 import nl.b3p.datastorelinker.util.Mappable;
 import nl.b3p.datastorelinker.util.Util;
 
@@ -66,6 +67,8 @@ public class Database implements Serializable, Mappable {
 
     private static final long serialVersionUID = 1L;
 
+    private final static Log log = Log.getInstance(nl.b3p.datastorelinker.entity.Database.class);
+
     @XmlType(name="database_type")
     @XmlEnum
     public enum Type {
@@ -77,23 +80,23 @@ public class Database implements Serializable, Mappable {
         @XmlEnumValue("msaccess")
         MSACCESS("msaccess");
 
-        private final String value;
+        private final String geotoolsType;
 
-        Type(String v) {
-            value = v;
+        Type(String geotoolsType) {
+            this.geotoolsType = geotoolsType;
         }
 
-        public String value() {
-            return value;
+        public String getGeotoolsType() {
+            return geotoolsType;
         }
 
-        public static Type fromValue(String v) {
+        public static Type fromValue(String geotoolsType) {
             for (Type c : Type.values()) {
-                if (c.value.equals(v)) {
+                if (c.geotoolsType.equals(geotoolsType)) {
                     return c;
                 }
             }
-            throw new IllegalArgumentException(v.toString());
+            throw new IllegalArgumentException(geotoolsType.toString());
         }
     }
 
@@ -107,40 +110,56 @@ public class Database implements Serializable, Mappable {
     @Column(name = "id")
     @GeneratedValue
     private Long id;
+
     @Basic(optional = false)
     @Column(name = "name")
     private String name;
+
     @Column(name = "host_name")
     private String host;
+
     @Column(name = "database_name")
     private String databaseName;
+
     @Column(name = "username")
     private String username;
+
     @Column(name = "password")
     private String password;
+
     @Column(name = "db_schema")
     private String schema;
+
     @Column(name = "port")
     private Integer port;
+
     @Column(name = "instance")
     private String instance;
+
     @Column(name = "db_alias")
     private String alias;
+
     @Column(name = "url")
     private String url;
+
     @Column(name = "srs")
     private String srs;
+
     @Column(name = "col_x")
     private String colX;
+
     @Column(name = "col_y")
     private String colY;
+
     @XmlTransient
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "database")
     private List<Inout> inoutList;
+
     @Basic(optional = false)
     @Column(name = "database_type")
     @Enumerated(EnumType.STRING)
     private Database.Type type;
+
     @Basic(optional = false)
     @Column(name = "inout_type")
     @Enumerated(EnumType.STRING)
@@ -160,7 +179,7 @@ public class Database implements Serializable, Mappable {
     public Map<String, Object> toMap(String keyPrefix) {
         Map<String, Object> map = new HashMap<String, Object>();
 
-        Util.addToMapIfNotNull(map, "dbtype", type.value(), keyPrefix);
+        Util.addToMapIfNotNull(map, "dbtype", type.getGeotoolsType(), keyPrefix);
         Util.addToMapIfNotNull(map, "host", host, keyPrefix);
         Util.addToMapIfNotNull(map, "port", port, keyPrefix);
         Util.addToMapIfNotNull(map, "database", databaseName, keyPrefix);
@@ -175,6 +194,8 @@ public class Database implements Serializable, Mappable {
         // TODO: check of deze ok zijn!
         Util.addToMapIfNotNull(map, "column_x", colX, keyPrefix);
         Util.addToMapIfNotNull(map, "column_y", colY, keyPrefix);
+
+        log.debug(map);
 
         return map;
     }

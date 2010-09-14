@@ -19,6 +19,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 /**
@@ -27,10 +28,10 @@ import javax.xml.bind.annotation.XmlType;
  */
 @Entity
 @Table(name = "schedule")
+@XmlTransient
 public class Schedule implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    @XmlType(name="schedule_type")
     public enum Type {
         HOUR,
         DAY,

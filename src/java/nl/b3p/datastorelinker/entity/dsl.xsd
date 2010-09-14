@@ -1,88 +1,94 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<xsd:schema xmlns:dsl="http://www.b3partners.nl/schemas/dsl" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.b3partners.nl/schemas/dsl" version="1.0">
-	<xsd:element name="process" type="dsl:processType"/>
-	<xsd:complexType name="processType">
-		<xsd:all>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="input" type="dsl:inout"/>
-			<xsd:element name="actions" type="dsl:actionsType" minOccurs="0"/>
-			<xsd:element name="output" type="dsl:inout"/>
-			<xsd:element name="featuresStart" type="xsd:int" minOccurs="0"/>
-			<xsd:element name="featuresEnd" type="xsd:int" minOccurs="0"/>
-			<xsd:element name="drop" type="xsd:boolean" minOccurs="0"/>
-			<xsd:element name="writerType" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="mail" type="dsl:mail" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="inout">
-		<xsd:all>
-			<xsd:element name="file" type="dsl:file" minOccurs="0"/>
-			<xsd:element name="database" type="dsl:database" minOccurs="0"/>
-			<xsd:element name="tableName" type="xsd:string" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="file">
-		<xsd:all>
-			<xsd:element name="name" type="xsd:string"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="database">
-		<xsd:all>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="dbtype" type="xsd:string"/>
-			<xsd:element name="host" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="databaseName" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="username" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="password" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="schema" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="port" type="xsd:int" minOccurs="0"/>
-			<xsd:element name="instance" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="alias" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="url" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="srs" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="colX" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="colY" type="xsd:string" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="inoutDatatype">
-		<xsd:all>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="mail">
-		<xsd:all>
-			<xsd:element name="smtpHost" type="xsd:string"/>
-			<xsd:element name="toEmailAddress" type="xsd:string"/>
-			<xsd:element name="subject" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="fromEmailAddress" type="xsd:string" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="inoutType">
-		<xsd:all>
-			<xsd:element name="id" type="xsd:int"/>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="actionsType">
-		<xsd:all>
-			<xsd:element name="action" type="dsl:actionType" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="actionType">
-		<xsd:all>
-			<xsd:element name="type" type="xsd:string"/>
-			<xsd:element name="parameters" type="dsl:parametersType" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="parametersType">
-		<xsd:all>
-			<xsd:element name="parameter" type="dsl:parameterType" minOccurs="0"/>
-		</xsd:all>
-	</xsd:complexType>
-	<xsd:complexType name="parameterType">
-		<xsd:all>
-			<xsd:element name="paramId" type="xsd:string"/>
-			<xsd:element name="value" type="xsd:string"/>
-		</xsd:all>
-	</xsd:complexType>
-</xsd:schema>
+<xs:schema xmlns:dsl="http://www.b3partners.nl/schemas/dsl" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.b3partners.nl/schemas/dsl" elementFormDefault="qualified" version="1.0">
+
+	<xs:element name="process" type="dsl:processType"/>
+
+	<xs:complexType name="processType">
+		<xs:sequence>
+			<xs:element name="input" type="dsl:inout"/>
+			<xs:element name="output" type="dsl:inout"/>
+			<xs:element name="featuresStart" type="xs:int" minOccurs="0"/>
+			<xs:element name="featuresEnd" type="xs:int" minOccurs="0"/>
+			<xs:element name="drop" type="xs:boolean" minOccurs="0"/>
+			<xs:element name="writerType" type="xs:string" minOccurs="0"/>
+			<xs:element name="mail" type="dsl:mail" minOccurs="0"/>
+			<xs:element name="actions" type="dsl:actionsType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="inout">
+		<xs:sequence>
+			<xs:element name="tableName" type="xs:string" minOccurs="0"/>
+			<xs:element name="database" type="dsl:database" minOccurs="0"/>
+			<xs:element name="file" type="dsl:file" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="database">
+		<xs:sequence>
+			<xs:element name="dbtype" type="dsl:database_type"/>
+			<xs:element name="host" type="xs:string" minOccurs="0"/>
+			<xs:element name="databaseName" type="xs:string" minOccurs="0"/>
+			<xs:element name="username" type="xs:string" minOccurs="0"/>
+			<xs:element name="password" type="xs:string" minOccurs="0"/>
+			<xs:element name="schema" type="xs:string" minOccurs="0"/>
+			<xs:element name="port" type="xs:int" minOccurs="0"/>
+			<xs:element name="instance" type="xs:string" minOccurs="0"/>
+			<xs:element name="alias" type="xs:string" minOccurs="0"/>
+			<xs:element name="url" type="xs:string" minOccurs="0"/>
+			<xs:element name="srs" type="xs:string" minOccurs="0"/>
+			<xs:element name="colX" type="xs:string" minOccurs="0"/>
+			<xs:element name="colY" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="file">
+		<xs:sequence>
+			<xs:element name="directory" type="xs:string" minOccurs="0"/>
+			<xs:element name="name" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="mail">
+		<xs:sequence>
+			<xs:element name="smtpHost" type="xs:string"/>
+			<xs:element name="toEmailAddress" type="xs:string"/>
+			<xs:element name="subject" type="xs:string" minOccurs="0"/>
+			<xs:element name="fromEmailAddress" type="xs:string" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:simpleType name="database_type">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="postgis"/>
+			<xs:enumeration value="oracle"/>
+			<xs:enumeration value="msaccess"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:complexType name="actionsType">
+		<xs:sequence>
+			<xs:element name="action" type="dsl:actionType" minOccurs="1" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="actionType">
+		<xs:all>
+			<xs:element name="type" type="xs:string"/>
+			<xs:element name="parameters" type="dsl:parametersType" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+
+	<xs:complexType name="parametersType">
+		<xs:all>
+			<xs:element name="parameter" type="dsl:parameterType" minOccurs="0"/>
+		</xs:all>
+	</xs:complexType>
+
+	<xs:complexType name="parameterType">
+		<xs:all>
+			<xs:element name="paramId" type="xs:string"/>
+			<xs:element name="value" type="xs:string"/>
+		</xs:all>
+	</xs:complexType>
+</xs:schema>

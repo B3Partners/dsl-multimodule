@@ -38,12 +38,7 @@ public class MarshalUtils {
 
     private final static String JAXB_ELEMENTS_PACKAGE = "nl.b3p.datastorelinker.entity";
 
-    private final static String DSL_NAMESPACE = "http://www.b3partners.nl/schemas/dsl";
-    private final static String DSL_PREFIX = "dsl";
-
-    //private final static String DSL_XSD_PATH = "nl/b3p/datastorelinker/entity/dsl.xsd";
-    private final static String DSL_XSD_PATH = "nl/b3p/datastorelinker/entity/dsl_test4.xsd";
-
+    private final static String DSL_XSD_PATH = "nl/b3p/datastorelinker/entity/dsl.xsd";
 
     public static String marshalProcess(nl.b3p.datastorelinker.entity.Process process) throws JAXBException {
         return marshal(process, null);
@@ -52,7 +47,7 @@ public class MarshalUtils {
     public static String marshalProcess(nl.b3p.datastorelinker.entity.Process process, Schema schema) throws JAXBException {
         JAXBElement<nl.b3p.datastorelinker.entity.Process> jaxbProcess =
                 new JAXBElement<nl.b3p.datastorelinker.entity.Process>(
-                        new QName(DSL_NAMESPACE, "process", DSL_PREFIX),
+                        new QName(Namespaces.DSL_NAMESPACE, "process", Namespaces.DSL_PREFIX),
                         nl.b3p.datastorelinker.entity.Process.class,
                         process);
         return marshal(jaxbProcess, schema);
