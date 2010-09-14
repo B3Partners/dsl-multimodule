@@ -5,6 +5,8 @@ import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,8 +17,11 @@ import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import org.geotools.data.oracle.OracleDialect;
+import org.geotools.data.postgis.PostGISDialect;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.IllegalAttributeException;
+import org.geotools.jdbc.JDBCDataStore;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
@@ -269,24 +274,36 @@ public class ActionDataStore_Writer extends Action {
              */
 
             if (dropFirst && typeExists) {
-                //Drop doesn't exist (yet) so do a remove and update.
-                removeAllFeatures(dataStore2Write, typename2Write);
-                //update
-                dataStore2Write.updateSchema(typename2Write, featureType);
+                /*The drop schema bestaat nog niet in geotools. Wordt nu wel gemaakt en zal binnen
+                 * kort beschikbaar zijn. Tot die tijd maar verwijderen dmv sql script....
+                */
+
                 // Check if DataStore is a Database
-                /*if (dataStore2Write instanceof JDBCDataStore) {
+                if (dataStore2Write instanceof JDBCDataStore) {
                     // Drop table
                     JDBCDataStore database = (JDBCDataStore) dataStore2Write;
-                    Connection con = database.getConnection(Transaction.AUTO_COMMIT);
-                    con.setAutoCommit(true);
 
-                    // TODO make this function work with all databases
-                    PreparedStatement ps = con.prepareStatement("DROP TABLE \"" + typename2Write + "\"; DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + featureType.getTypeName() + "'");
-                    ps.execute();
+                    Connection con = database.getDataSource().getConnection();
+                    try{
+                        con.setAutoCommit(true);
 
-                    con.close();
+                        // TODO make this function work with all databases
+                        PreparedStatement ps=null;
+                        if (database.getSQLDialect() instanceof PostGISDialect){
+                            ps= con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema()+"."+typename2Write + "\"; "
+                                    + "DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + featureType.getTypeName() + "'");
+                            ps.execute();
+                        } else if(database.getSQLDialect() instanceof OracleDialect){
+                            ps= con.prepareStatement("DROP TABLE \"" + typename2Write + "\"");
+                            ps.execute();
+                            ps = con.prepareStatement("DELETE FROM MDSYS.SDO_GEOM_METADATA_TABLE WHERE SDO_TABLE_NAME = '"+featureType.getTypeName()+"'");
+                            ps.execute();
+                        }
+                    }finally{
+                        con.close();
+                    }
                 }
-                typeExists = false;*/
+                typeExists = false;
             }
 
 
