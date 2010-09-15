@@ -10,7 +10,11 @@ package nl.b3p.geotools.data.linker.blocks;
  */
 public class ActionCombo_Fix_To_Oracle extends ActionCombo {
 
+    // for Oracle <= 11 (and very possibly all future versions):
     protected final static int ORACLE_MAX_TABLE_NAME_LENGTH_VANILLA = 30;
+
+    // the longest suffix used that we currently know of
+    // (when creating a schema an index is created by Geotools using this suffix):
     protected final static int ORACLE_SPATIAL_MAX_LENGTH_SUFFIX = "_MV_THE_GEOM_IDX".length();
 
     protected final static int ORACLE_MAX_TABLE_NAME_LENGTH =
