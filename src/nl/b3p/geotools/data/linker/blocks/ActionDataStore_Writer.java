@@ -296,7 +296,7 @@ public class ActionDataStore_Writer extends Action {
                                     + "DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + featureType.getTypeName() + "'");
                             ps.execute();
                         } else if(database.getSQLDialect() instanceof OracleDialect){
-                            ps= con.prepareStatement("DROP TABLE \"" + typename2Write + "\"");
+                            ps= con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema()+"\".\""+typename2Write + "\"");
                             ps.execute();
                             ps = con.prepareStatement("DELETE FROM MDSYS.SDO_GEOM_METADATA_TABLE WHERE SDO_TABLE_NAME = '"+featureType.getTypeName()+"'");
                             ps.execute();
