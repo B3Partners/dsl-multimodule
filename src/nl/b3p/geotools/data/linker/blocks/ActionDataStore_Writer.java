@@ -280,6 +280,7 @@ public class ActionDataStore_Writer extends Action {
 
                 // Check if DataStore is a Database
                 if (dataStore2Write instanceof JDBCDataStore) {
+                    log.debug("It's a JDBCDatastore so try to drop the table with sql");
                     // Drop table
                     JDBCDataStore database = null;
                     Connection con = null;
@@ -291,7 +292,7 @@ public class ActionDataStore_Writer extends Action {
                         // TODO make this function work with all databases
                         PreparedStatement ps=null;
                         if (database.getSQLDialect() instanceof PostGISDialect){
-                            ps= con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema()+"."+typename2Write + "\"; "
+                            ps= con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema()+"\".\""+typename2Write + "\"; "
                                     + "DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + featureType.getTypeName() + "'");
                             ps.execute();
                         } else if(database.getSQLDialect() instanceof OracleDialect){
