@@ -18,18 +18,15 @@ public class ActionFeatureType_Typename_Substring extends Action {
 
     private int beginIndex = -1;
     private int endIndex = -1;
-    private boolean hasStartAndEnd;
     private boolean reverse = false;
 
     public ActionFeatureType_Typename_Substring(int beginIndex, int endIndex) {
         this.beginIndex = beginIndex;
         this.endIndex = endIndex;
-        hasStartAndEnd = true;
     }
 
     public ActionFeatureType_Typename_Substring(int beginIndex) {
         this.beginIndex = beginIndex;
-        hasStartAndEnd = false;
     }
 
     // Calculate substring from end (e.g. last 5 characters)
@@ -43,20 +40,21 @@ public class ActionFeatureType_Typename_Substring extends Action {
     public EasyFeature execute(EasyFeature feature) throws Exception {
         String typename = feature.getFeatureType().getTypeName();
 
-        if (beginIndex >= 0 && endIndex <= typename.length()) {
-            if (reverse) {
+        if (reverse) {
+            if (typename.length() - endIndex > 0) {
                 typename = typename.substring(typename.length() - endIndex);
+            }
+            // if <= 0 then typename is already ok (e.g. short enough)
+        } else if (beginIndex >= 0 && endIndex <= typename.length()) {
+            if (endIndex >= 0) {
+                typename = typename.substring(beginIndex, endIndex);
             } else {
-                if (hasStartAndEnd) {
-                    typename = typename.substring(beginIndex, endIndex);
-                } else {
-                    typename = typename.substring(beginIndex);
-                }
+                typename = typename.substring(beginIndex);
             }
         } else {
             String error;
             if (!reverse) {
-                error = "Typename substring out of range; " + typename + ".subString(" + (hasStartAndEnd ? Integer.toString(beginIndex) + ", " + Integer.toString(endIndex) : Integer.toString(beginIndex)) + ")";
+                error = "Typename substring out of range; " + typename + ".subString(" + (endIndex >= 0 ? Integer.toString(beginIndex) + ", " + Integer.toString(endIndex) : Integer.toString(beginIndex)) + ")";
             } else {
                 error = "Reverse typename substring failed; get last piece from " + typename + " with length " + endIndex;
             }
@@ -72,7 +70,7 @@ public class ActionFeatureType_Typename_Substring extends Action {
     @Override
     public String toString() {
         if (!reverse) {
-            return "Typename subString(" + (hasStartAndEnd ? Integer.toString(beginIndex) + ", " + Integer.toString(endIndex) : Integer.toString(beginIndex)) + ")";
+            return "Typename subString(" + (endIndex >= 0 ? Integer.toString(beginIndex) + ", " + Integer.toString(endIndex) : Integer.toString(beginIndex)) + ")";
         } else {
             return "Reverse typename substring; get last piece from typename with length " + endIndex;
         }

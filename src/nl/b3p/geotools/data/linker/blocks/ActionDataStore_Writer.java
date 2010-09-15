@@ -51,6 +51,7 @@ public class ActionDataStore_Writer extends Action {
 
     public ActionDataStore_Writer(Map params, Map properties) {// Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClassificationAttribute){
         this.params = params;
+        log.debug(params);
 
         if (ActionFactory.propertyCheck(properties, ActionFactory.APPEND)) {
             append = (Boolean) properties.get(ActionFactory.APPEND);
@@ -312,10 +313,11 @@ public class ActionDataStore_Writer extends Action {
 
             // If table does not exist, create new
             if (!typeExists) {
-                dataStore2Write.createSchema(featureType);
                 log.info("Creating new table with name: " + featureType.getTypeName());
+                dataStore2Write.createSchema(featureType);
 
             } else if (!append) {
+                log.info("Removing all features from: " + typename2Write);
                 removeAllFeatures(dataStore2Write, typename2Write);
                 // Check if DataStore is a Database
                 /*if (dataStore2Write instanceof JDBCDataStore) {

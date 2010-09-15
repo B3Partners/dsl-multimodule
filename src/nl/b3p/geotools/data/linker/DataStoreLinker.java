@@ -10,13 +10,12 @@ import java.io.IOException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import nl.b3p.datastorelinker.entity.Database;
-import org.apache.commons.lang.BooleanUtils;
+import nl.b3p.datastorelinker.util.Namespaces;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
@@ -283,28 +282,28 @@ public class DataStoreLinker implements Runnable {
         org.w3c.dom.Element actions = process.getActions();
         if (actions != null) {
             Element actionsElement = new DOMBuilder().build(actions);
-            for (Object actionObject : actionsElement.getChildren("action")) {
+            for (Object actionObject : actionsElement.getChildren("action", Namespaces.DSL_NAMESPACE)) {
                 Element actionElement = (Element)actionObject;
 
                 Map<String, Object> parameters = new HashMap<String, Object>();
-                Element parametersElement = actionElement.getChild("parameters");
+                Element parametersElement = actionElement.getChild("parameters", Namespaces.DSL_NAMESPACE);
                 if (parametersElement != null) {
-                    for (Object parameterObject : parametersElement.getChildren("parameter")) {
+                    for (Object parameterObject : parametersElement.getChildren("parameter", Namespaces.DSL_NAMESPACE)) {
                         Element parameterElement = (Element)parameterObject;
 
-                        String key = parameterElement.getChildTextTrim("paramId");
-                        Object value = parameterElement.getChildTextTrim("value");
+                        String key = parameterElement.getChildTextTrim("paramId", Namespaces.DSL_NAMESPACE);
+                        Object value = parameterElement.getChildTextTrim("value", Namespaces.DSL_NAMESPACE);
 
                         try {
-                            value = Integer.valueOf(value.toString());
+                            value = Integer.valueOf(value.toString()).intValue();
                         } catch(NumberFormatException nfe) {
                             try {
-                                value = parseBoolean(value.toString());
+                                value = parseBoolean(value.toString()).booleanValue();
                             } catch(Exception pex) {
                             }
                         }
 
-                        /*String type = parameterElement.getChildTextTrim("type");
+                        /*String type = parameterElement.getChildTextTrim("type", Namespaces.DSL_NAMESPACE);
 
                         if (type.equalsIgnoreCase("boolean")) {
                             value = Boolean.valueOf(value.toString());
@@ -321,7 +320,7 @@ public class DataStoreLinker implements Runnable {
                 }
 
                 newActionList.add(ActionFactory.createAction(
-                        actionElement.getChildTextTrim("type"),
+                        actionElement.getChildTextTrim("type", Namespaces.DSL_NAMESPACE),
                         parameters));
             }
         }
