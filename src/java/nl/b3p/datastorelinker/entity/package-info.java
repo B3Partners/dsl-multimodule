@@ -1,5 +1,5 @@
 @XmlSchema(
-    namespace = Namespaces.DSL_NAMESPACE,
+    namespace = Namespaces.DSL_NAMESPACE_STRING,
     elementFormDefault = XmlNsForm.QUALIFIED
 )
 package nl.b3p.datastorelinker.entity;

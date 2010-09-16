@@ -201,7 +201,7 @@ public class Process implements Serializable {
 
     private void assignDslNS(org.jdom.Element elem) {
         // This is very ugly; there has to be a better way to do this.
-        elem.setNamespace(Namespace.getNamespace(Namespaces.DSL_NAMESPACE));
+        elem.setNamespace(Namespace.getNamespace(Namespaces.DSL_NAMESPACE_STRING));
         for (Object childElem : elem.getChildren()) {
             assignDslNS((org.jdom.Element)childElem);
         }

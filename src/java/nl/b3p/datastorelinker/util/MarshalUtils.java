@@ -47,7 +47,7 @@ public class MarshalUtils {
     public static String marshalProcess(nl.b3p.datastorelinker.entity.Process process, Schema schema) throws JAXBException {
         JAXBElement<nl.b3p.datastorelinker.entity.Process> jaxbProcess =
                 new JAXBElement<nl.b3p.datastorelinker.entity.Process>(
-                        new QName(Namespaces.DSL_NAMESPACE, "process", Namespaces.DSL_PREFIX),
+                        new QName(Namespaces.DSL_NAMESPACE_STRING, "process", Namespaces.DSL_PREFIX),
                         nl.b3p.datastorelinker.entity.Process.class,
                         process);
         return marshal(jaxbProcess, schema);
