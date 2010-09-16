@@ -281,7 +281,7 @@ public class ActionDataStore_Writer extends Action {
 
                 // Check if DataStore is a Database
                 if (dataStore2Write instanceof JDBCDataStore) {
-                    log.debug("It's a JDBCDatastore so try to drop the table with sql");
+                    log.info("It's a JDBCDatastore so try to drop the table with sql");
                     // Drop table
                     JDBCDataStore database = null;
                     Connection con = null;
