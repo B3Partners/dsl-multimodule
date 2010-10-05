@@ -28,7 +28,7 @@ import nl.b3p.geotools.data.linker.feature.EasyFeature;
  * Hiermee kan worden voorkomen dat ArcGIS hierop crasht.
  * @author matthijsln
  */
-public class ActionGeometry_RemoveDuplicateVertexes extends Action {
+public class ActionGeometry_RemoveDuplicateVertices extends Action {
 
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
@@ -42,25 +42,25 @@ public class ActionGeometry_RemoveDuplicateVertexes extends Action {
         Object geometry = feature.getFeature().getDefaultGeometry();
 
         if(geometry instanceof Polygon) {
-            Polygon p = removeDuplicateVertexes((Polygon)geometry);
+            Polygon p = removeDuplicateVertices((Polygon)geometry);
 
             if(p != null) {
                 feature.getFeature().setDefaultGeometry(p);
             }
         } else if(geometry instanceof MultiPolygon) {
-            MultiPolygon mp = (MultiPolygon)removeDuplicateVertexesMultiGeometry((MultiPolygon)geometry);
+            MultiPolygon mp = (MultiPolygon)removeDuplicateVerticesMultiGeometry((MultiPolygon)geometry);
 
             if(mp != null) {
                 feature.getFeature().setDefaultGeometry(mp);
             }
         } else if(geometry instanceof LineString) {
-            LineString l = removeDuplicateVertexes((LineString)geometry);
+            LineString l = removeDuplicateVertices((LineString)geometry);
 
             if(l != null) {
                 feature.getFeature().setDefaultGeometry(l);
             }
         } else if(geometry instanceof MultiLineString) {
-            MultiLineString ml = (MultiLineString)removeDuplicateVertexesMultiGeometry((MultiLineString)geometry);
+            MultiLineString ml = (MultiLineString)removeDuplicateVerticesMultiGeometry((MultiLineString)geometry);
 
             if(ml != null) {
                 feature.getFeature().setDefaultGeometry(ml);
@@ -70,7 +70,7 @@ public class ActionGeometry_RemoveDuplicateVertexes extends Action {
         return feature;
     }
     
-    private static GeometryCollection removeDuplicateVertexesMultiGeometry(GeometryCollection gc) {
+    private static GeometryCollection removeDuplicateVerticesMultiGeometry(GeometryCollection gc) {
         boolean isChanged = false;
         
         Geometry[] geometries = new Geometry[gc.getNumGeometries()];
@@ -79,9 +79,9 @@ public class ActionGeometry_RemoveDuplicateVertexes extends Action {
             geometries[i] = g;
 
             if(g instanceof Polygon) {
-                g = removeDuplicateVertexes((Polygon)g);
+                g = removeDuplicateVertices((Polygon)g);
             } else {
-                g = removeDuplicateVertexes((LineString)g);
+                g = removeDuplicateVertices((LineString)g);
             }
             if(g != null) {
                 isChanged = true;
@@ -104,13 +104,13 @@ public class ActionGeometry_RemoveDuplicateVertexes extends Action {
         }
     }
 
-    private static Polygon removeDuplicateVertexes(Polygon p) {
-        LinearRing exterior = removeDuplicateVertexes((LinearRing)p.getExteriorRing());
+    private static Polygon removeDuplicateVertices(Polygon p) {
+        LinearRing exterior = removeDuplicateVertices((LinearRing)p.getExteriorRing());
 
         LinearRing[] interiorRings = new LinearRing[p.getNumInteriorRing()];
         boolean interiorRingChanged = false;
         for(int i = 0; i < interiorRings.length; i++) {
-            interiorRings[i] = removeDuplicateVertexes((LinearRing)p.getInteriorRingN(i));
+            interiorRings[i] = removeDuplicateVertices((LinearRing)p.getInteriorRingN(i));
             interiorRingChanged = interiorRingChanged | (interiorRings[i] != null);
         }
 
@@ -128,8 +128,8 @@ public class ActionGeometry_RemoveDuplicateVertexes extends Action {
         return null;
     }
 
-    private static LineString removeDuplicateVertexes(LineString line) {
-        Coordinate[] coords = removeDuplicateVertexes(line.getCoordinates());
+    private static LineString removeDuplicateVertices(LineString line) {
+        Coordinate[] coords = removeDuplicateVertices(line.getCoordinates());
         if(coords == null) {
             return null;
         } else {
@@ -137,8 +137,8 @@ public class ActionGeometry_RemoveDuplicateVertexes extends Action {
         }
     }
 
-    private static LinearRing removeDuplicateVertexes(LinearRing ring) {
-        Coordinate[] coords = removeDuplicateVertexes(ring.getCoordinates());
+    private static LinearRing removeDuplicateVertices(LinearRing ring) {
+        Coordinate[] coords = removeDuplicateVertices(ring.getCoordinates());
         if(coords == null) {
             return null;
         } else {
@@ -149,7 +149,7 @@ public class ActionGeometry_RemoveDuplicateVertexes extends Action {
     /**
      * Returnt NULL indien geen duplicate vertexen gevonden
      */
-    private static Coordinate[] removeDuplicateVertexes(Coordinate[] vertices) {
+    private static Coordinate[] removeDuplicateVertices(Coordinate[] vertices) {
         if(vertices.length < 3) {
             return null;
         }
@@ -265,7 +265,7 @@ POLYGON ((5 1, 8 1, 8 4, 8 4, 5 4, 5 4, 5 1),
         for(Object t: tests) {
             Object[] test = (Object[])t;
             System.out.println("Test met input " + printTest(test[0]));
-            Coordinate[] output = removeDuplicateVertexes((Coordinate[])test[0]);
+            Coordinate[] output = removeDuplicateVertices((Coordinate[])test[0]);
             if(test[1] == null) {
                 if(output == null) {
                     System.out.println("Verwachte output is: ongewijzigd, resultaat: ongewijzigd. TEST OK");
@@ -300,12 +300,12 @@ POLYGON ((5 1, 8 1, 8 4, 8 4, 5 4, 5 4, 5 1),
 
     @Override
     public String toString() {
-        return "remove duplicate vertexes";
+        return "remove duplicate vertices";
     }
 
     @Override
     public String getDescription_NL() {
-        return "Verwijder uit lijnen en vlakken dubbele opeenvolgende vertexen";
+        return "Verwijder uit lijnen en vlakken dubbele opeenvolgende vertices";
     }
 
 }
