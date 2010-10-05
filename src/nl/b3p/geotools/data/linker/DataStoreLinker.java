@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 import nl.b3p.datastorelinker.entity.Database;
 import nl.b3p.datastorelinker.util.Namespaces;
+import nl.b3p.datastorelinker.util.Util;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
@@ -394,11 +395,11 @@ public class DataStoreLinker implements Runnable {
 
     private DataStore openDataStore() throws ConfigurationException, Exception {
         Database database = process.getInput().getDatabase();
-        nl.b3p.datastorelinker.entity.File file = process.getInput().getFile();
+        String file = process.getInput().getFile();
 
         if (database != null) {
             return openDataStore(database);
-        } else if (file != null) { // TODO: this should be a file now; change xsd to reflect this choice
+        } else if (file != null) { // TODO: this should be a file now; change xsd to reflect this "xsd:choice"
             return openDataStore(file);
         } else { // safeguard:
             throw new ConfigurationException("Xml configuration exception: No input database or file specified.");
@@ -409,8 +410,8 @@ public class DataStoreLinker implements Runnable {
         return openDataStore(database.toMap());
     }
 
-    public static DataStore openDataStore(nl.b3p.datastorelinker.entity.File file) throws ConfigurationException, Exception {
-        return openDataStore(file.toMap());
+    public static DataStore openDataStore(String file) throws ConfigurationException, Exception {
+        return openDataStore(Util.fileToMap(new File(file)));
     }
 
     /**
