@@ -90,10 +90,13 @@ public class Inout implements Serializable {
     //@XmlElement(name="database")
     private Database database;
 
-    @JoinColumn(name = "file_id", referencedColumnName = "id")
-    @ManyToOne
-    //@XmlElement(name="file")
-    private File file;
+    @Basic(optional = true)
+    @Column(name = "file_name")
+    private String file;
+
+    @Basic(optional = true)
+    @Column(name = "srs")
+    private String srs;
 
     @Basic(optional = false)
     @Enumerated(EnumType.STRING)
@@ -161,11 +164,11 @@ public class Inout implements Serializable {
         this.database = database;
     }
 
-    public File getFile() {
+    public String getFile() {
         return file;
     }
 
-    public void setFile(File file) {
+    public void setFile(String file) {
         this.file = file;
     }
 
@@ -183,6 +186,14 @@ public class Inout implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSrs() {
+        return srs;
+    }
+
+    public void setSrs(String srs) {
+        this.srs = srs;
     }
 
     @Override

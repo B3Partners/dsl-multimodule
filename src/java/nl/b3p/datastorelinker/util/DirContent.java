@@ -6,25 +6,24 @@
 package nl.b3p.datastorelinker.util;
 
 import java.util.List;
-import nl.b3p.datastorelinker.entity.File;
 
 /**
  *
  * @author Erik van de Pol
  */
 public class DirContent {
-    protected List<File> dirs;
+    protected List<Dir> dirs;
     protected List<File> files;
 
     public DirContent() {
         
     }
 
-    public List<File> getDirs() {
+    public List<Dir> getDirs() {
         return dirs;
     }
 
-    public void setDirs(List<File> dirs) {
+    public void setDirs(List<Dir> dirs) {
         this.dirs = dirs;
     }
 
