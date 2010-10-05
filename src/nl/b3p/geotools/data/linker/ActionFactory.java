@@ -524,6 +524,8 @@ public class ActionFactory {
                 } else {
                     failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
                 }
+            } else if(isThisClass(actionClassName, ActionGeometry_RemoveDuplicateVertexes.class)) {
+                return new ActionGeometry_RemoveDuplicateVertexes();
 
 
 
@@ -751,6 +753,7 @@ public class ActionFactory {
 
         actionBlocks.put(ActionGeometry_Buffer.class.getSimpleName(), ActionGeometry_Buffer.getConstructors());
         actionBlocks.put(ActionGeometry_Make_Point.class.getSimpleName(), ActionGeometry_Make_Point.getConstructors());
+        actionBlocks.put(ActionGeometry_RemoveDuplicateVertexes.class.getSimpleName(), ActionGeometry_RemoveDuplicateVertexes.getConstructors());
 
         return actionBlocks;
     }
