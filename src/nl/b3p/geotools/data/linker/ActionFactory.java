@@ -526,9 +526,15 @@ public class ActionFactory {
                 }
             } else if(isThisClass(actionClassName, ActionGeometry_RemoveDuplicateVertices.class)) {
                 return new ActionGeometry_RemoveDuplicateVertices();
+            } else if(isThisClass(actionClassName, ActionFeature_Value_ReplaceText.class)) {
 
+                ActionFeature_Value_ReplaceText a = new ActionFeature_Value_ReplaceText();
 
-
+                a.setAttribute((String)properties.get(ATTRIBUTE_NAME));
+                a.setSearch((String)properties.get(OBJECT_FIND));
+                a.setReplacement((String)properties.get(OBJECT_REPLACE));
+            
+                return a;
 
                 /**
                  * Action not found
@@ -745,6 +751,7 @@ public class ActionFactory {
         actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
         //actionBlocks.put(ActionFeatureType_Typename_Replace.class.getSimpleName(), ActionFeatureType_Typename_Replace.getConstructors());
 
+        actionBlocks.put(ActionFeature_Value_ReplaceText.class.getSimpleName(), ActionFeature_Value_ReplaceText.getConstructors());
         actionBlocks.put(ActionFeature_Value_Replace.class.getSimpleName(), ActionFeature_Value_Replace.getConstructors());
         actionBlocks.put(ActionFeature_Value_Set.class.getSimpleName(), ActionFeature_Value_Set.getConstructors());
         actionBlocks.put(ActionFeature_Value_Substring.class.getSimpleName(), ActionFeature_Value_Substring.getConstructors());
