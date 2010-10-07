@@ -40,7 +40,9 @@ import javax.xml.bind.annotation.XmlType;
 @Table(name = "input_output")
 @NamedQueries({
     @NamedQuery(name = "Inout.find", query =
-        "from Inout where type = :typeName order by name")
+        "from Inout where type = :typeName order by name"),
+    @NamedQuery(name = "Inout.findAllOfDataType", query =
+        "from Inout where type = :typeName and datatype = :datatypeName order by name")
 })
 public class Inout implements Serializable {
 
