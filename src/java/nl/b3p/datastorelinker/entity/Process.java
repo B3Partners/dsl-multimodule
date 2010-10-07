@@ -34,6 +34,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import net.sourceforge.stripes.util.Log;
+import nl.b3p.datastorelinker.util.Nameable;
 import nl.b3p.datastorelinker.util.Namespaces;
 import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
@@ -60,7 +61,7 @@ import org.w3c.dom.Element;
 @XmlAccessorType(XmlAccessType.FIELD)
 @Entity
 @Table(name = "process")
-public class Process implements Serializable {
+public class Process implements Serializable, Nameable {
     @XmlTransient
     private static final long serialVersionUID = 1L;
 

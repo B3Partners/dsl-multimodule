@@ -32,6 +32,7 @@ import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import net.sourceforge.stripes.util.Log;
 import nl.b3p.datastorelinker.util.Mappable;
+import nl.b3p.datastorelinker.util.Nameable;
 import nl.b3p.datastorelinker.util.Util;
 
 /**
@@ -63,7 +64,7 @@ import nl.b3p.datastorelinker.util.Util;
      */@NamedQuery(name = "Database.find", query =
     "from Database where typeInout = :typeInout order by name")
 })
-public class Database implements Serializable, Mappable {
+public class Database implements Serializable, Mappable, Nameable {
 
     private static final long serialVersionUID = 1L;
 

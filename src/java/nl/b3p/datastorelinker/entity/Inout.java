@@ -25,6 +25,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import nl.b3p.datastorelinker.util.Nameable;
 
 /**
  *
@@ -44,7 +45,7 @@ import javax.xml.bind.annotation.XmlType;
     @NamedQuery(name = "Inout.findAllOfDataType", query =
         "from Inout where type = :typeName and datatype = :datatypeName order by name")
 })
-public class Inout implements Serializable {
+public class Inout implements Serializable, Nameable {
 
     @XmlTransient
     //@XmlType(name="inout_type")
