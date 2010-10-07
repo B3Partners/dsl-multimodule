@@ -82,7 +82,7 @@ public class Process implements Serializable {
     @XmlTransient
     private Long id;
 
-    @Basic(optional = false)
+    @Basic(optional = true)
     @Column(name = "name")
     @XmlTransient
     private String name;
@@ -165,7 +165,10 @@ public class Process implements Serializable {
     }
 
     public String getName() {
-        return name;
+        if (name != null)
+            return name;
+        else
+            return input.getName() + " -> " + output.getName();
     }
 
     public void setName(String name) {

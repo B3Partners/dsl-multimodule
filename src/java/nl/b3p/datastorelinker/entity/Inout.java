@@ -106,7 +106,7 @@ public class Inout implements Serializable {
     @XmlTransient
     private Inout.Datatype datatype;
     
-    @Basic(optional = false)
+    @Basic(optional = true)
     @Column(name = "name")
     @XmlTransient
     private String name;
@@ -183,7 +183,26 @@ public class Inout implements Serializable {
     }
 
     public String getName() {
-        return name;
+        if (datatype == Inout.Datatype.DATABASE) {
+            if (name != null) {
+                return name;
+            } else {
+                String inoutName = database.getName();
+                if (tableName != null && !tableName.trim().equals("")) {
+                    inoutName += " (" + tableName.trim() + ")";
+                }
+                return inoutName;
+            }
+        } else if (datatype == Inout.Datatype.FILE) {
+            // uploadDir is only known inside web app,
+            // so this name (from which the uploaddir has been removed) must be set inside the webapp.
+            if (name != null)
+                return name;
+            else
+                return file;
+        } else {
+            return null;
+        }
     }
 
     public void setName(String name) {

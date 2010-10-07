@@ -111,7 +111,7 @@ public class Database implements Serializable, Mappable {
     @GeneratedValue
     private Long id;
 
-    @Basic(optional = false)
+    @Basic(optional = true)
     @Column(name = "name")
     private String name;
 
@@ -172,6 +172,23 @@ public class Database implements Serializable, Mappable {
         this.id = id;
     }
 
+    public void reset() {
+        this.alias = null;
+        this.colX = null;
+        this.colY = null;
+        this.databaseName = null;
+        this.host = null;
+        this.instance = null;
+        this.name = null;
+        this.password = null;
+        this.port = null;
+        this.schema = null;
+        this.srs = null;
+        this.url = null;
+        this.username = null;
+        // types MUST always be overwritten manually, since there is no default type
+    }
+
     public Map<String, Object> toMap() {
         return toMap("");
     }
@@ -212,7 +229,10 @@ public class Database implements Serializable, Mappable {
     //@XmlElement(required=false)
     @XmlTransient
     public String getName() {
-        return name;
+        if (name != null)
+            return name;
+        else
+            return host + "/" + databaseName;
     }
 
     public void setName(String name) {
