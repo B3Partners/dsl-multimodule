@@ -134,9 +134,6 @@ public class Database implements Serializable, Mappable, Nameable {
     @Column(name = "port")
     private Integer port;
 
-    @Column(name = "instance")
-    private String instance;
-
     @Column(name = "db_alias")
     private String alias;
 
@@ -179,7 +176,6 @@ public class Database implements Serializable, Mappable, Nameable {
         this.colY = null;
         this.databaseName = null;
         this.host = null;
-        this.instance = null;
         this.name = null;
         this.password = null;
         this.port = null;
@@ -205,7 +201,6 @@ public class Database implements Serializable, Mappable, Nameable {
         Util.addToMapIfNotNull(map, "passwd", password, keyPrefix);
         // Oracle specific:
         Util.addToMapIfNotNull(map, "schema", schema, keyPrefix);
-        Util.addToMapIfNotNull(map, "instance", instance, keyPrefix);
         // MS Access specific:
         Util.addToMapIfNotNull(map, "url", url, keyPrefix);
         Util.addToMapIfNotNull(map, "srs", srs, keyPrefix);
@@ -230,10 +225,15 @@ public class Database implements Serializable, Mappable, Nameable {
     //@XmlElement(required=false)
     @XmlTransient
     public String getName() {
-        if (name != null)
+        if (name != null) {
             return name;
-        else
-            return host + "/" + databaseName;
+        } else {
+            if (type == Type.ORACLE) {
+                return host + "/" + schema;
+            } else {
+                return host + "/" + databaseName;
+            }
+        }
     }
 
     public void setName(String name) {
@@ -291,15 +291,6 @@ public class Database implements Serializable, Mappable, Nameable {
 
     public void setPort(Integer port) {
         this.port = port;
-    }
-
-    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
-    public String getInstance() {
-        return instance;
-    }
-
-    public void setInstance(String instance) {
-        this.instance = instance;
     }
 
     @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
