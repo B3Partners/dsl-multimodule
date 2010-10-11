@@ -48,7 +48,6 @@ import nl.b3p.datastorelinker.util.Util;
     "password",
     "schema",
     "port",
-    "instance",
     "alias",
     "url",
     "srs",
