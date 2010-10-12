@@ -733,7 +733,7 @@ public class ActionFactory {
         actionBlocks.put(ActionCombo_Recommended.class.getSimpleName(), ActionCombo_Recommended.getConstructors());
 
         //actionBlocks.put(ActionCombo_GeometrySingle_Writer.class.getSimpleName(), ActionCombo_GeometrySingle_Writer.getConstructors());
-        //actionBlocks.put(ActionCombo_GeometrySplitter_Writer.class.getSimpleName(), ActionCombo_GeometrySplitter_Writer.getConstructors());
+        actionBlocks.put(ActionCombo_GeometrySplitter_Writer.class.getSimpleName(), ActionCombo_GeometrySplitter_Writer.getConstructors());
         //actionBlocks.put(ActionDataStore_Writer.class.getSimpleName(), ActionDataStore_Writer.getConstructors());
 
         actionBlocks.put(ActionFeatureType_AttributeNames_Case.class.getSimpleName(), ActionFeatureType_AttributeNames_Case.getConstructors());

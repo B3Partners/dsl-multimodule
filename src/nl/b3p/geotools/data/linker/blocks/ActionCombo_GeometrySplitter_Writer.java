@@ -16,7 +16,7 @@ import nl.b3p.geotools.data.linker.ActionFactory;
  * Split geometries in Point, Line, Polygon, MultiPoint, MultiLine, MultiPolygon
  * @author Gertjan Al, B3Partners
  */
-public class ActionCombo_GeometrySplitter_Writer extends ActionCombo {
+public class ActionCombo_GeometrySplitter_Writer extends ActionCombo implements WritableAction {
     public final ActionDataStore_Writer datastore;
     public ActionCombo_GeometrySplitter_Writer(Map params, Map properties) {
 
@@ -79,7 +79,7 @@ public class ActionCombo_GeometrySplitter_Writer extends ActionCombo {
     public static  List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
-        constructors.add(Arrays.asList(new String[]{
+        /*constructors.add(Arrays.asList(new String[]{
                     ActionFactory.PARAMS,
                     ActionFactory.APPEND,
                     ActionFactory.DROPFIRST
@@ -93,7 +93,7 @@ public class ActionCombo_GeometrySplitter_Writer extends ActionCombo {
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.PARAMS,
                     ActionFactory.DROPFIRST
-                }));
+                }));*/
 
         return constructors;
 

@@ -173,6 +173,8 @@ public class ActionDataStore_Writer extends Action {
                         write(writer, feature.getFeature());
                     }
                 } catch (Exception ex) {
+                    // FIXME: Wat is dit voor baggercode: alleen het log weet dmv een ERROR
+                    // dat een feature niet is weggeschreven omdat het geen geometry bevat??
                     log.error("Error getting geometry. Feature not written: "+feature.toString(), ex);
                     //Remove writer so a new writer is created when the next feature is processed
                     if (writer!=null){

@@ -17,6 +17,8 @@ import java.util.Properties;
 import nl.b3p.datastorelinker.entity.Database;
 import nl.b3p.datastorelinker.util.Namespaces;
 import nl.b3p.datastorelinker.util.Util;
+import nl.b3p.geotools.data.linker.blocks.Action;
+import nl.b3p.geotools.data.linker.blocks.WritableAction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
@@ -44,6 +46,7 @@ public class DataStoreLinker implements Runnable {
     public static final String DATASTORE2READ_PREFIX = "read.datastore.";
     public static final String READ_TYPENAME = "read.typename";
     public static final Map<String, String> errorMapping = new HashMap();
+    protected static final String DEFAULT_WRITER = "ActionCombo_GeometrySingle_Writer";
 
     static {
         // Map combination of hasError (boolean / int) and errorDescription (String)
@@ -280,6 +283,8 @@ public class DataStoreLinker implements Runnable {
     private ActionList createActionList() throws Exception {
         ActionList newActionList = new ActionList();
 
+        String outputWriter = null;
+
         org.w3c.dom.Element actions = process.getActions();
         if (actions != null) {
             Element actionsElement = new DOMBuilder().build(actions);
@@ -320,16 +325,35 @@ public class DataStoreLinker implements Runnable {
                     }
                 }
 
-                newActionList.add(ActionFactory.createAction(
-                        actionElement.getChildTextTrim("type", Namespaces.DSL_NAMESPACE),
-                        parameters));
+                String actionType = actionElement.getChildTextTrim("type", Namespaces.DSL_NAMESPACE);
+
+                //if (ActionFactory.isDataStoreAction(actionType)) { // lelijke constructie; nooit meer gebruiken aub
+                // FIXME: we moeten echt ophouden die oude meuk te ondersteunen.
+                // De doorgegeven class moet natuurlijk gewoon de fully qualified class name zijn:
+                // i.e.: nl.b3p.datastorelinker.actions.MyAction
+                //if (WritableAction.class.isAssignableFrom(Class.forName(actionType))) {
+                if (WritableAction.class.isAssignableFrom(
+                        Class.forName("nl.b3p.geotools.data.linker.blocks." + actionType))) {
+                    outputWriter = actionType;
+                } else {
+                    newActionList.add(ActionFactory.createAction(actionType, parameters));
+                }
             }
         }
 
         // Finally: add output database to action list:
-        newActionList.add(ActionFactory.createAction(process.getWriterType(),
-                //"ActionCombo_GeometrySplitter_Writer",
-                process.toOutputMap()));
+        if (outputWriter == null) {
+            newActionList.add(ActionFactory.createAction(DEFAULT_WRITER,
+                    process.toOutputMap()));
+        } else {
+            newActionList.add(ActionFactory.createAction(outputWriter,
+                    process.toOutputMap()));
+        }
+
+        log.debug("Actions to be executed (in this order):");
+        for (Action action : newActionList) {
+            log.debug(action.getName());
+        }
 
         return newActionList;
     }
