@@ -220,7 +220,13 @@ public class DataStoreLinker implements Runnable {
         if (mustProcessMoreFeatures()) {
             String error = testFeature(feature, typeNameStatus);
             if (error == null) {
-                actionList.process(new EasyFeature(feature));
+                try {
+                    actionList.process(new EasyFeature(feature));
+                } catch(Exception e) {
+                    // TODO: nu twee soorten checks op foute features (zie else hieronder).
+                    // Dit moet bij elkaar gestopt worden.
+                    status.addNonFatalError(e.getLocalizedMessage(), status.getTotalFeatureCount());
+                }
             } else {
                 status.addNonFatalError(error, status.getTotalFeatureCount());
             }
@@ -431,7 +437,7 @@ public class DataStoreLinker implements Runnable {
     }
 
     public static DataStore openDataStore(Database database) throws ConfigurationException, Exception {
-        return openDataStore(database.toMap());
+        return openDataStore(database.toGeotoolsDataStoreParametersMap());
     }
 
     public static DataStore openDataStore(String file) throws ConfigurationException, Exception {

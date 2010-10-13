@@ -175,12 +175,15 @@ public class ActionDataStore_Writer extends Action {
                 } catch (Exception ex) {
                     // FIXME: Wat is dit voor baggercode: alleen het log weet dmv een ERROR
                     // dat een feature niet is weggeschreven omdat het geen geometry bevat??
-                    log.error("Error getting geometry. Feature not written: "+feature.toString(), ex);
+                    log.debug("Error getting geometry. Feature not written: "+feature.toString(), ex);
+                    // moeten dit soort dingen niet gewoon in een finally block?!?
                     //Remove writer so a new writer is created when the next feature is processed
                     if (writer!=null){
                         writer.close();
                     }
                     featureWriters.remove(typename);
+                    
+                    throw new Exception("Error getting geometry. Feature not written.");
                 }
             }
         }

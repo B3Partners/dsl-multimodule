@@ -63,7 +63,7 @@ public class Status {
 
     public synchronized void addNonFatalError(String errorString, Integer featureNumber) {
         incrementErrorCount();
-        log.warn("[" + featureNumber + "] " + errorString);
+        //log.warn("[" + featureNumber + "] " + errorString);
         if (!nonFatalErrorMap.containsKey(errorString)) {
             nonFatalErrorMap.put(errorString, new ArrayList<Integer>());
         }
