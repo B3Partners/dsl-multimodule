@@ -6,6 +6,7 @@
 package nl.b3p.datastorelinker.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import net.sourceforge.stripes.util.Log;
@@ -28,14 +29,15 @@ public class Util {
             map.put(keyPrefix + key, value);
     }
 
-    public static Map<String, Object> fileToMap(File file) {
+    public static Map<String, Object> fileToMap(File file) throws IOException {
         return fileToMap(file, "");
     }
 
-    public static Map<String, Object> fileToMap(File file, String keyPrefix) {
+    public static Map<String, Object> fileToMap(File file, String keyPrefix) throws IOException {
         if (file.isDirectory()) {
-            // TODO: throw ex?
-            log.error("Attempt to run dsl with a directory as input");
+            String message = "Attempt to run dsl with a directory as input: " + file.getAbsolutePath();
+            log.error(message);
+            throw new IOException(message);
         }
 
         Map<String, Object> map = new HashMap<String, Object>();
@@ -50,7 +52,9 @@ public class Util {
                 log.error("Malformed file url: " + e.getMessage());
             }
         } else {
-            log.error("File does not exist: " + file);
+            String message = "File does not exist: " + file;
+            log.error(message);
+            throw new IOException(message);
         }
 
         Util.addToMapIfNotNull(map, "url", qname, keyPrefix);
