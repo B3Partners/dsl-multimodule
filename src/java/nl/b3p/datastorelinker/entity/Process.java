@@ -152,7 +152,7 @@ public class Process implements Serializable, Nameable {
         Map outputMap = new HashMap();
 
         outputMap.put("drop", getDrop());
-        outputMap.put("params", getOutput().getDatabase().toMap());
+        outputMap.put("params", getOutput().getDatabase().toGeotoolsDataStoreParametersMap());
 
         return outputMap;
     }

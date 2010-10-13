@@ -46,6 +46,7 @@ public class ProcessStatus implements Serializable {
     @GeneratedValue
     private Long id;
 
+    //TODO: @Lob
     private String message;
 
     @Basic(optional = false)

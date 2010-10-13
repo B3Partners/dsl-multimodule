@@ -36,7 +36,7 @@ public class Util {
     public static Map<String, Object> fileToMap(File file, String keyPrefix) throws IOException {
         if (file.isDirectory()) {
             String message = "Attempt to run dsl with a directory as input: " + file.getAbsolutePath();
-            log.error(message);
+            //log.error(message);
             throw new IOException(message);
         }
 
@@ -53,7 +53,7 @@ public class Util {
             }
         } else {
             String message = "File does not exist: " + file;
-            log.error(message);
+            //log.error(message);
             throw new IOException(message);
         }
 

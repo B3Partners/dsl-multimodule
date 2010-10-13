@@ -31,9 +31,9 @@ import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.NormalizedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import net.sourceforge.stripes.util.Log;
-import nl.b3p.datastorelinker.util.Mappable;
 import nl.b3p.datastorelinker.util.Nameable;
 import nl.b3p.datastorelinker.util.Util;
+import org.geotools.jdbc.JDBCDataStoreFactory;
 
 /**
  *
@@ -63,7 +63,7 @@ import nl.b3p.datastorelinker.util.Util;
      */@NamedQuery(name = "Database.find", query =
     "from Database where typeInout = :typeInout order by name")
 })
-public class Database implements Serializable, Mappable, Nameable {
+public class Database implements Serializable, Nameable {
 
     private static final long serialVersionUID = 1L;
 
@@ -185,21 +185,28 @@ public class Database implements Serializable, Mappable, Nameable {
         // types MUST always be overwritten manually, since there is no default type
     }
 
-    public Map<String, Object> toMap() {
-        return toMap("");
+    public Map<String, Object> toGeotoolsDataStoreParametersMap() {
+        return toGeotoolsDataStoreParametersMap("");
     }
 
-    public Map<String, Object> toMap(String keyPrefix) {
+    public Map<String, Object> toGeotoolsDataStoreParametersMap(String keyPrefix) {
         Map<String, Object> map = new HashMap<String, Object>();
 
-        Util.addToMapIfNotNull(map, "dbtype", type.getGeotoolsType(), keyPrefix);
-        Util.addToMapIfNotNull(map, "host", host, keyPrefix);
-        Util.addToMapIfNotNull(map, "port", port, keyPrefix);
-        Util.addToMapIfNotNull(map, "database", databaseName, keyPrefix);
-        Util.addToMapIfNotNull(map, "user", username, keyPrefix);
-        Util.addToMapIfNotNull(map, "passwd", password, keyPrefix);
+        if (getInoutList() != null &&
+                getInoutList().size() > 0 &&
+                getInoutList().get(0).getType() == Inout.Type.INPUT) {
+            map.put(JDBCDataStoreFactory.EXPOSE_PK.key, Boolean.TRUE);
+        }
+        map.put(JDBCDataStoreFactory.VALIDATECONN.key, Boolean.TRUE);
+
+        Util.addToMapIfNotNull(map, JDBCDataStoreFactory.DBTYPE.key, type.getGeotoolsType(), keyPrefix);
+        Util.addToMapIfNotNull(map, JDBCDataStoreFactory.HOST.key, host, keyPrefix);
+        Util.addToMapIfNotNull(map, JDBCDataStoreFactory.PORT.key, port, keyPrefix);
+        Util.addToMapIfNotNull(map, JDBCDataStoreFactory.DATABASE.key, databaseName, keyPrefix);
+        Util.addToMapIfNotNull(map, JDBCDataStoreFactory.USER.key, username, keyPrefix);
+        Util.addToMapIfNotNull(map, JDBCDataStoreFactory.PASSWD.key, password, keyPrefix);
         // Oracle specific:
-        Util.addToMapIfNotNull(map, "schema", schema, keyPrefix);
+        Util.addToMapIfNotNull(map, JDBCDataStoreFactory.SCHEMA.key, schema, keyPrefix);
         // MS Access specific:
         Util.addToMapIfNotNull(map, "url", url, keyPrefix);
         Util.addToMapIfNotNull(map, "srs", srs, keyPrefix);
