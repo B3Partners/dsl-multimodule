@@ -4,11 +4,14 @@
  */
 package nl.b3p.geotools.data.linker;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ResourceBundle;
+import nl.b3p.geotools.data.linker.util.LocalizationUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -21,9 +24,11 @@ public class Status {
     public static final String FEATURES_START = "read.features.start";
     public static final String FEATURES_END = "read.features.end";
 
+    private final static ResourceBundle resources = LocalizationUtil.getResources();
+
     private String errorReport = "";
     private int errorCount = 0;
-    private int totalFeatureCount = 0;
+    private int visitedFeatures = 0;
     private int processedFeatures = 0;
     private int featureStart = 0;
     private int featureEnd = -1;
@@ -40,6 +45,8 @@ public class Status {
     protected Properties batch;
     protected nl.b3p.datastorelinker.entity.Process process;
 
+    private String processName = null;
+
 
     public Status(Properties batch) {
         if (batch.containsKey(FEATURES_START))
@@ -55,6 +62,7 @@ public class Status {
         if (process.getFeaturesEnd() != null)
             featureEnd = process.getFeaturesEnd();
         init();
+        processName = process.getName();
     }
 
     private void init() {
@@ -75,42 +83,49 @@ public class Status {
     }
 
     public synchronized String getNonFatalErrorReport(String newLineString, int maxFeatureNumbersPerException) {
-        if (newLineString == null)
+        if (newLineString == null) {
             newLineString = DEFAULT_NEW_LINE;
+        }
         if (maxFeatureNumbersPerException < 1) {
             maxFeatureNumbersPerException = DEFAULT_MAX_FEATURE_NUMBER_PER_EXCEPTION;
         }
 
         StringBuilder sb = new StringBuilder();
+        if (processName != null) {
+            sb.append(MessageFormat.format(resources.getString("report.processFinished"), processName));
+            sb.append(newLineString);
+            sb.append(newLineString);
+        }
         sb.append(getFinishedMessage());
         sb.append(newLineString);
-        /*if (nonFatalErrorMap.entrySet().isEmpty()) {
-            sb.append("");
-        } else {
-            sb.append("");*/
-            for (Map.Entry<String, List<Integer>> entry : nonFatalErrorMap.entrySet()) {
-                sb.append(entry.getKey());
-                sb.append(newLineString);
-                sb.append("Deze fout geldt voor de features: ");
-                int i = 0;
-                for (Integer featureNumber : entry.getValue()) {
-                    if (maxFeatureNumbersPerException > 0 && i >= maxFeatureNumbersPerException) {
-                        sb.append(" en ");
-                        sb.append(entry.getValue().size() - i);
-                        sb.append(" andere features.");
-                        break;
-                    } else {
-                        sb.append(featureNumber);
-                        sb.append(", ");
-                    }
-                    i++;
+        for (Map.Entry<String, List<Integer>> entry : nonFatalErrorMap.entrySet()) {
+            sb.append(entry.getKey());
+            sb.append(newLineString);
+            sb.append(resources.getString("report.errorAppliesTo"));
+            int i = 0;
+            for (Integer featureNumber : entry.getValue()) {
+                if (maxFeatureNumbersPerException > 0 && i >= maxFeatureNumbersPerException) {
+                    sb.delete(sb.length() - 1, sb.length()); // remove the trailing "," if present
+                    sb.append(" ");
+                    sb.append(resources.getString("report.and"));
+                    sb.append(" ");
+                    sb.append(entry.getValue().size() - i);
+                    sb.append(" ");
+                    sb.append(resources.getString("report.others"));
+                    sb.append(".");
+                    break;
+                } else {
+                    sb.append(" ");
+                    sb.append(featureNumber);
+                    sb.append(",");
                 }
-                if (entry.getValue().size() > 0 && i <= maxFeatureNumbersPerException - 1) {
-                    sb.delete(sb.length() - 2, sb.length()); // remove the trailing ", " if present
-                }
-                sb.append(newLineString);
+                i++;
             }
-        //}
+            if (entry.getValue().size() > 0 && i <= maxFeatureNumbersPerException - 1) {
+                sb.delete(sb.length() - 1, sb.length()); // remove the trailing "," if present
+            }
+            sb.append(newLineString);
+        }
         return sb.toString();
     }
 
@@ -144,13 +159,14 @@ public class Status {
 
     public synchronized String getFinishedMessage(String newLineString) {
         if (getProcessedFeatures() == 0 && getErrorCount() == 0) {
-            return "No features processed, was this intended?";
-        } else if (getProcessedFeatures() == getTotalFeatureCount() && getErrorCount() == 0) {
-            return "All " + getProcessedFeatures() + " features processed";
-        } else if (getProcessedFeatures() == getTotalFeatureCount()) {
-            return getProcessedFeatures() + " features processed, but " + getErrorCount() + " errors.";
+            return resources.getString("report.nothingProcessed");
+        } else if (getProcessedFeatures() == getVisitedFeatures() && getErrorCount() == 0) {
+            return MessageFormat.format(resources.getString("report.allProcessed"), getProcessedFeatures());
+        } else if (getProcessedFeatures() == getVisitedFeatures()) {
+            return MessageFormat.format(resources.getString("report.allProcessedWithErrors"), getProcessedFeatures(), getErrorCount());
         } else {
-            return getProcessedFeatures() + " of " + getTotalFeatureCount() + " features processed." + newLineString + "Using parameters:" + newLineString + "Start:  " + getFeatureStart() + newLineString + "End:    " + getFeatureEnd() + newLineString + "Errors: " + getErrorCount();
+            return MessageFormat.format(resources.getString("report.someProcessedWithErrors"), getProcessedFeatures(), getVisitedFeatures(), getErrorCount());
+            //+ newLineString + "Using parameters:" + newLineString + "Start:  " + getFeatureStart() + newLineString + "End:    " + getFeatureEnd() + newLineString + "Errors: " + getErrorCount();
         }
     }
 
@@ -160,16 +176,16 @@ public class Status {
      * that have been considered a candidate to be processed at this moment
      * in the DataStoreLinkers execution.
      */
-    public synchronized int getTotalFeatureCount() {
-        return totalFeatureCount;
+    public synchronized int getVisitedFeatures() {
+        return visitedFeatures;
     }
 
-    public synchronized void setTotalFeatureCount(int totalFeatureCount) {
-        this.totalFeatureCount = totalFeatureCount;
+    public synchronized void setVisitedFeatures(int visitedFeatures) {
+        this.visitedFeatures = visitedFeatures;
     }
 
-    public synchronized void incrementTotalFeatureCount() {
-        totalFeatureCount++;
+    public synchronized void incrementVisitedFeatures() {
+        visitedFeatures++;
     }
 
     /**

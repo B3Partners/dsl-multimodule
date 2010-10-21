@@ -10,19 +10,21 @@ import java.io.IOException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import nl.b3p.datastorelinker.entity.Database;
 import nl.b3p.datastorelinker.util.Namespaces;
 import nl.b3p.datastorelinker.util.Util;
 import nl.b3p.geotools.data.linker.blocks.Action;
 import nl.b3p.geotools.data.linker.blocks.WritableAction;
+import nl.b3p.geotools.data.linker.util.LocalizationUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFactorySpi;
 import org.geotools.data.DataStoreFinder;
 //import org.geotools.data.oracle.OracleDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
@@ -38,23 +40,18 @@ import org.opengis.feature.simple.SimpleFeature;
 public class DataStoreLinker implements Runnable {
 
     private static final Log log = LogFactory.getLog(DataStoreLinker.class);
-    
+
+    private final static ResourceBundle resources = LocalizationUtil.getResources();
+
     public static final String ACTIONLIST_PREFIX = "actionlist";
     public static final String ACTION_PREFIX = "action";
     public static final String TYPE_PREFIX = "type";
     public static final String SETTINGS_PREFIX = "settings";
     public static final String DATASTORE2READ_PREFIX = "read.datastore.";
     public static final String READ_TYPENAME = "read.typename";
-    public static final Map<String, String> errorMapping = new HashMap();
     protected static final String DEFAULT_WRITER = "ActionCombo_GeometrySingle_Writer";
 
-    static {
-        // Map combination of hasError (boolean / int) and errorDescription (String)
-        errorMapping.put("parseError", "error");
-    }
-
     protected Status status;
-    protected TypeNameStatus typeNameStatus;
 
     protected DataStore dataStore2Read;
     protected ActionList actionList;
@@ -66,10 +63,6 @@ public class DataStoreLinker implements Runnable {
 
     public synchronized Status getStatus() {
         return status;
-    }
-
-    public synchronized TypeNameStatus getTypeNameStatus() {
-        return typeNameStatus;
     }
 
     public DataStoreLinker(nl.b3p.datastorelinker.entity.Process process) throws Exception {
@@ -97,14 +90,12 @@ public class DataStoreLinker implements Runnable {
         this.process = process;
         disposed = false;
         status = new Status(process);
-        typeNameStatus = new TypeNameStatus();
     }
 
     private void init(Properties batch) throws ConfigurationException, IOException {
         this.batch = batch;
         disposed = false;
         status = new Status(batch);
-        typeNameStatus = new TypeNameStatus();
     }
 
     /**
@@ -182,25 +173,22 @@ public class DataStoreLinker implements Runnable {
         FeatureCollection fc = dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
         FeatureIterator iterator = fc.features();
 
-        typeNameStatus.reset();
-
         try {
             while (iterator.hasNext()) {
-                try {
-                    feature = (SimpleFeature) iterator.next();
-                    status.incrementTotalFeatureCount();
-                } catch (Exception ex) {
-                    throw new Exception("Could not add Features, problem with provided reader", ex);
+                feature = (SimpleFeature) iterator.next();
+                status.incrementVisitedFeatures();
+
+                if (status.getVisitedFeatures() % 10000 == 0) {
+                    log.info("" + status.getVisitedFeatures() +"/"+status.getTotalFeatureSize() + " features processed (" + typeName2Read + ")");
                 }
-                boolean mustBreak = processFeature(typeName2Read, feature);
-                if (mustBreak)
-                    break;
+
+                processFeature(feature);
 
                 // TODO: rollback? option to rollback or not?
                 if (status.isInterrupted())
                     throw new InterruptedException("User canceled the process.");
             }
-            log.info("Total of: " + status.getTotalFeatureCount() + " features processed (" + typeName2Read + ")");
+            log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
             actionList.processPostCollectionActions();
         } finally {
@@ -208,40 +196,23 @@ public class DataStoreLinker implements Runnable {
         }
     }
 
-    private boolean processFeature(String typeName2Read, SimpleFeature feature) throws Exception {
-        boolean mustBreak = false;
+    private void processFeature(SimpleFeature feature) throws Exception {
+        if (!mustProcessFeature())
+            return;
 
-        if (status.getTotalFeatureCount() % 10000 == 0) {
-            log.info("" + status.getTotalFeatureCount() +"/"+status.getTotalFeatureSize() + " features processed (" + typeName2Read + ")");
+        try {
+            testFeature(feature);
+            actionList.process(new EasyFeature(feature));
+        } catch(Exception e) {
+            status.addNonFatalError(e.getLocalizedMessage(), status.getVisitedFeatures());
         }
-
-        doRunOnce(feature);
-        
-        if (mustProcessMoreFeatures()) {
-            String error = testFeature(feature, typeNameStatus);
-            if (error == null) {
-                try {
-                    actionList.process(new EasyFeature(feature));
-                } catch(Exception e) {
-                    // TODO: nu twee soorten checks op foute features (zie else hieronder).
-                    // Dit moet bij elkaar gestopt worden.
-                    status.addNonFatalError(e.getLocalizedMessage(), status.getTotalFeatureCount());
-                }
-            } else {
-                status.addNonFatalError(error, status.getTotalFeatureCount());
-            }
-            status.incrementProcessedFeatures();
-        } else {
-            mustBreak = true;
-        }
-
-        return mustBreak;
+        status.incrementProcessedFeatures();
     }
     
-    private boolean mustProcessMoreFeatures() {
-        return status.getTotalFeatureCount() >= status.getFeatureStart() && (
-                    (status.getTotalFeatureCount() <= status.getFeatureEnd() && status.getFeatureEnd() != -1) ||
-                    (status.getFeatureEnd() == -1)
+    private boolean mustProcessFeature() {
+        return status.getVisitedFeatures() >= status.getFeatureStart() && (
+                    (status.getVisitedFeatures() <= status.getFeatureEnd() && status.getFeatureEnd() >= 0) ||
+                    (status.getFeatureEnd() < 0)
                 );
     }
 
@@ -250,33 +221,14 @@ public class DataStoreLinker implements Runnable {
      * @param feature
      * @return
      */
-    public static String testFeature(SimpleFeature feature) {
-        return testFeature(feature, null);
-    }
-    
-    /**
-     * Returns error string or null if no error occurred during testing.
-     * @param feature
-     * @return
-     */
-    private static String testFeature(SimpleFeature feature, TypeNameStatus typeNameStatus) {
-        // Does SimpleFeatureType support error handling?
-        if (typeNameStatus != null && typeNameStatus.isDsReportsError()) {
-            if (Boolean.parseBoolean(feature.getAttribute(typeNameStatus.getDsHasErrorAttribute()).toString()) || feature.getAttribute(typeNameStatus.getDsHasErrorAttribute()).toString().equals("1")) {
-                // feature contains error
-                //status.setErrorReport(status.getErrorReport() + feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString() + "\n");
-                return feature.getAttribute(typeNameStatus.getDsErrorAttribute()).toString();
-            }
-        } else {
-            if (feature.getDefaultGeometry() == null) {
-                return "Feature heeft geen geometrie. Feature wordt overgeslagen.";
-            } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
-                return "Feature bevat geen toegestane geometrie.";
-            } else if (!(((Geometry)feature.getDefaultGeometry()).isValid())) {
-                return "Feature bevat geen valide geometrie";
-            }
+    public static void testFeature(SimpleFeature feature) throws Exception {
+        if (feature.getDefaultGeometry() == null) {
+            throw new Exception(resources.getString("report.feature.hasNoGeometry"));
+        } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
+            throw new Exception(resources.getString("report.feature.geometryNotAllowed"));
+        } else if (!(((Geometry)feature.getDefaultGeometry()).isValid())) {
+            throw new Exception(resources.getString("report.feature.geometryNotValid"));
         }
-        return null;
     }
 
     /**
@@ -370,7 +322,7 @@ public class DataStoreLinker implements Runnable {
         } else if (bool.equalsIgnoreCase("false")) {
             return Boolean.FALSE;
         } else {
-            throw new Exception("The following value should be a boolean value (true or false): " + bool);
+            throw new Exception(MessageFormat.format(resources.getString("parseBooleanFailed"), bool));
         }
     }
 
@@ -448,13 +400,13 @@ public class DataStoreLinker implements Runnable {
      * Open a dataStore (save). Don't use DataStoreFinder.getDataStore(...) by yourself (Oracle workaround)
      */
     public static DataStore openDataStore(Map params) throws Exception {
-        log.debug("openDataStore with: " + params);
-        log.debug("available datastores: ");
+        log.info("openDataStore with: " + params);
+        /*log.debug("available datastores: ");
         Iterator<DataStoreFactorySpi> iter = DataStoreFinder.getAvailableDataStores();
         while (iter.hasNext()) {
             DataStoreFactorySpi dsfSpi = iter.next();
             log.debug(dsfSpi + " :: " + dsfSpi.getDescription() + " :: " + dsfSpi.getDisplayName());
-        }
+        }*/
 
         DataStore dataStore;
         String errormsg = "DataStore could not be found using parameters";
@@ -571,24 +523,6 @@ public class DataStoreLinker implements Runnable {
             }
         }
         return map;
-    }
-
-    private void doRunOnce(SimpleFeature feature) {
-        if (typeNameStatus.isRunOnce()) {
-            for (String hasErrorKey : errorMapping.keySet()) {
-                if (feature.getFeatureType().getType(hasErrorKey) != null) {
-                    String errorDesc = errorMapping.get(hasErrorKey);
-                    if (feature.getFeatureType().getType(errorDesc) != null) {
-                        // SimpleFeatureType contains errorReport
-                        typeNameStatus.setDsHasErrorAttribute(hasErrorKey);
-                        typeNameStatus.setDsErrorAttribute(errorDesc);
-                        typeNameStatus.setDsReportsError(true);
-                        break;
-                    }
-                }
-            }
-            typeNameStatus.setRunOnce(false);
-        }
     }
 
     private String[] getTypeNames() throws IOException {

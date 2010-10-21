@@ -31,7 +31,7 @@ public class DataStoreLinkerMail {
     }
 
     public static void mail(nl.b3p.datastorelinker.entity.Process process, String message) {
-        mail(process, message, process.getMail().getSubject());
+        mail(process, message, process.getMail().getSubject() + ": \"" + process.getName() + "\"");
     }
 
     public static void mail(nl.b3p.datastorelinker.entity.Process process, String message, String subject) {
