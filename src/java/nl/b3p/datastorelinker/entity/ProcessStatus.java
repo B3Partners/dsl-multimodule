@@ -14,10 +14,10 @@ import javax.persistence.Enumerated;
 import javax.persistence.EnumType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
 import net.sourceforge.stripes.util.Log;
 
 /**
@@ -46,7 +46,7 @@ public class ProcessStatus implements Serializable {
     @GeneratedValue
     private Long id;
 
-    //TODO: @Lob
+    @Lob
     private String message;
 
     @Basic(optional = false)
