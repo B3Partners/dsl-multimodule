@@ -211,12 +211,16 @@ public class DataStoreLinker implements Runnable {
                 );
     }
 
+    // Waarom zijn deze checks er überhaupt?
+    // Geotools gooit toch wel zelf een Exception als er iets mis is met de geom (?).
+    // - Misschien om zeker te zijn dat de actions een echte geometrie tot hun bsechikking hebben?
+    // - Snelheid misschien?
     /**
      * Throws an exception if there is something wrong with the feature's geometry.
      * @param feature
      * @return
      */
-    public static void testFeature(SimpleFeature feature) throws Exception {
+    public static void testFeature(SimpleFeature feature) throws FeatureException {
         if (feature.getDefaultGeometry() == null) {
             throw new FeatureException(resources.getString("report.feature.hasNoGeometry"));
         } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {

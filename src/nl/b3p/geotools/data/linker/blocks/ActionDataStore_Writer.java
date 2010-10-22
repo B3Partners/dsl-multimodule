@@ -120,69 +120,71 @@ public class ActionDataStore_Writer extends Action {
     public EasyFeature execute(EasyFeature feature) throws Exception {
         if (!initDone) {
             throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file.\nUsed parameters:\n" + params.toString() + "\n\n" + constructorEx.getLocalizedMessage());
-
-        } else {
-            feature = fixFeatureTypeName(feature);
-            String typename = feature.getFeatureType().getTypeName();
-            //get the correct typename from the datastore
-            String newTypeName=correctTypeName(typename, dataStore2Write);
-            //if not the same (case sensitive) then change the typename
-            if (!newTypeName.equals(typename)){
-                feature.setTypeName(newTypeName);
-                typename=newTypeName;
-            }
-            //store the typename
-            if (!featureTypeNames.contains(typename)) {
-                featureTypeNames.add(typename);
-            }
-            FeatureWriter writer;
-            if (featureWriters.containsKey(typename)) {
-                writer = featureWriters.get(typename);
-            } else {
-
-                if (featureWriters.size() + 1 == MAX_CONNECTIONS_NR) {
-                    // If max connections reached, commit all data and continue
-                    close();
-                    dataStore2Write = DataStoreLinker.openDataStore(params);
-                    log.warn("Closing all connections (too many featureWriters loaded)");
-                }
-                if (!checked.containsKey(params.toString() + typename)) {
-                    checkSchema(feature.getFeatureType());
-                    checked.put(params.toString() + typename, "");
-                    processedTypes++;
-                    //correct the typename after a possible creation of the schema
-                    typename=correctTypeName(typename, dataStore2Write);
-                }
-
-                writer = dataStore2Write.getFeatureWriterAppend(typename, Transaction.AUTO_COMMIT);
-                featureWriters.put(typename, writer);
-            }
-
-
-            if (feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName()) == null) {
-                throw new FeatureException("No DefaultGeometry AttributeType found.");
-            } else {
-                try {
-                    Geometry the_geom = (Geometry) feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName());
-                    if (the_geom instanceof GeometryCollection &&
-                            ((GeometryCollection) the_geom).getNumGeometries() == 0) {
-                        throw new FeatureException("GeometryCollection is empty.");
-                    } else {
-                        write(writer, feature.getFeature());
-                    }
-                } catch (Exception ex) {
-                    //log.debug("Error getting geometry. Feature not written: "+feature.toString(), ex);
-                    // moeten dit soort dingen niet gewoon in een finally block?!?
-                    //Remove writer so a new writer is created when the next feature is processed
-                    if (writer!=null) {
-                        writer.close();
-                    }
-                    featureWriters.remove(typename);
-                    
-                    throw new FeatureException("Error getting geometry. Feature not written.", ex);
-                }
-            }
         }
+
+        feature = fixFeatureTypeName(feature);
+        String typename = feature.getFeatureType().getTypeName();
+        //get the correct typename from the datastore
+        String newTypeName=correctTypeName(typename, dataStore2Write);
+        //if not the same (case sensitive) then change the typename
+        if (!newTypeName.equals(typename)){
+            feature.setTypeName(newTypeName);
+            typename=newTypeName;
+        }
+        //store the typename
+        if (!featureTypeNames.contains(typename)) {
+            featureTypeNames.add(typename);
+        }
+        FeatureWriter writer;
+        if (featureWriters.containsKey(typename)) {
+            writer = featureWriters.get(typename);
+        } else {
+
+            if (featureWriters.size() + 1 == MAX_CONNECTIONS_NR) {
+                // If max connections reached, commit all data and continue
+                close();
+                dataStore2Write = DataStoreLinker.openDataStore(params);
+                log.warn("Closing all connections (too many featureWriters loaded)");
+            }
+            if (!checked.containsKey(params.toString() + typename)) {
+                checkSchema(feature.getFeatureType());
+                checked.put(params.toString() + typename, "");
+                processedTypes++;
+                //correct the typename after a possible creation of the schema
+                typename=correctTypeName(typename, dataStore2Write);
+            }
+
+            writer = dataStore2Write.getFeatureWriterAppend(typename, Transaction.AUTO_COMMIT);
+            featureWriters.put(typename, writer);
+        }
+
+
+        // TODO: Deze twee checks verplaatsen naar DataStoreLinker.testFeature() ?? Overleg.
+        Object the_geom = feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName());
+        if (the_geom == null) {
+            throw new FeatureException("No DefaultGeometry AttributeType found.");
+        }
+        
+        try {
+            if (the_geom instanceof GeometryCollection &&
+                    ((GeometryCollection)the_geom).getNumGeometries() == 0) {
+                throw new FeatureException("GeometryCollection is empty.");
+            }
+
+            write(writer, feature.getFeature());
+
+        } catch (Exception ex) {
+            //log.debug("Error getting geometry. Feature not written: "+feature.toString(), ex);
+            // moeten dit soort dingen niet gewoon in een finally block?!?
+            //Remove writer so a new writer is created when the next feature is processed
+            if (writer != null) {
+                writer.close();
+            }
+            featureWriters.remove(typename);
+
+            throw new FeatureException("Error getting geometry. Feature not written.", ex);
+        }
+
         return feature;
     }
 
