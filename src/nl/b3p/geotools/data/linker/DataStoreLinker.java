@@ -171,7 +171,6 @@ public class DataStoreLinker implements Runnable {
         try {
             while (iterator.hasNext()) {
                 feature = (SimpleFeature) iterator.next();
-                status.incrementVisitedFeatures();
 
                 if (status.getVisitedFeatures() % 10000 == 0) {
                     log.info("" + status.getVisitedFeatures() +"/"+status.getTotalFeatureSize() + " features processed (" + typeName2Read + ")");
@@ -202,6 +201,7 @@ public class DataStoreLinker implements Runnable {
         } catch(Exception e) {
             status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), status.getVisitedFeatures());
         }
+        status.incrementVisitedFeatures();
     }
     
     private boolean mustProcessFeature() {
