@@ -129,6 +129,12 @@ public class Status {
         return sb.toString();
     }
 
+    /**
+     * Use getNonFatalErrorReport instead.
+     * @return
+     * @deprecated
+     */
+    @Deprecated
     public synchronized String getTruncatedErrorReport() {
         return (errorReport.length() > 500 ? errorReport.substring(0, 500) + "... (see log)" : errorReport);
     }
@@ -162,10 +168,8 @@ public class Status {
             return resources.getString("report.nothingProcessed");
         } else if (getProcessedFeatures() == getVisitedFeatures() && getErrorCount() == 0) {
             return MessageFormat.format(resources.getString("report.allProcessed"), getProcessedFeatures());
-        } else if (getProcessedFeatures() == getVisitedFeatures()) {
-            return MessageFormat.format(resources.getString("report.allProcessedWithErrors"), getProcessedFeatures(), getErrorCount());
         } else {
-            return MessageFormat.format(resources.getString("report.someProcessedWithErrors"), getProcessedFeatures(), getVisitedFeatures(), getErrorCount());
+            return MessageFormat.format(resources.getString("report.processedWithErrors"), getProcessedFeatures(), getVisitedFeatures(), getErrorCount());
             //+ newLineString + "Using parameters:" + newLineString + "Start:  " + getFeatureStart() + newLineString + "End:    " + getFeatureEnd() + newLineString + "Errors: " + getErrorCount();
         }
     }

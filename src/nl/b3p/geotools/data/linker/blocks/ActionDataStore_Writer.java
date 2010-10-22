@@ -16,6 +16,7 @@ import org.geotools.data.*;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
+import nl.b3p.geotools.data.linker.FeatureException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.data.oracle.OracleDialect;
 import org.geotools.data.postgis.PostGISDialect;
@@ -159,31 +160,26 @@ public class ActionDataStore_Writer extends Action {
 
 
             if (feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName()) == null) {
-                log.warn("No DefaultGeometry AttributeType found in feature " + feature.toString());
+                throw new FeatureException("No DefaultGeometry AttributeType found.");
             } else {
                 try {
                     Geometry the_geom = (Geometry) feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName());
-                    if (the_geom instanceof GeometryCollection) {
-                        if (((GeometryCollection) the_geom).getNumGeometries() == 0) {
-                            log.warn("Skipping feature with empty GeometryCollection; " + feature.getAttributes().toString());
-                        } else {
-                            write(writer, feature.getFeature());
-                        }
+                    if (the_geom instanceof GeometryCollection &&
+                            ((GeometryCollection) the_geom).getNumGeometries() == 0) {
+                        throw new FeatureException("GeometryCollection is empty.");
                     } else {
                         write(writer, feature.getFeature());
                     }
                 } catch (Exception ex) {
-                    // FIXME: Wat is dit voor baggercode: alleen het log weet dmv een ERROR
-                    // dat een feature niet is weggeschreven omdat het geen geometry bevat??
-                    log.debug("Error getting geometry. Feature not written: "+feature.toString(), ex);
+                    //log.debug("Error getting geometry. Feature not written: "+feature.toString(), ex);
                     // moeten dit soort dingen niet gewoon in een finally block?!?
                     //Remove writer so a new writer is created when the next feature is processed
-                    if (writer!=null){
+                    if (writer!=null) {
                         writer.close();
                     }
                     featureWriters.remove(typename);
                     
-                    throw new Exception("Error getting geometry. Feature not written.");
+                    throw new FeatureException("Error getting geometry. Feature not written.", ex);
                 }
             }
         }

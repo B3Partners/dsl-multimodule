@@ -22,6 +22,7 @@ import nl.b3p.datastorelinker.util.Util;
 import nl.b3p.geotools.data.linker.blocks.Action;
 import nl.b3p.geotools.data.linker.blocks.WritableAction;
 import nl.b3p.geotools.data.linker.util.LocalizationUtil;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
@@ -151,18 +152,12 @@ public class DataStoreLinker implements Runnable {
         } catch (IOException ex) {
             throw new Exception("Linking DataStores failed", ex);
         } finally {
-            //log.info("Error report: " + status.getErrorReport());
             log.info("Error report: " + status.getNonFatalErrorReport("\n", 3));
-            // TODO: zet -> van DataStore -> naar DataStore in report.
-            //if (status.getErrorCount() > 0) {
-                if (batch != null) {
-                    //status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + getSaveProp(batch, "read.datastore.url", "-undefined-") + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + status.getTruncatedErrorReport());
-                    DataStoreLinkerMail.mail(batch, status.getNonFatalErrorReport("\n", 3));
-                } else if (process != null) {
-                    //status.setErrorReport("Er zijn " + status.getErrorCount() + " fouten gevonden in DataStore " + ".\n" + "Deze features zijn niet verwerkt door de DataStoreLinker.\n\nFoutmeldingen:\n" + status.getTruncatedErrorReport());
-                    DataStoreLinkerMail.mail(process, status.getNonFatalErrorReport("\n", 3));
-                }
-            //}
+            if (batch != null) {
+                DataStoreLinkerMail.mail(batch, status.getNonFatalErrorReport("\n", 3));
+            } else if (process != null) {
+                DataStoreLinkerMail.mail(process, status.getNonFatalErrorReport("\n", 3));
+            }
             dispose();
         }
     }
@@ -203,10 +198,10 @@ public class DataStoreLinker implements Runnable {
         try {
             testFeature(feature);
             actionList.process(new EasyFeature(feature));
+            status.incrementProcessedFeatures();
         } catch(Exception e) {
-            status.addNonFatalError(e.getLocalizedMessage(), status.getVisitedFeatures());
+            status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), status.getVisitedFeatures());
         }
-        status.incrementProcessedFeatures();
     }
     
     private boolean mustProcessFeature() {
@@ -217,17 +212,17 @@ public class DataStoreLinker implements Runnable {
     }
 
     /**
-     * Returns error string or null if no error occurred during testing.
+     * Throws an exception if there is something wrong with the feature's geometry.
      * @param feature
      * @return
      */
     public static void testFeature(SimpleFeature feature) throws Exception {
         if (feature.getDefaultGeometry() == null) {
-            throw new Exception(resources.getString("report.feature.hasNoGeometry"));
+            throw new FeatureException(resources.getString("report.feature.hasNoGeometry"));
         } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
-            throw new Exception(resources.getString("report.feature.geometryNotAllowed"));
+            throw new FeatureException(resources.getString("report.feature.geometryNotAllowed"));
         } else if (!(((Geometry)feature.getDefaultGeometry()).isValid())) {
-            throw new Exception(resources.getString("report.feature.geometryNotValid"));
+            throw new FeatureException(resources.getString("report.feature.geometryNotValid"));
         }
     }
 
