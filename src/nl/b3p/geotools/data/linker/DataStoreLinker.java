@@ -28,6 +28,9 @@ import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
 //import org.geotools.data.oracle.OracleDataStoreFactory;
+import org.geotools.data.FileDataStoreFactorySpi;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.data.shapefile.indexed.IndexedShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.jdom.Element;
@@ -395,10 +398,15 @@ public class DataStoreLinker implements Runnable {
         return openDataStore(Util.fileToMap(new File(file)));
     }
 
+    /**/
+    public static DataStore openDataStore(Map params) throws Exception{
+        return openDataStore(params,false);
+    }
     /**
-     * Open a dataStore (save). Don't use DataStoreFinder.getDataStore(...) by yourself (Oracle workaround)
+     * Open a dataStore (save). If create new is set to true, a datastore wil be created even if the file
+     * is not there yet.
      */
-    public static DataStore openDataStore(Map params) throws Exception {
+    public static DataStore openDataStore(Map params, boolean createNew) throws Exception {
         log.info("openDataStore with: " + params);
         /*log.debug("available datastores: ");
         Iterator<DataStoreFactorySpi> iter = DataStoreFinder.getAvailableDataStores();
@@ -412,6 +420,18 @@ public class DataStoreLinker implements Runnable {
 
         try {
             dataStore = DataStoreFinder.getDataStore(params);
+            if (dataStore==null && createNew){
+                if (params.containsKey("url")){
+                    String url=(String) params.get("url");
+                    if (url.lastIndexOf(".shp")==(url.length()-".shp".length())){
+                        ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
+                        params.put("url",new File(url).toURL());
+                        dataStore=factory.createNewDataStore( params );
+                    }else{
+                        log.warn("Can not create a new datastore, filetype unknown.");
+                    }
+                }
+            }
         } catch (NullPointerException nullEx) {
             if (!urlExists(params)) {
                 throw new Exception("URL in parameters seems to point to a non-existing file \n\n" + params.toString());

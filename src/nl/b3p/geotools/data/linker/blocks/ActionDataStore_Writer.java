@@ -88,7 +88,7 @@ public class ActionDataStore_Writer extends Action {
         }
 
         try {
-            dataStore2Write = DataStoreLinker.openDataStore(params);
+            dataStore2Write = DataStoreLinker.openDataStore(params,true);
             initDone = (dataStore2Write != null);
 
         } catch (Exception ex) {
