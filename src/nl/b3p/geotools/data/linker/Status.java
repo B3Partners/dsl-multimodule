@@ -159,11 +159,7 @@ public class Status {
         errorCount++;
     }
 
-    public synchronized String getFinishedMessage() {
-        return getFinishedMessage(DEFAULT_NEW_LINE);
-    }
-
-    public synchronized String getFinishedMessage(String newLineString) {
+    private String getFinishedMessage() {
         if (getProcessedFeatures() == 0 && getErrorCount() == 0) {
             return resources.getString("report.nothingProcessed");
         } else if (getProcessedFeatures() == getVisitedFeatures() && getErrorCount() == 0) {
