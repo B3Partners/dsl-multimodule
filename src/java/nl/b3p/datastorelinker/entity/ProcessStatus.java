@@ -46,6 +46,9 @@ public class ProcessStatus implements Serializable {
     @GeneratedValue
     private Long id;
 
+    @Column(name = "executing_job_uuid")
+    private String executingJobUUID;
+
     @Lob
     private String message;
 
@@ -81,6 +84,14 @@ public class ProcessStatus implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getExecutingJobUUID() {
+        return executingJobUUID;
+    }
+
+    public void setExecutingJobUUID(String executingJobUUID) {
+        this.executingJobUUID = executingJobUUID;
     }
 
     public String getMessage() {
