@@ -14,8 +14,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataSourceException;
 import org.geotools.data.DataStore;
+import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
-import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 /**
@@ -39,8 +39,10 @@ public class DataStoreUtil {
 
             for (String typename : dataStore.getTypeNames()) {
                 FeatureIterator<SimpleFeature> iterator = null;
+                FeatureCollection fc = null;
                 try {
-                    iterator = dataStore.getFeatureSource(typename).getFeatures().features();
+                    fc = dataStore.getFeatureSource(typename).getFeatures();
+                    iterator = fc.features();
                     if (iterator.hasNext()) {
                         SimpleFeature feature = iterator.next();
                         if (feature != null) {
@@ -64,8 +66,8 @@ public class DataStoreUtil {
                     log.error("Table '" + typename + "' contains error: " + e.getLocalizedMessage());
 
                 } finally {
-                    if (iterator != null) {
-                        iterator.close();
+                    if (fc != null && iterator != null) {
+                        fc.close(iterator);
                     }
                 }
             }
