@@ -55,7 +55,7 @@ public class DataStoreUtil {
 
                 } catch (DataSourceException e) {
                     bad.add(typename);
-                    log.error("Error reading features, cause: " + e.getLocalizedMessage());
+                    log.warn("Error reading features, cause: " + e.getLocalizedMessage());
 
                 } catch (NoSuchElementException e) {
                     bad.add(typename);
@@ -63,11 +63,15 @@ public class DataStoreUtil {
 
                 } catch (Exception e) {
                     bad.add(typename);
-                    log.error("Table '" + typename + "' contains error: " + e.getLocalizedMessage());
+                    log.warn("Table '" + typename + "' contains error: " + e.getClass().getSimpleName() + ": " + e.getLocalizedMessage());
 
                 } finally {
-                    if (fc != null && iterator != null) {
-                        fc.close(iterator);
+                    if (iterator != null) {
+                        if (fc != null) {
+                            fc.close(iterator);
+                        } else {
+                            iterator.close();
+                        }
                     }
                 }
             }
