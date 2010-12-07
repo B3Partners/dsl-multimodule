@@ -64,6 +64,9 @@ public class ActionFactory {
     public static final String SKIPFAILURES = "skip_failures";
     public static final String REGEX = "regex";
     public static final String REPLACEMENT = "replacement";
+    public static final String SCALE = "scale";
+    public static final String FLOAT_PRECISION = "float_precision";
+
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
     public static Action createAction(String actionClassName, Map<String, Object> properties) throws Exception {
@@ -535,7 +538,14 @@ public class ActionFactory {
                 a.setReplacement((String)properties.get(OBJECT_REPLACE));
             
                 return a;
+            } else if(isThisClass(actionClassName, ActionGeometry_VertexPrecisionThreshold.class)) {
+                ActionGeometry_VertexPrecisionThreshold a = new ActionGeometry_VertexPrecisionThreshold();
 
+                a.setScale((Integer)properties.get(SCALE));
+                a.setFloatPrecision((Boolean)properties.get(FLOAT_PRECISION));
+
+                return a;
+                
                 /**
                  * Action not found
                  */
@@ -761,6 +771,7 @@ public class ActionFactory {
         actionBlocks.put(ActionGeometry_Buffer.class.getSimpleName(), ActionGeometry_Buffer.getConstructors());
         actionBlocks.put(ActionGeometry_Make_Point.class.getSimpleName(), ActionGeometry_Make_Point.getConstructors());
         actionBlocks.put(ActionGeometry_RemoveDuplicateVertices.class.getSimpleName(), ActionGeometry_RemoveDuplicateVertices.getConstructors());
+        actionBlocks.put(ActionGeometry_VertexPrecisionThreshold.class.getSimpleName(), ActionGeometry_VertexPrecisionThreshold.getConstructors());
 
         return actionBlocks;
     }
