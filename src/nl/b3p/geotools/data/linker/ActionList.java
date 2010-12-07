@@ -23,6 +23,9 @@ public class ActionList extends ArrayList<Action> {
         while (iter.hasNext()) {
             Action action = (Action) iter.next();
             feature = action.execute(feature);
+            if(feature == null) {
+                return null;
+            }
         }
         return feature;
     }

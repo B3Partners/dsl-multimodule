@@ -199,8 +199,9 @@ public class DataStoreLinker implements Runnable {
 
         try {
             testFeature(feature);
-            actionList.process(new EasyFeature(feature));
-            status.incrementProcessedFeatures();
+            if(actionList.process(new EasyFeature(feature)) != null) {
+                status.incrementProcessedFeatures();
+            }
         } catch(Exception e) {
             status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), status.getVisitedFeatures());
         }
