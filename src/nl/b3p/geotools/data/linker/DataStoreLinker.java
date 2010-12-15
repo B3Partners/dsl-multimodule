@@ -64,6 +64,8 @@ public class DataStoreLinker implements Runnable {
     protected nl.b3p.datastorelinker.entity.Process process;
     protected boolean disposed;
 
+    private int exceptionLogCount = 0;
+    private static final int MAX_EXCEPTION_LOG_COUNT = 10;
 
     public synchronized Status getStatus() {
         return status;
@@ -203,6 +205,10 @@ public class DataStoreLinker implements Runnable {
                 status.incrementProcessedFeatures();
             }
         } catch(Exception e) {
+            if(exceptionLogCount++ < MAX_EXCEPTION_LOG_COUNT) {
+                log.error("Exception tijdens processen van feature (exception nr. " + exceptionLogCount + " van max " + MAX_EXCEPTION_LOG_COUNT + " die worden gelogd)", e);
+            }
+
             status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), status.getVisitedFeatures());
         }
         status.incrementVisitedFeatures();
