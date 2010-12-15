@@ -70,10 +70,6 @@ public class ActionGeometry_VertexPrecisionThreshold extends Action {
             return feature;
         }
 
-        if("1248838".equals(feature.getAttribute("ENTRYLINEN").toString())) {
-            System.out.println(geometry);
-        }
-
         if(!(geometry instanceof GeometryCollection)) {
             if(verticesBelowPrecisionThreshold(geometry.getCoordinates(), scale, floatPrecision)) {
                 if(log.isDebugEnabled()) {
@@ -110,7 +106,7 @@ public class ActionGeometry_VertexPrecisionThreshold extends Action {
 
             if(features.isEmpty()) {
                 if(log.isDebugEnabled()) {
-                    //log.debug("all features from geometrycollection below precision threshold, removing entire feature: " + geometry.toString());
+                    log.debug("all features from geometrycollection below precision threshold, removing entire feature: " + geometry.toString());
                 }
                 return null;
             }
