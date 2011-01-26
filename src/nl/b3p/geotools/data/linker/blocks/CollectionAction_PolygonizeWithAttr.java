@@ -39,7 +39,7 @@ import org.geotools.data.DataStoreFinder;
  * B3partners B.V. http://www.b3partners.nl
  * @author Roy
  * Created on 11-mrt-2010, 10:01:19
- *  
+ *
  */
 public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
 
@@ -137,7 +137,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     ArrayList<SimpleFeature> correctLineFeatures=null;
                     FeatureIterator lineFeatures = fc.features();
                     //always close a featureCollection with a FeatureIterator
-                    try{                    
+                    try{
                         correctLineFeatures = filterInvalidLines(lineFeatures);
                     }finally{
                         fc.close(lineFeatures);
@@ -174,7 +174,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     for (int i = 0; i < negativePolygons.size(); i++) {
                         geom = geom.difference(negativePolygons.get(i));
                     }
-                    //get the correct featuretype                        
+                    //get the correct featuretype
                     SimpleFeatureType newFt = null;
                     int id = 0;
                     if (geom instanceof MultiPolygon) {
@@ -190,7 +190,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     List<Object> attributes = feature.getAttributes();
                     attributes.set(geometryColumnIndex, geom);
                     successcounter++;
-                    nextAction.execute(new EasyFeature(SimpleFeatureBuilder.build(newFt, attributes, "" + id)));                    
+                    nextAction.execute(new EasyFeature(SimpleFeatureBuilder.build(newFt, attributes, "" + id)));
                 } catch (Exception e) {
                     log.error("Error creating feature Polygon (in polygonize function): ", e);
                 }
@@ -340,7 +340,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
         }
         //Create a polygon for every mergedlinestring
         Collection coll = merger.getMergedLineStrings();
-        Iterator geomIt = coll.iterator();        
+        Iterator geomIt = coll.iterator();
         ArrayList<Polygon> polygons = new ArrayList();
         while (geomIt.hasNext()) {
             Geometry linestring = (Geometry) geomIt.next();
@@ -468,21 +468,21 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
         params.put("schema", "public");
         params.put("database", "uploadDL");
         params.put("dbtype", "postgis");
-        params.put("user", "postgres");
+        params.put("user", "xxxx");
         params.put("port", "5432");
-        params.put("passwd", "***REMOVED***");
+        params.put("passwd", "xxxx");
         params.put(ActionFactory.POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE,"bla");
         params.put(ActionFactory.POLYGONIZEWITHATTR_ATTRIBUTEFEATURENAME_ATTRIBUTE,"bla");
         String cqlFilter="(gemeentecode_perceel_links = 'AHM01' AND sectie_perceel_links = 'N' AND perceelnummer_perceel_links = '7508' AND indexnummer_perceel_links ='0000') OR (gemeentecode_perceel_rechts = 'AHM01' AND sectie_perceel_rechts = 'N' AND perceelnummer_perceel_rechts ='7508' AND indexnummer_perceel_rechts ='0000')";
         String featureType="arnhem_new_l";
-        
+
         DataStore ds = DataStoreFinder.getDataStore(params);
 
         CollectionAction_PolygonizeSufLki polygonizer= new CollectionAction_PolygonizeSufLki(ds,params);
-        
+
         FeatureSource fs=ds.getFeatureSource(featureType);
         FeatureCollection fc=fs.getFeatures(CQL.toFilter(cqlFilter));
-        
+
         ArrayList<SimpleFeature> correctLineFeatures = polygonizer.filterInvalidLines(fc.features());
         ArrayList<Polygon> polygons=polygonizer.createPolygonWithLines(correctLineFeatures);
         System.out.println("polygons found: "+polygons.size());
