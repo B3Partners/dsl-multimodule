@@ -6,6 +6,8 @@
 package nl.b3p.geotools.data.linker.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -36,8 +38,12 @@ public class DataStoreUtil {
             if (dataStore == null) {
                 return null;
             }
+            log.debug("DataStore class: " + dataStore.getClass());
 
-            for (String typename : dataStore.getTypeNames()) {
+            good.addAll(Arrays.asList(dataStore.getTypeNames()));
+            Collections.sort(good);
+
+            /*for (String typename : dataStore.getTypeNames()) {
                 FeatureIterator<SimpleFeature> iterator = null;
                 FeatureCollection fc = null;
                 try {
@@ -74,7 +80,7 @@ public class DataStoreUtil {
                         }
                     }
                 }
-            }
+            }*/
         } finally {
             if (dataStore != null)
                 dataStore.dispose();

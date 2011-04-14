@@ -27,12 +27,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
-//import org.geotools.data.oracle.OracleDataStoreFactory;
+import org.geotools.data.oracle.OracleNGDataStoreFactory;
+import org.geotools.data.postgis.PostgisNGDataStoreFactory;
 import org.geotools.data.FileDataStoreFactorySpi;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.shapefile.indexed.IndexedShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
+import org.geotools.jdbc.JDBCDataStoreFactory;
 import org.jdom.Element;
 import org.jdom.input.DOMBuilder;
 import org.opengis.feature.simple.SimpleFeature;
@@ -426,7 +428,13 @@ public class DataStoreLinker implements Runnable {
         String errormsg = "DataStore could not be found using parameters";
 
         try {
-            dataStore = DataStoreFinder.getDataStore(params);
+            if (params.get(JDBCDataStoreFactory.DBTYPE.key).equals("oracle")) {
+                dataStore = new OracleNGDataStoreFactory().createDataStore(params);
+            } else if (params.get(JDBCDataStoreFactory.DBTYPE.key).equals("postgis")) {
+                dataStore = new PostgisNGDataStoreFactory().createDataStore(params);
+            } else {
+                dataStore = DataStoreFinder.getDataStore(params);
+            }
             if (dataStore==null && createNew){
                 if (params.containsKey("url")){
                     String url=(String) params.get("url");
@@ -455,6 +463,7 @@ public class DataStoreLinker implements Runnable {
             }
 
         } else {
+            log.debug("DataStore class: " + dataStore.getClass());
             return dataStore;
         }
     }
