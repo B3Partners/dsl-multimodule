@@ -139,9 +139,12 @@ public class DataStoreLinker implements Runnable {
 
     public synchronized void dispose() throws Exception {
         if (!disposed) {
-            dataStore2Read.dispose();
-            actionList.close();
-            disposed = true;
+            try {
+                dataStore2Read.dispose();
+                actionList.close();
+            } finally {
+                disposed = true;
+            }
         }
     }
 
@@ -411,6 +414,7 @@ public class DataStoreLinker implements Runnable {
     public static DataStore openDataStore(Map params) throws Exception{
         return openDataStore(params,false);
     }
+
     /**
      * Open a dataStore (save). If create new is set to true, a datastore wil be created even if the file
      * is not there yet.
@@ -428,21 +432,15 @@ public class DataStoreLinker implements Runnable {
         String errormsg = "DataStore could not be found using parameters";
 
         try {
-            if (params.get(JDBCDataStoreFactory.DBTYPE.key).equals("oracle")) {
-                dataStore = new OracleNGDataStoreFactory().createDataStore(params);
-            } else if (params.get(JDBCDataStoreFactory.DBTYPE.key).equals("postgis")) {
-                dataStore = new PostgisNGDataStoreFactory().createDataStore(params);
-            } else {
-                dataStore = DataStoreFinder.getDataStore(params);
-            }
-            if (dataStore==null && createNew){
-                if (params.containsKey("url")){
+            dataStore = DataStoreFinder.getDataStore(params);
+            if (dataStore == null && createNew){
+                if (params.containsKey("url")) {
                     String url=(String) params.get("url");
-                    if (url.lastIndexOf(".shp")==(url.length()-".shp".length())){
+                    if (url.lastIndexOf(".shp") == (url.length()-".shp".length())) {
                         ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
                         params.put("url",new File(url).toURL());
-                        dataStore=factory.createNewDataStore( params );
-                    }else{
+                        dataStore = factory.createNewDataStore( params );
+                    } else {
                         log.warn("Can not create a new datastore, filetype unknown.");
                     }
                 }
