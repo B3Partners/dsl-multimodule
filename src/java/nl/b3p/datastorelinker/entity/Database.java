@@ -33,6 +33,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import net.sourceforge.stripes.util.Log;
 import nl.b3p.datastorelinker.util.Nameable;
 import nl.b3p.datastorelinker.util.Util;
+import nl.b3p.geotools.data.msaccess.MsAccessDataStoreFactory;
+import org.geotools.data.oracle.OracleNGDataStoreFactory;
 import org.geotools.jdbc.JDBCDataStoreFactory;
 
 /**
@@ -205,14 +207,12 @@ public class Database implements Serializable, Nameable {
         Util.addToMapIfNotNull(map, JDBCDataStoreFactory.DATABASE.key, databaseName, keyPrefix);
         Util.addToMapIfNotNull(map, JDBCDataStoreFactory.USER.key, username, keyPrefix);
         Util.addToMapIfNotNull(map, JDBCDataStoreFactory.PASSWD.key, password, keyPrefix);
-        // Oracle specific:
         Util.addToMapIfNotNull(map, JDBCDataStoreFactory.SCHEMA.key, schema, keyPrefix);
         // MS Access specific:
-        Util.addToMapIfNotNull(map, "url", url, keyPrefix);
-        Util.addToMapIfNotNull(map, "srs", srs, keyPrefix);
-        // TODO: check of deze ok zijn!
-        Util.addToMapIfNotNull(map, "column_x", colX, keyPrefix);
-        Util.addToMapIfNotNull(map, "column_y", colY, keyPrefix);
+        Util.addToMapIfNotNull(map, MsAccessDataStoreFactory.PARAM_URL.key, url, keyPrefix);
+        Util.addToMapIfNotNull(map, MsAccessDataStoreFactory.PARAM_SRS.key, srs, keyPrefix);
+        Util.addToMapIfNotNull(map, MsAccessDataStoreFactory.PARAM_XLABELS.key, colX, keyPrefix);
+        Util.addToMapIfNotNull(map, MsAccessDataStoreFactory.PARAM_YLABELS.key, colY, keyPrefix);
 
         log.debug(map);
 
