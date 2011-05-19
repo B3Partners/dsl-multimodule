@@ -11,8 +11,11 @@ package nl.b3p.geotools.data.linker.blocks;
 public class ActionCombo_Fix_From_Oracle extends ActionCombo {
 
     public ActionCombo_Fix_From_Oracle() {
-        // Shorts to Integers
-        ActionFeatureType_Replace_Class_All actionReplaceClasses = new ActionFeatureType_Replace_Class_All(Short.class, Double.class, true);
+        // Shorts to Integers 
+        // EvdP: bovenstaand commentaar klopt niet met de code. Waarom Short -> Double ipv Integer?
+        // EvdP: Short -> Double lijkt ongelooflijk onnodig; Weer Integer van gemaakt
+        ActionFeatureType_Replace_Class_All actionReplaceClasses = 
+                new ActionFeatureType_Replace_Class_All(Short.class, Integer.class, true);
         actionList.add(actionReplaceClasses);
     }
 

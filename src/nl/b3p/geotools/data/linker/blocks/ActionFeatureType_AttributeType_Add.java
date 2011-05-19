@@ -46,12 +46,12 @@ public class ActionFeatureType_AttributeType_Add extends Action {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.NEW_ATTRIBUTE_NAME,
                     ActionFactory.ATTRIBUTE_CLASS
                 }));
 /*
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.ATTRIBUTE_NAME,
+                    ActionFactory.NEW_ATTRIBUTE_NAME,
                     ActionFactory.ATTRIBUTE_CLASS,
                     ActionFactory.ATTRIBUTE_ID
                 }));

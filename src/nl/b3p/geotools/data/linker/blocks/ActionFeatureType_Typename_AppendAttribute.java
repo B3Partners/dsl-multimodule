@@ -26,10 +26,12 @@ public class ActionFeatureType_Typename_AppendAttribute extends Action {
 
     @Override
     public EasyFeature execute(EasyFeature feature) throws Exception {
+        fixAttributeID(feature);
         String attributeValue = feature.getAttribute(attributeID).toString();
 
         if (attributeValue.length() > maxLength) {
             attributeValue = attributeValue.substring(0, maxLength);
+            attributeValue = attributeValue.replaceAll("([\\s])", "_");
         }
 
         feature.setTypeName(feature.getTypeName() + attributeValue);

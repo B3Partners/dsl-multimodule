@@ -31,6 +31,6 @@ public class ActionCombo_Recommended extends ActionCombo {
     }
 
     public String getDescription_NL() {
-        return "(geen beschrijving opgegeven)";
+        return "Creëert veilige waardes voor uw DataStoreLinker proces: Alle waardes in een attribuut / kolom van klasse String krijgen een maximum waarde van 255 ter preventie van de PostGIS 256 bug. De typenaam / tabelnaam krijgt een veilige waarde. De EPSG wordt op 28992 gezet (Amersfoort, Nieuw) ter preventie van de Shape bug.";
     }
 }

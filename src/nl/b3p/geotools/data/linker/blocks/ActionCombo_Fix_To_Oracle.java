@@ -23,15 +23,18 @@ public class ActionCombo_Fix_To_Oracle extends ActionCombo {
 
     public ActionCombo_Fix_To_Oracle() {
         // Typename to uppercase
-        ActionFeatureType_Typename_Case actionTypenameCase = new ActionFeatureType_Typename_Case(true);
+        ActionFeatureType_Typename_Case actionTypenameCase = 
+                new ActionFeatureType_Typename_Case(true);
         actionList.add(actionTypenameCase);
 
         // If typename is longer than allowed 26 characters
-        ActionCondition_FeatureType_Typename_Length actionTypenameLength = new ActionCondition_FeatureType_Typename_Length(ActionCondition.CompareType.GREATER, ORACLE_MAX_TABLE_NAME_LENGTH);
+        ActionCondition_FeatureType_Typename_Length actionTypenameLength = 
+                new ActionCondition_FeatureType_Typename_Length(ActionCondition.CompareType.GREATER, ORACLE_MAX_TABLE_NAME_LENGTH);
         actionList.add(actionTypenameLength);
 
         // Then trim typename
-        ActionFeatureType_Typename_Substring actionTypenameSubstring = new ActionFeatureType_Typename_Substring(ORACLE_MAX_TABLE_NAME_LENGTH, true);
+        ActionFeatureType_Typename_Substring actionTypenameSubstring = 
+                new ActionFeatureType_Typename_Substring(ORACLE_MAX_TABLE_NAME_LENGTH, true);
         actionTypenameLength.addActionToList(true, actionTypenameSubstring);
     }
 

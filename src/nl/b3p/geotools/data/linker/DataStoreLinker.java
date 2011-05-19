@@ -272,27 +272,6 @@ public class DataStoreLinker implements Runnable {
                         String key = parameterElement.getChildTextTrim("paramId", Namespaces.DSL_NAMESPACE);
                         Object value = parameterElement.getChildTextTrim("value", Namespaces.DSL_NAMESPACE);
 
-                        try {
-                            value = Integer.valueOf(value.toString()).intValue();
-                        } catch(NumberFormatException nfe) {
-                            try {
-                                value = parseBoolean(value.toString()).booleanValue();
-                            } catch(Exception pex) {
-                            }
-                        }
-
-                        /*String type = parameterElement.getChildTextTrim("type", Namespaces.DSL_NAMESPACE);
-
-                        if (type.equalsIgnoreCase("boolean")) {
-                            value = Boolean.valueOf(value.toString());
-                        } else if (type.equalsIgnoreCase("number")) {
-                            value = Integer.valueOf(value.toString());
-                        } else if (key.equalsIgnoreCase("url")) {
-                            File file = new File(value.toString());
-                            if (file.exists())
-                                value = file.toURI().toURL();
-                        }*/
-
                         parameters.put(key, value);
                     }
                 }

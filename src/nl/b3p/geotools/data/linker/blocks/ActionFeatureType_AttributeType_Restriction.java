@@ -36,6 +36,13 @@ public class ActionFeatureType_AttributeType_Restriction extends Action {
         fixAttributeID(feature);
 
         if (attributeID != -1) {
+            if (feature.getAttribute(attributeID) instanceof String) {
+                // make sure String value still fits when we change the AttributeDescriptor
+                String value = (String) feature.getAttribute(attributeID);
+                value = value.length() >= length ? value.substring(0, length) : value.substring(0, value.length());
+                feature.setAttribute(attributeID, value);
+            }
+            
             AttributeDescriptor oldDescriptor = feature.getFeatureType().getAttributeDescriptors().get(attributeID);
             AttributeType oldType = feature.getAttributeType(attributeID);
 
