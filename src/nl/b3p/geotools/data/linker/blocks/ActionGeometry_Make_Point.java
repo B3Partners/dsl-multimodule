@@ -62,7 +62,7 @@ public class ActionGeometry_Make_Point extends Action {
 
         } else {
             // Point Geometry Creation
-            Coordinate coord = new Coordinate(Double.parseDouble(feature.getAttribute(attributeIDX).toString()), Double.parseDouble(feature.getAttribute(attributeIDY).toString()));
+            Coordinate coord = new Coordinate(fixDecimals(feature.getAttribute(attributeIDX).toString()), fixDecimals(feature.getAttribute(attributeIDY).toString()));
 
             GeometryFactory gf = new GeometryFactory();
             Point point = gf.createPoint(coord);
@@ -99,4 +99,16 @@ public class ActionGeometry_Make_Point extends Action {
 
         return constructors;
     }
+
+    private static double fixDecimals(String value) {
+        value = value.trim();
+        if (value.contains(",")) {
+            if (value.contains(".")) {
+                value = value.replaceAll("[.]", "");
+            }
+            value = value.replaceAll("[,]", ".");
+        }
+        return Double.parseDouble(value);
+    }
+
 }
