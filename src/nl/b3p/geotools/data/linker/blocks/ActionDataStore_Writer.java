@@ -131,10 +131,7 @@ public class ActionDataStore_Writer extends Action {
             feature.setTypeName(newTypeName);
             typename=newTypeName;
         }
-        //store the typename
-        if (!featureTypeNames.contains(typename)) {
-            featureTypeNames.add(typename);
-        }
+        
         FeatureWriter writer;
         if (featureWriters.containsKey(typename)) {
             writer = featureWriters.get(typename);
@@ -157,7 +154,10 @@ public class ActionDataStore_Writer extends Action {
             writer = dataStore2Write.getFeatureWriterAppend(typename, Transaction.AUTO_COMMIT);
             featureWriters.put(typename, writer);
         }
-
+        //store the typename
+        if (!featureTypeNames.contains(typename)) {
+            featureTypeNames.add(typename);
+        }
 
         // TODO: Deze twee checks verplaatsen naar DataStoreLinker.testFeature() ?? Overleg.
         Object the_geom = feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName());
@@ -317,7 +317,7 @@ public class ActionDataStore_Writer extends Action {
             // If table does not exist, create new
             if (!typeExists) {
                 log.info("Creating new table with name: " + featureType.getTypeName());
-                dataStore2Write.createSchema(featureType);
+                 dataStore2Write.createSchema(featureType);
 
             } else if (!append) {
                 log.info("Removing all features from: " + typename2Write);

@@ -28,6 +28,9 @@ public class ActionCombo_Recommended_Pro extends ActionCombo {
         // Set EPSG:28992
         Action action3 = new ActionFeatureType_Set_CRS("EPSG:28992");
         actionList.add(action3);
+        
+        // Remove existing fid
+        actionList.add(new ActionFeatureType_AttributeType_Remove("fid"));
     }
 
     public ActionCombo_Recommended_Pro(String newTypeName) {
