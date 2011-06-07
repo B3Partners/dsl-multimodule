@@ -30,7 +30,7 @@ public class ActionCombo_Recommended_Pro extends ActionCombo {
         actionList.add(action3);
         
         // Remove existing fid
-        actionList.add(new ActionFeatureType_AttributeType_Remove("fid"));
+        // actionList.add(new ActionFeatureType_AttributeType_Remove("fid"));
     }
 
     public ActionCombo_Recommended_Pro(String newTypeName) {

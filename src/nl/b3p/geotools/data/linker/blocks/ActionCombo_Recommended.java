@@ -26,7 +26,7 @@ public class ActionCombo_Recommended extends ActionCombo {
         actionList.add(new ActionFeatureType_Set_CRS("EPSG:28992"));
         
         // Remove existing fid
-        actionList.add(new ActionFeatureType_AttributeType_Remove("fid"));
+        // actionList.add(new ActionFeatureType_AttributeType_Remove("fid"));
     }
 
     public static List<List<String>> getConstructors() {
