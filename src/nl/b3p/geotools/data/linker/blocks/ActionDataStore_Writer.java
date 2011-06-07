@@ -25,6 +25,8 @@ import org.geotools.feature.IllegalAttributeException;
 import org.geotools.jdbc.JDBCDataStore;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 
 /**
@@ -241,7 +243,27 @@ public class ActionDataStore_Writer extends Action {
         SimpleFeature newFeature = (SimpleFeature) writer.next();
 
         try {
-            newFeature.setAttributes(feature.getAttributes());
+            /* Ingebouwd dat bij een append alleen gelijke kolomnamen
+             * worden toegevoegd. Je hoeft bij een append dus niet meer van te voren te
+             * zorgen dat bron en doel exact gelijke kolommen bevatten.
+             */
+            if (append && !dropFirst) {
+                List<AttributeDescriptor> targets = newFeature.getFeatureType()
+                        .getAttributeDescriptors();
+
+                for (AttributeDescriptor descr : targets) {
+                    Name name = descr.getName();
+                    AttributeDescriptor tmp = feature.getFeatureType().getDescriptor(name);
+
+                    if (tmp != null) {
+                        newFeature.setAttribute(name, feature.getAttribute(name));
+                    }
+                }
+
+            } else {
+                newFeature.setAttributes(feature.getAttributes());
+            }
+            
         } catch (IllegalAttributeException writeProblem) {
             throw new IllegalAttributeException("Could not create " + feature.getFeatureType().getTypeName() + " out of provided SimpleFeature: " + feature.getID() + "\n" + writeProblem);
         }
