@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -45,8 +46,6 @@ public class ActionGeometry_Make_Point_Address extends Action {
 
     private boolean useID = true;
     private String srs;
-
-    private static String googleBaseUrl = "http://maps.google.nl/maps/geo?q=";
 
     public ActionGeometry_Make_Point_Address(int attributeIDAddres1, int attributeIDAddres2,
             int attributeIDAddres3, int attributeIDCity, String projectie) {
@@ -229,27 +228,51 @@ public class ActionGeometry_Make_Point_Address extends Action {
 
     }
 
-    private Point convertAddressToPoint(String address1, String address2,
-            String address3, String city) throws Exception {
-        Point p1 = null;
+    // http://maps.google.nl/maps/geo?q=straat+12,+Nieuwe+Plaats&hl=nl
+    private String createGoogleUrl(String adres, String city) throws Exception {
 
-        // Voorbeel verzoek
-        // http://maps.google.nl/maps/geo?q=tak+van+poortvlietstraat+12,+Den+Haag&hl=nl
+        String url = null;
+
+        String googleBaseUrl = "http://maps.google.nl/maps/geo?q=";
         String country = "Nederland";
 
-        String adres = address1 + " " + address2 + " " + address3;
         String plaats = ",+" + city + ",+" + country;
 
         String hl = "&hl=nl";
         String output = "&output=json";
 
+        String encodedParams = null;
+
+        try {
+            encodedParams = URLEncoder.encode(adres + plaats, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            throw new Exception(ex);
+        }
+
+        String otherParams = hl + output;
+
+        url = googleBaseUrl + encodedParams + otherParams;
+
+        return url;
+    }
+
+    private String createGisGraphyurl() {
+        String url = null;
+
+        return url;
+    }
+
+    private Point convertAddressToPoint(String address1, String address2,
+            String address3, String city) throws Exception {
+        Point p1 = null;
+        
+        /* TODO: Plaats is verplicht. Controleren of deze gevuld is 
+         Het gehele adres mag ook niet leeg zijn! */
+        String adres = address1 + " " + address2 + " " + address3;
+        String url = createGoogleUrl(adres, city);
+
         JSONObject json;
         try {
-            String encodedParams = URLEncoder.encode(adres + plaats, "UTF-8");
-            String otherParams = hl + output;
-
-            String url = googleBaseUrl + encodedParams + otherParams;
-
             json = readJsonFromUrl(url);
 
             if (json.getJSONArray("Placemark").length() > 1)
