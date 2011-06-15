@@ -67,6 +67,11 @@ public class ActionFactory {
     public static final String SCALE = "scale";
     public static final String FLOAT_PRECISION = "float_precision";
 
+    public static final String ATTRIBUTE_NAME_ADDRESS1 = "attribute_name_address1";
+    public static final String ATTRIBUTE_NAME_ADDRESS2 = "attribute_name_address2";
+    public static final String ATTRIBUTE_NAME_ADDRESS3 = "attribute_name_address3";
+    public static final String ATTRIBUTE_NAME_CITY = "attribute_name_city";
+
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
     public static Action createAction(String actionClassName, Map<String, Object> properties) throws Exception {
@@ -545,6 +550,25 @@ public class ActionFactory {
                 a.setFloatPrecision(toBoolean((String)properties.get(FLOAT_PRECISION)));
 
                 return a;
+
+            /* Constructors nagaan voor ActionGeometry_Make_Point_Address */
+            } else if (isThisClass(actionClassName, ActionGeometry_Make_Point_Address.class)) {
+
+                /* TODO: propertyCheck weer aanzetten! */
+                if (!propertyCheck(properties, ATTRIBUTE_NAME_ADDRESS1, ATTRIBUTE_NAME_ADDRESS2,
+                        ATTRIBUTE_NAME_ADDRESS3, ATTRIBUTE_NAME_CITY, SRS)) {
+
+                    String address1 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS1);
+                    String address2 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS2);
+                    String address3 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS3);
+                    String city = (String) properties.get(ATTRIBUTE_NAME_CITY);
+                    String srs = (String) properties.get(SRS);
+
+                    return new ActionGeometry_Make_Point_Address(address1, address2,
+                            address3, city, srs);
+                } else {
+                    failedConstructor(ActionGeometry_Make_Point_Address.class, properties);
+                }
                 
                 /**
                  * Action not found
@@ -774,6 +798,8 @@ public class ActionFactory {
         actionBlocks.put(ActionGeometry_Make_Point.class.getSimpleName(), ActionGeometry_Make_Point.getConstructors());
         actionBlocks.put(ActionGeometry_RemoveDuplicateVertices.class.getSimpleName(), ActionGeometry_RemoveDuplicateVertices.getConstructors());
         actionBlocks.put(ActionGeometry_VertexPrecisionThreshold.class.getSimpleName(), ActionGeometry_VertexPrecisionThreshold.getConstructors());
+
+        actionBlocks.put(ActionGeometry_Make_Point_Address.class.getSimpleName(), ActionGeometry_Make_Point_Address.getConstructors());
 
         return actionBlocks;
     }
