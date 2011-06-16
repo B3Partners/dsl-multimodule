@@ -553,8 +553,17 @@ public class ActionFactory {
 
             /* Constructors nagaan voor ActionGeometry_Make_Point_Address */
             } else if (isThisClass(actionClassName, ActionGeometry_Make_Point_Address.class)) {
+                
+                String address1 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS1);
+                String address2 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS2);
+                String address3 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS3);
+                String city = (String) properties.get(ATTRIBUTE_NAME_CITY);
+                String srs = (String) properties.get(SRS);
 
-                /* TODO: propertyCheck weer aanzetten! */
+                return new ActionGeometry_Make_Point_Address(address1, address2,
+                        address3, city, srs);
+
+                /* TODO: propertyCheck weer aanzetten!
                 if (!propertyCheck(properties, ATTRIBUTE_NAME_ADDRESS1, ATTRIBUTE_NAME_ADDRESS2,
                         ATTRIBUTE_NAME_ADDRESS3, ATTRIBUTE_NAME_CITY, SRS)) {
 
@@ -568,7 +577,7 @@ public class ActionFactory {
                             address3, city, srs);
                 } else {
                     failedConstructor(ActionGeometry_Make_Point_Address.class, properties);
-                }
+                }*/
                 
                 /**
                  * Action not found

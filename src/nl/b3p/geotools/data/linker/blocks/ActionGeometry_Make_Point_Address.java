@@ -225,10 +225,8 @@ public class ActionGeometry_Make_Point_Address extends Action {
         } catch (ParseException ex) {
             throw new Exception(ex);
         }
-
     }
-
-    // http://maps.google.nl/maps/geo?q=straat+12,+Nieuwe+Plaats&hl=nl
+    
     private String createGoogleUrl(String adres, String city) throws Exception {
 
         String url = null;
@@ -268,18 +266,32 @@ public class ActionGeometry_Make_Point_Address extends Action {
         
         /* TODO: Plaats is verplicht. Controleren of deze gevuld is 
          Het gehele adres mag ook niet leeg zijn! */
-        String adres = address1 + " " + address2 + " " + address3;
+        if (city == null || city.equals("")) {
+            throw new Exception("Plaats is leeg.");
+        }
+
+        String adres = (address1 + " " + address2 + address3).trim();
+
+        if (adres == null || adres.equals("")) {
+            throw new Exception("Adres is leeg.");
+        }
+
         String url = createGoogleUrl(adres, city);
 
         JSONObject json;
         try {
             json = readJsonFromUrl(url);
 
+            /* Geeft JSONException als Placemark niet bestaat.
+             Geen locatie gevonden */
+            try {
+                json.getJSONArray("Placemark");
+            } catch (JSONException ex) {
+                throw new Exception("Geen resultaat voor adres: " + adres);
+            }
+
             if (json.getJSONArray("Placemark").length() > 1)
                 throw new Exception("Teveel resultaten voor adres: " + adres);
-
-            if (json.getJSONArray("Placemark").length() < 1)
-                throw new Exception("Geen resultaten voor adres: " + adres);
 
             Double x = (Double) json.getJSONArray("Placemark").getJSONObject(0).getJSONObject("Point").getJSONArray("coordinates").get(0);
             Double y = (Double) json.getJSONArray("Placemark").getJSONObject(0).getJSONObject("Point").getJSONArray("coordinates").get(1);
