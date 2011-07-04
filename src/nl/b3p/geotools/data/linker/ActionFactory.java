@@ -291,7 +291,32 @@ public class ActionFactory {
             } else if (isThisClass(actionClassName, ActionFeature_Value_Set.class)) {
                 if (propertyCheck(properties, ATTRIBUTE_NAME, OBJECT_REPLACE, APPEND)) {
                     String attributeName = (String) properties.get(ATTRIBUTE_NAME);
-                    Object replace = createObject((HashMap) properties.get(OBJECT_REPLACE));
+
+                    Object replace = null;
+                    Object obj = properties.get(OBJECT_REPLACE);
+                    Map map = new HashMap();
+
+                    if (obj instanceof String) {                        
+                        map.put("class", "java.lang.String");
+                        map.put("value", (String) obj);
+                        replace = createObject(map);
+                    } else if (obj instanceof Integer) {
+                        map.put("class", "java.lang.Integer");
+                        map.put("value", (Integer) obj);
+                        replace = createObject(map);
+                    } else if (obj instanceof Float) {
+                        map.put("class", "java.lang.Float");
+                        map.put("value", (Float) obj);                        
+                        replace = createObject(map);
+                    } else if (obj instanceof Double) {
+                        map.put("class", "java.lang.Double");
+                        map.put("value", (Double) obj);
+                        replace = createObject(map);
+                    } else {
+                        Map newValue = (HashMap) obj;
+                        replace = createObject(newValue);
+                    }
+                    
                     boolean append = toBoolean((String) properties.get(APPEND));
                     return new ActionFeature_Value_Set(attributeName, replace, append);
 
