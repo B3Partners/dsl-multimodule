@@ -572,7 +572,7 @@ public class ActionFactory {
                 ActionGeometry_VertexPrecisionThreshold a = new ActionGeometry_VertexPrecisionThreshold();
 
                 a.setScale(toInteger((String)properties.get(SCALE)));
-                a.setFloatPrecision(toBoolean((String)properties.get(FLOAT_PRECISION)));
+                //a.setFloatPrecision(toBoolean((String)properties.get(FLOAT_PRECISION)));
 
                 return a;
 
