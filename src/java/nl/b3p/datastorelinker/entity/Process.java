@@ -68,6 +68,8 @@ public class Process implements Serializable, Nameable {
     @XmlTransient
     private static final boolean DEFAULT_DROP = true;
     @XmlTransient
+    private static final boolean DEFAULT_APPEND = false;
+    @XmlTransient
     private static final String DEFAULT_WRITER_TYPE = "ActionCombo_GeometrySplitter_Writer";
 
     @XmlTransient
@@ -117,6 +119,10 @@ public class Process implements Serializable, Nameable {
     private Boolean drop = DEFAULT_DROP;
 
     @Basic(optional = false)
+    @Column(name = "append_table")
+    private Boolean append = DEFAULT_APPEND;
+
+    @Basic(optional = false)
     @Column(name = "writer_type")
     @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     private String writerType = DEFAULT_WRITER_TYPE;
@@ -152,6 +158,7 @@ public class Process implements Serializable, Nameable {
         Map outputMap = new HashMap();
 
         outputMap.put("drop", getDrop());
+        outputMap.put("append", getAppend());
         outputMap.put("params", getOutput().getDatabase().toGeotoolsDataStoreParametersMap());
 
         return outputMap;
@@ -263,6 +270,14 @@ public class Process implements Serializable, Nameable {
 
     public void setDrop(Boolean drop) {
         this.drop = drop;
+    }
+
+    public Boolean getAppend() {
+        return append;
+    }
+
+    public void setAppend(Boolean append) {
+        this.append = append;
     }
 
     public String getWriterType() {
