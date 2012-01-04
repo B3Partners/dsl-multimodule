@@ -1,16 +1,14 @@
 package nl.b3p.datastorelinker.entity;
 
 import java.io.Serializable;
-import java.util.List;
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -19,9 +17,9 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author Boy de Wit
  */
 @Entity
-@Table(name = "organization")
+@Table(name = "users")
 @XmlTransient
-public class Organization implements Serializable {
+public class Users implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -35,24 +33,30 @@ public class Organization implements Serializable {
     private String name;
     
     @Basic(optional = false)
-    @Column(name = "upload_path", nullable = false, length = 255)
-    private String uploadPath;
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
     
-    @OneToMany(cascade = CascadeType.ALL)
+    @Basic(optional = false)
+    @Column(name = "is_admin", nullable = false)
+    private Boolean isAdmin;
+    
+    @ManyToOne(optional = true)
     @JoinTable(name = "organization_users", joinColumns = {
-        @JoinColumn(name = "organization_id", unique = true)
+        @JoinColumn(name = "users_id")
     },
     inverseJoinColumns = {
-        @JoinColumn(name = "users_id")
+        @JoinColumn(name = "organization_id")
     })
-    private List<Users> users;
+    private Organization organization;
 
-    public Organization() {
+    public Users() {
     }
 
-    public Organization(String name, String uploadPath) {
+    public Users(String name, String password, Boolean isAdmin, Organization organization) {
         this.name = name;
-        this.uploadPath = uploadPath;
+        this.password = password;
+        this.isAdmin = isAdmin;
+        this.organization = organization;
     }
 
     public Integer getId() {
@@ -63,6 +67,14 @@ public class Organization implements Serializable {
         this.id = id;
     }
 
+    public Boolean getIsAdmin() {
+        return isAdmin;
+    }
+
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
+
     public String getName() {
         return name;
     }
@@ -71,19 +83,19 @@ public class Organization implements Serializable {
         this.name = name;
     }
 
-    public String getUploadPath() {
-        return uploadPath;
+    public String getPassword() {
+        return password;
     }
 
-    public void setUploadPath(String uploadPath) {
-        this.uploadPath = uploadPath;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    public List<Users> getUsers() {
-        return users;
+    public Organization getOrganization() {
+        return organization;
     }
 
-    public void setUsers(List<Users> users) {
-        this.users = users;
+    public void setOrganization(Organization organization) {
+        this.organization = organization;
     }
 }
