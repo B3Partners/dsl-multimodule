@@ -46,6 +46,11 @@ import nl.b3p.datastorelinker.util.Nameable;
         "from Inout where type = :typeName and datatype = :datatypeName order by name")
 })
 public class Inout implements Serializable, Nameable {
+    
+    public static String TYPE_INPUT = "INPUT";
+    public static String TYPE_OUTPUT = "OUTPUT";
+    public static String TYPE_FILE = "FILE";
+    public static String TYPE_DATABASE = "DATABASE";    
 
     @XmlTransient
     //@XmlType(name="inout_type")
@@ -111,6 +116,14 @@ public class Inout implements Serializable, Nameable {
     @Column(name = "name")
     @XmlTransient
     private String name;
+    
+    @Basic(optional = true)
+    @Column(name = "organization_id")
+    private Integer organizationId;  
+    
+    @Basic(optional = true)
+    @Column(name = "user_id")
+    private Integer userId;
 
     public Inout() {
     }
@@ -243,4 +256,19 @@ public class Inout implements Serializable, Nameable {
         return "nl.b3p.datastorelinker.entity.Inout[id=" + id + "]";
     }
 
+    public Integer getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(Integer organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
 }

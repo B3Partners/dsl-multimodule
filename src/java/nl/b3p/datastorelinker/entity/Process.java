@@ -141,6 +141,13 @@ public class Process implements Serializable, Nameable {
     @XmlTransient
     private ProcessStatus processStatus;
     
+    @Basic(optional = true)
+    @Column(name = "organization_id")
+    private Integer organizationId;  
+    
+    @Basic(optional = true)
+    @Column(name = "user_id")
+    private Integer userId;
 
     public Process() {
     }
@@ -337,4 +344,19 @@ public class Process implements Serializable, Nameable {
         return "nl.b3p.datastorelinker.entity.Process[id=" + id + "]";
     }
 
+    public Integer getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(Integer organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
 }

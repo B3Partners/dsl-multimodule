@@ -163,6 +163,14 @@ public class Database implements Serializable, Nameable {
     @Column(name = "inout_type")
     @Enumerated(EnumType.STRING)
     private Database.TypeInout typeInout;
+    
+    @Basic(optional = true)
+    @Column(name = "organization_id")
+    private Integer organizationId;  
+    
+    @Basic(optional = true)
+    @Column(name = "user_id")
+    private Integer userId;
 
     public Database() {
     }
@@ -395,5 +403,21 @@ public class Database implements Serializable, Nameable {
     @Override
     public String toString() {
         return "nl.b3p.datastorelinker.entity.Database[id=" + id + "]";
+    }
+
+    public Integer getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(Integer organizationId) {
+        this.organizationId = organizationId;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 }
