@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlTransient;
@@ -46,6 +47,15 @@ public class Organization implements Serializable {
         @JoinColumn(name = "users_id")
     })
     private List<Users> users;
+    
+    @ManyToMany
+    @JoinTable(name = "output_organization", joinColumns = {
+        @JoinColumn(name = "organization_id", unique = false)
+    },
+    inverseJoinColumns = {
+        @JoinColumn(name = "output_id")
+    })
+    private List<Inout> outputs;
 
     public Organization() {
     }
@@ -85,5 +95,13 @@ public class Organization implements Serializable {
 
     public void setUsers(List<Users> users) {
         this.users = users;
+    }
+
+    public List<Inout> getOutputs() {
+        return outputs;
+    }
+
+    public void setOutputs(List<Inout> outputs) {
+        this.outputs = outputs;
     }
 }

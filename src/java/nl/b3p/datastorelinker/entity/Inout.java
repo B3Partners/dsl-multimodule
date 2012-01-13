@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package nl.b3p.datastorelinker.entity;
 
 import java.io.Serializable;
@@ -16,6 +11,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -29,7 +26,7 @@ import nl.b3p.datastorelinker.util.Nameable;
 
 /**
  *
- * @author Erik van de Pol
+ * @author Boy de Wit
  */
 @XmlType(name="inout"/*, propOrder={
     "file",
@@ -51,6 +48,10 @@ public class Inout implements Serializable, Nameable {
     public static String TYPE_OUTPUT = "OUTPUT";
     public static String TYPE_FILE = "FILE";
     public static String TYPE_DATABASE = "DATABASE";    
+    
+    public static String TEMPLATE_OUTPUT_USE_TABLE = "USE_TABLE";
+    public static String TEMPLATE_OUTPUT_AS_TEMPLATE = "AS_TEMPLATE";
+    public static String TEMPLATE_OUTPUT_NO_TABLE = "NO_TABLE";
 
     @XmlTransient
     //@XmlType(name="inout_type")
@@ -124,6 +125,19 @@ public class Inout implements Serializable, Nameable {
     @Basic(optional = true)
     @Column(name = "user_id")
     private Integer userId;
+    
+    @Basic(optional = true)
+    @Column(name = "template_output")
+    private String templateOutput;
+    
+    @ManyToMany
+    @JoinTable(name = "output_organization", joinColumns = {
+        @JoinColumn(name = "output_id", unique = false)
+    },
+    inverseJoinColumns = {
+        @JoinColumn(name = "organization_id")
+    })
+    private List<Organization> organizations;
 
     public Inout() {
     }
@@ -270,5 +284,21 @@ public class Inout implements Serializable, Nameable {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    public String getTemplateOutput() {
+        return templateOutput;
+    }
+
+    public void setTemplateOutput(String templateOutput) {
+        this.templateOutput = templateOutput;
+    }
+
+    public List<Organization> getOrganizations() {
+        return organizations;
+    }
+
+    public void setOrganizations(List<Organization> organizations) {
+        this.organizations = organizations;
     }
 }
