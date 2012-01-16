@@ -71,6 +71,9 @@ public class ActionFactory {
     public static final String ATTRIBUTE_NAME_ADDRESS2 = "attribute_name_address2";
     public static final String ATTRIBUTE_NAME_ADDRESS3 = "attribute_name_address3";
     public static final String ATTRIBUTE_NAME_CITY = "attribute_name_city";
+    
+    private static final String CURRENT_ATTRIBUTE_NAMES = "current_attribute_names";
+    private static final String NEW_ATTRIBUTE_NAMES = "new_attribute_names";
 
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
@@ -585,28 +588,28 @@ public class ActionFactory {
                 String city = (String) properties.get(ATTRIBUTE_NAME_CITY);
                 String srs = (String) properties.get(SRS);
 
-                return new ActionGeometry_Make_Point_Address(address1, address2,
-                        address3, city, srs);
-
-                /* TODO: propertyCheck weer aanzetten!
-                if (!propertyCheck(properties, ATTRIBUTE_NAME_ADDRESS1, ATTRIBUTE_NAME_ADDRESS2,
-                        ATTRIBUTE_NAME_ADDRESS3, ATTRIBUTE_NAME_CITY, SRS)) {
-
-                    String address1 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS1);
-                    String address2 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS2);
-                    String address3 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS3);
-                    String city = (String) properties.get(ATTRIBUTE_NAME_CITY);
-                    String srs = (String) properties.get(SRS);
-
-                    return new ActionGeometry_Make_Point_Address(address1, address2,
-                            address3, city, srs);
-                } else {
-                    failedConstructor(ActionGeometry_Make_Point_Address.class, properties);
-                }*/
+                return new ActionGeometry_Make_Point_Address(address1, address2, address3, city, srs);
                 
-                /**
-                 * Action not found
-                 */
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {            
+                
+                String strCurrentNamen = (String) properties.get(CURRENT_ATTRIBUTE_NAMES);
+                String strNewNamen = (String) properties.get(NEW_ATTRIBUTE_NAMES);
+                
+                String[] currentNames = null;
+                String[] newNames = null;
+                
+                if (strCurrentNamen != null && strNewNamen != null) {
+                    currentNames = strCurrentNamen.split(",");
+                    newNames = strNewNamen.split(",");
+                }
+                
+                if (currentNames != null && newNames != null) {
+                    if (currentNames.length != newNames.length) {
+                        return null;
+                    }
+                }
+
+                return new ActionFeatureType_AttributeNames_Rename(currentNames, newNames);                
             } else {
                 throw new UnsupportedOperationException(actionClassName + " is not yet implemented in ActionFactory");
             }
@@ -835,6 +838,8 @@ public class ActionFactory {
 
         actionBlocks.put(ActionGeometry_Make_Point_Address.class.getSimpleName(), ActionGeometry_Make_Point_Address.getConstructors());
 
+        actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors());
+        
         return actionBlocks;
     }
 

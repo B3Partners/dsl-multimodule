@@ -49,6 +49,19 @@ public abstract class Action {
             attributeName = feature.getAttributeDescriptorNameByID(attributeID);
         }
     }
+    
+    protected Integer[] getAttributeIds(EasyFeature feature, String[] columnNames) throws Exception {
+        Integer[] ids = null;
+        if (columnNames != null && columnNames.length > 0) {
+            ids = new Integer[columnNames.length];
+            
+            for (int i=0; i < columnNames.length; i++) {
+                ids[i] = feature.getAttributeDescriptorIDbyName(columnNames[i]);
+            }
+        }
+        
+        return ids;
+    }
 
 
     /**

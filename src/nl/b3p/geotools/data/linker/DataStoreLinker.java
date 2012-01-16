@@ -29,12 +29,9 @@ import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.oracle.OracleNGDataStoreFactory;
 import org.geotools.data.postgis.PostgisNGDataStoreFactory;
-import org.geotools.data.FileDataStoreFactorySpi;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
-import org.geotools.data.shapefile.indexed.IndexedShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
-import org.geotools.jdbc.JDBCDataStoreFactory;
 import org.jdom.Element;
 import org.jdom.input.DOMBuilder;
 import org.opengis.feature.simple.SimpleFeature;
@@ -68,6 +65,9 @@ public class DataStoreLinker implements Runnable {
 
     private int exceptionLogCount = 0;
     private static final int MAX_EXCEPTION_LOG_COUNT = 10;
+    
+    public static final String TYPE_ORACLE = "oracle";
+    public static final String TYPE_POSTGIS = "postgis";
 
     public synchronized Status getStatus() {
         return status;
@@ -399,15 +399,27 @@ public class DataStoreLinker implements Runnable {
      * is not there yet.
      */
     public static DataStore openDataStore(Map params, boolean createNew) throws Exception {
-        log.info("openDataStore with: " + params);
-        /*log.debug("available datastores: ");
-        Iterator<DataStoreFactorySpi> iter = DataStoreFinder.getAvailableDataStores();
-        while (iter.hasNext()) {
-            DataStoreFactorySpi dsfSpi = iter.next();
-            log.debug(dsfSpi + " :: " + dsfSpi.getDescription() + " :: " + dsfSpi.getDisplayName());
-        }*/
-
-        DataStore dataStore;
+        log.debug("openDataStore with: " + params);
+        
+        DataStore dataStore = null;
+        
+        String dbType = (String) params.get("dbtype");       
+        if (dbType != null && dbType.equals(TYPE_ORACLE)) {
+            log.info("Created OracleNGDataStoreFactory with: " + params);
+            
+            //params.put(OracleNGDataStoreFactory.EXPOSE_PK.key, Boolean.TRUE);
+            params.put("min connections", 0);
+            params.put("max connections", 50);
+            params.put("connection timeout", 60);
+            params.put("validate connections", Boolean.FALSE);
+            
+            return (new OracleNGDataStoreFactory()).createDataStore(params);
+            
+        } else if (dbType != null && dbType.equals(TYPE_POSTGIS)) {
+            log.info("Created PostgisNGDataStoreFactory with: " + params);
+            return (new PostgisNGDataStoreFactory()).createDataStore(params);
+        }
+        
         String errormsg = "DataStore could not be found using parameters";
 
         try {
