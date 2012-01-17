@@ -5,9 +5,11 @@
 package nl.b3p.geotools.data.linker;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import nl.b3p.geotools.data.linker.blocks.*;
@@ -71,9 +73,6 @@ public class ActionFactory {
     public static final String ATTRIBUTE_NAME_ADDRESS2 = "attribute_name_address2";
     public static final String ATTRIBUTE_NAME_ADDRESS3 = "attribute_name_address3";
     public static final String ATTRIBUTE_NAME_CITY = "attribute_name_city";
-    
-    private static final String CURRENT_ATTRIBUTE_NAMES = "current_attribute_names";
-    private static final String NEW_ATTRIBUTE_NAMES = "new_attribute_names";
 
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
@@ -590,26 +589,34 @@ public class ActionFactory {
 
                 return new ActionGeometry_Make_Point_Address(address1, address2, address3, city, srs);
                 
-            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {            
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {                    
+                Integer size = properties.size();
                 
-                String strCurrentNamen = (String) properties.get(CURRENT_ATTRIBUTE_NAMES);
-                String strNewNamen = (String) properties.get(NEW_ATTRIBUTE_NAMES);
-                
-                String[] currentNames = null;
-                String[] newNames = null;
-                
-                if (strCurrentNamen != null && strNewNamen != null) {
-                    currentNames = strCurrentNamen.split(",");
-                    newNames = strNewNamen.split(",");
+                if (size == null && size < 1) {
+                    return null;
                 }
                 
-                if (currentNames != null && newNames != null) {
-                    if (currentNames.length != newNames.length) {
-                        return null;
+                List<String> currentNames = new ArrayList<String>();
+                List<String> newNames = new ArrayList<String>();
+                
+                for (Entry<String, Object> entry : properties.entrySet()) {
+                    String currentField = entry.getKey();                    
+                    String nieuw = (String) entry.getValue();
+                    
+                    if (currentField != null && currentField.length() > 0 && nieuw != null && nieuw.length() > 0) {                  
+                        currentNames.add(currentField);
+                        newNames.add(nieuw);
                     }
                 }
+                
+                if (currentNames.size() < 1 && currentNames.size() != newNames.size()) {
+                    return null;
+                }
+                
+                String[] invoer = (String[])currentNames.toArray(new String[currentNames.size()]);
+                String[] uitvoer = (String[])newNames.toArray(new String[newNames.size()]);
 
-                return new ActionFeatureType_AttributeNames_Rename(currentNames, newNames);                
+                return new ActionFeatureType_AttributeNames_Rename(invoer, uitvoer);                
             } else {
                 throw new UnsupportedOperationException(actionClassName + " is not yet implemented in ActionFactory");
             }
@@ -627,24 +634,7 @@ public class ActionFactory {
         for (String prop : find) {
 
             // Check if map contains property
-            if (!properties.containsKey(prop)) {
-
-                /*
-                // Check if class in propertyMap is right
-                if (properties.get(prop) != null) {
-
-                // Check if class is defined for this property
-                if (mapping.containsKey(prop)) {
-                boolean equals = properties.get(prop).getClass().equals(mapping.get(prop));
-                boolean instanceOf = properties.get(prop).getClass().isInstance(mapping.get(prop));
-
-                if (!equals && !instanceOf) {
-                found = false;
-                }
-                }
-                }
-                } else {
-                 */
+            if (!properties.containsKey(prop)) {                
                 found = false;
             } else if (properties.get(prop).toString().equals("")) {
                 found = false;
@@ -797,7 +787,7 @@ public class ActionFactory {
      */
     // The following function
 
-    public static SortedMap<String, List<List<String>>> getSupportedActionBlocks() {
+    public static SortedMap<String, List<List<String>>> getSupportedActionBlocks(String[] invoer) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
 
         actionBlocks.put(ActionCombo_Fix_From_Oracle.class.getSimpleName(), ActionCombo_Fix_From_Oracle.getConstructors());
@@ -830,7 +820,6 @@ public class ActionFactory {
         actionBlocks.put(ActionFeature_Value_Substring.class.getSimpleName(), ActionFeature_Value_Substring.getConstructors());
         actionBlocks.put(ActionFeature_Value_Substring_All.class.getSimpleName(), ActionFeature_Value_Substring_All.getConstructors());
 
-
         actionBlocks.put(ActionGeometry_Buffer.class.getSimpleName(), ActionGeometry_Buffer.getConstructors());
         actionBlocks.put(ActionGeometry_Make_Point.class.getSimpleName(), ActionGeometry_Make_Point.getConstructors());
         actionBlocks.put(ActionGeometry_RemoveDuplicateVertices.class.getSimpleName(), ActionGeometry_RemoveDuplicateVertices.getConstructors());
@@ -838,7 +827,7 @@ public class ActionFactory {
 
         actionBlocks.put(ActionGeometry_Make_Point_Address.class.getSimpleName(), ActionGeometry_Make_Point_Address.getConstructors());
 
-        actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
         
         return actionBlocks;
     }

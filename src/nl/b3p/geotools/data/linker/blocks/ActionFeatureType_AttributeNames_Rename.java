@@ -29,7 +29,7 @@ public class ActionFeatureType_AttributeNames_Rename extends Action {
                 AttributeTypeBuilder atb = new AttributeTypeBuilder();
                 atb.init(feature.getFeatureType().getDescriptor(attributeIds[i]));
                 
-                feature.setAttributeDescriptor(attributeIds[i], atb.buildDescriptor(newAttributeNames[i]), true);
+                feature.setAttributeDescriptor(attributeIds[i], atb.buildDescriptor(newAttributeNames[i]), true);              
             }
         }               
 
@@ -41,13 +41,12 @@ public class ActionFeatureType_AttributeNames_Rename extends Action {
         return "Map de invoerkolommen naar de uitvoerkolommen.";
     }
 
-    public static List<List<String>> getConstructors() {
+    public static List<List<String>> getConstructors(String[] invoer) {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
-        constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.ATTRIBUTE_NAME,
-                    ActionFactory.NEW_ATTRIBUTE_NAME
-                }));
+        if (invoer != null) {
+            constructors.add(Arrays.asList(invoer));
+        }  
         
         return constructors;
     }
