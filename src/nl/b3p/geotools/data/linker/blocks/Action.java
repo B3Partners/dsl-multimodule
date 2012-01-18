@@ -62,6 +62,15 @@ public abstract class Action {
         
         return ids;
     }
+    
+    protected Integer getAttributeId(EasyFeature feature, String columnName) throws Exception {
+        Integer id = null;
+        if (columnName != null && !columnName.equals("")) {
+            id = feature.getAttributeDescriptorIDbyName(columnName);            
+        }
+        
+        return id;
+    }
 
 
     /**

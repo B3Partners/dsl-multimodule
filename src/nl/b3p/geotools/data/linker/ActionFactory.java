@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package nl.b3p.geotools.data.linker;
 
 import java.lang.reflect.Method;
@@ -18,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Create actionBlocks for given Classname and parameters (properties)
- * @author Gertjan Al, B3Partners
+ * @author Boy de Wit
  */
 public class ActionFactory {
 
@@ -616,7 +612,37 @@ public class ActionFactory {
                 String[] invoer = (String[])currentNames.toArray(new String[currentNames.size()]);
                 String[] uitvoer = (String[])newNames.toArray(new String[newNames.size()]);
 
-                return new ActionFeatureType_AttributeNames_Rename(invoer, uitvoer);                
+                return new ActionFeatureType_AttributeNames_Rename(invoer, uitvoer); 
+                
+             } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Map_To_Output.class)) {                    
+                Integer size = properties.size();
+                
+                if (size == null && size < 1) {
+                    return null;
+                }
+                
+                List<String> currentNames = new ArrayList<String>();
+                List<String> newNames = new ArrayList<String>();
+                
+                for (Entry<String, Object> entry : properties.entrySet()) {
+                    String currentField = entry.getKey();                    
+                    String nieuw = (String) entry.getValue();
+                    
+                    if (currentField != null && currentField.length() > 0 && nieuw != null && nieuw.length() > 0) {                  
+                        currentNames.add(currentField);
+                        newNames.add(nieuw);
+                    }
+                }
+                
+                if (currentNames.size() < 1 && currentNames.size() != newNames.size()) {
+                    return null;
+                }
+                
+                String[] invoer = (String[])currentNames.toArray(new String[currentNames.size()]);
+                String[] uitvoer = (String[])newNames.toArray(new String[newNames.size()]);
+
+                return new ActionFeatureType_AttributeNames_Map_To_Output(invoer, uitvoer);  
+                
             } else {
                 throw new UnsupportedOperationException(actionClassName + " is not yet implemented in ActionFactory");
             }
@@ -787,7 +813,7 @@ public class ActionFactory {
      */
     // The following function
 
-    public static SortedMap<String, List<List<String>>> getSupportedActionBlocks(String[] invoer) {
+    public static SortedMap<String, List<List<String>>> getSupportedActionBlocks(String[] invoer, String[] uitvoer) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
 
         actionBlocks.put(ActionCombo_Fix_From_Oracle.class.getSimpleName(), ActionCombo_Fix_From_Oracle.getConstructors());
@@ -828,6 +854,8 @@ public class ActionFactory {
         actionBlocks.put(ActionGeometry_Make_Point_Address.class.getSimpleName(), ActionGeometry_Make_Point_Address.getConstructors());
 
         actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
+        
+        actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
         
         return actionBlocks;
     }
