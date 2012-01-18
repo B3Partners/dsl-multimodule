@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import nl.b3p.datastorelinker.entity.Inout;
 import nl.b3p.geotools.data.linker.blocks.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -624,6 +625,8 @@ public class ActionFactory {
                 List<String> currentNames = new ArrayList<String>();
                 List<String> newNames = new ArrayList<String>();
                 
+                List<String> allOutputColumns = new ArrayList<String>();
+                
                 for (Entry<String, Object> entry : properties.entrySet()) {
                     String currentField = entry.getKey();                    
                     String nieuw = (String) entry.getValue();
@@ -631,6 +634,10 @@ public class ActionFactory {
                     if (currentField != null && currentField.length() > 0 && nieuw != null && nieuw.length() > 0) {                  
                         currentNames.add(currentField);
                         newNames.add(nieuw);
+                    }
+                    
+                    if (currentField != null && currentField.length() > 0) {
+                        allOutputColumns.add(currentField);
                     }
                 }
                 
@@ -641,7 +648,7 @@ public class ActionFactory {
                 String[] invoer = (String[])currentNames.toArray(new String[currentNames.size()]);
                 String[] uitvoer = (String[])newNames.toArray(new String[newNames.size()]);
 
-                return new ActionFeatureType_AttributeNames_Map_To_Output(invoer, uitvoer);  
+                return new ActionFeatureType_AttributeNames_Map_To_Output(invoer, uitvoer, allOutputColumns);  
                 
             } else {
                 throw new UnsupportedOperationException(actionClassName + " is not yet implemented in ActionFactory");
@@ -813,7 +820,7 @@ public class ActionFactory {
      */
     // The following function
 
-    public static SortedMap<String, List<List<String>>> getSupportedActionBlocks(String[] invoer, String[] uitvoer) {
+    public static SortedMap<String, List<List<String>>> getSupportedActionBlocks(String[] invoer, String[] uitvoer, String templateOutputType) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
 
         actionBlocks.put(ActionCombo_Fix_From_Oracle.class.getSimpleName(), ActionCombo_Fix_From_Oracle.getConstructors());
@@ -853,9 +860,13 @@ public class ActionFactory {
 
         actionBlocks.put(ActionGeometry_Make_Point_Address.class.getSimpleName(), ActionGeometry_Make_Point_Address.getConstructors());
 
-        actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
+        if (templateOutputType != null && templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
+            actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
+        }
         
-        actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
+        if (templateOutputType != null && !templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
+            actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
+        }
         
         return actionBlocks;
     }

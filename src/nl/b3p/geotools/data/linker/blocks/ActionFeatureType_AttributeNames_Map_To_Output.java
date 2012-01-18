@@ -15,16 +15,57 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
     private String[] currentAttributeNames;
     private String[] newAttributeNames;
     
+    private List<String> allOutputColumns;
+    private List<String> removeColumns = null;
+    
     protected String description = "Kies per uitvoerkolom een invoerkolom.";
 
-    public ActionFeatureType_AttributeNames_Map_To_Output(String[] currentAttributeNames, String[] newAttributeNames) {
+    public ActionFeatureType_AttributeNames_Map_To_Output(String[] currentAttributeNames, String[] newAttributeNames, List<String> outputColumns) {
         this.currentAttributeNames = currentAttributeNames;
         this.newAttributeNames = newAttributeNames;
+        
+        if (outputColumns != null && outputColumns.size() > 0) {
+            this.allOutputColumns = outputColumns;
+        }
     }
 
     @Override
-    public EasyFeature execute(EasyFeature feature) throws Exception {
-        if (newAttributeNames != null && newAttributeNames.length > 0) {
+    public EasyFeature execute(EasyFeature feature) throws Exception {        
+        /* Alle niet gemapte velden van (feature) invoer wissen */
+        if (removeColumns == null && allOutputColumns != null &&
+                allOutputColumns.size() > 0) {
+            
+            removeColumns = new ArrayList<String>();
+            String geomColumn = feature.getFeatureType().getGeometryDescriptor().getName().getLocalPart();
+
+            for (int i = 0; i < feature.getAttributeCount(); i++) {
+
+                String columnName = feature.getAttributeDescriptorNameByID(i);
+
+                /* Do not remove the geom column */
+                if (!columnName.equals(geomColumn)) {
+                    removeColumns.add(columnName);
+                }
+            }
+
+            removeColumns.removeAll(Arrays.asList(newAttributeNames));            
+        }
+        
+        /* Remove columns that are not mapped by user. */
+        for (String columnName : removeColumns) {
+            int attributeId = feature.getAttributeDescriptorIDbyName(columnName);
+            feature.removeAttributeDescriptor(attributeId);
+        }
+        
+        /* Van alle niet gemapte uitvoervelden die niet ook als invoer voorkomen
+         * een kolom toevoegen met lege waarde */
+        for (String kolom : allOutputColumns) {
+            // hi
+        }
+        
+        /* Voor alle gemapte velden feature kolomnaam omzetten naar bijbehorende
+         * uitvoer kolom */
+        if (newAttributeNames != null && newAttributeNames.length > 0) {            
             attributeIds = getAttributeIds(feature, newAttributeNames);
             
             for (int i=0; i < newAttributeNames.length; i++) {
@@ -33,14 +74,6 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
                 
                 feature.setAttributeDescriptor(attributeIds[i], atb.buildDescriptor(currentAttributeNames[i]), true);              
             }
-            
-            //feature getkollommen
-                    
-            //loop alle kolommen en stel lijstje van kolommen die niet in newAttributeNames staan
-                    
-            //maak leeg behalve indien geo
-            //SimpleFeature f = feature.getFeature();
-            //f.setAttribute(attribute, s.replaceAll(Pattern.quote(search), Matcher.quoteReplacement(replacement) ));          
         }               
 
         return feature;
