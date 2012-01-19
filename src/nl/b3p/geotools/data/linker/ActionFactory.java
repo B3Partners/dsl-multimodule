@@ -870,6 +870,22 @@ public class ActionFactory {
         
         return actionBlocks;
     }
+    
+    public static SortedMap<String, List<List<String>>> getDefaultActionBlocks(String[] invoer, String[] uitvoer, String templateOutputType) {
+        SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
+        
+        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+        
+        if (templateOutputType != null && templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
+            actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
+        }
+        
+        if (templateOutputType != null && !templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
+            actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
+        }
+        
+        return actionBlocks;
+    }
 
     public static boolean isDataStoreAction(String classname) {
         return classname.equals(ActionCombo_GeometrySingle_Writer.class.getSimpleName())

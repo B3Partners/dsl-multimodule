@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.feature.AttributeTypeBuilder;
-import org.opengis.feature.simple.SimpleFeature;
 
 /* Map output columns to inputcolumns. User sees list of all output columns and can
  choose input columns per output column from a dropdown. */
@@ -57,11 +56,8 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
             feature.removeAttributeDescriptor(attributeId);
         }
         
-        /* Van alle niet gemapte uitvoervelden die niet ook als invoer voorkomen
+        /* TODO: Van alle niet gemapte uitvoervelden die niet ook als invoer voorkomen
          * een kolom toevoegen met lege waarde */
-        for (String kolom : allOutputColumns) {
-            // hi
-        }
         
         /* Voor alle gemapte velden feature kolomnaam omzetten naar bijbehorende
          * uitvoer kolom */
