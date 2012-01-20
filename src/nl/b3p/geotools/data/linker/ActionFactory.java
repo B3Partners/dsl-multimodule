@@ -804,21 +804,6 @@ public class ActionFactory {
     public static ActionCondition.CompareType toCompareType(String value) {
         return ActionCondition.CompareType.byString(value);
     }
-    /*
-    public static List<Class> getActionClasses() {
-    Class cls = Action.class;
-    Package pkg = cls.getPackage();
-    String name = pkg.getName();
-
-    try {
-    Class[] classes = Class.forName(name).getClasses();
-    return Arrays.asList(classes);
-    } catch (Exception ex) {
-    return new ArrayList();
-    }
-    }
-     */
-    // The following function
 
     public static SortedMap<String, List<List<String>>> getSupportedActionBlocks(String[] invoer, String[] uitvoer, String templateOutputType) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
@@ -871,19 +856,30 @@ public class ActionFactory {
         return actionBlocks;
     }
     
-    public static SortedMap<String, List<List<String>>> getDefaultActionBlocks(String[] invoer, String[] uitvoer, String templateOutputType) {
+    public static SortedMap<String, List<List<String>>> createDefaultUseTableActionBlocks(String[] uitvoer) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
         
         actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
+              
+        return actionBlocks;
+    }
+    
+    public static SortedMap<String, List<List<String>>> createDefaultUseAsTemplateActionBlocks(String[] uitvoer) {
+        SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
         
-        if (templateOutputType != null && templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
-            actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
-        }
+        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
+              
+        return actionBlocks;
+    }
+    
+    public static SortedMap<String, List<List<String>>> createDefaultNoTableActionBlocks(String[] invoer) {
+        SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
         
-        if (templateOutputType != null && !templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
-            actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
-        }
-        
+        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+        actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
+              
         return actionBlocks;
     }
 
