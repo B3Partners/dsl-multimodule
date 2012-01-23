@@ -859,17 +859,19 @@ public class ActionFactory {
     public static SortedMap<String, List<List<String>>> createDefaultUseTableActionBlocks(String[] uitvoer) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
         
-        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
-              
+        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+        actionBlocks.put(ActionFeatureType_Set_CRS.class.getSimpleName(), ActionFeatureType_Set_CRS.getConstructors());
+                    
         return actionBlocks;
     }
     
     public static SortedMap<String, List<List<String>>> createDefaultUseAsTemplateActionBlocks(String[] uitvoer) {
-        SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
+        SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();    
         
-        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
+        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+        actionBlocks.put(ActionFeatureType_Set_CRS.class.getSimpleName(), ActionFeatureType_Set_CRS.getConstructors());
               
         return actionBlocks;
     }
@@ -877,8 +879,9 @@ public class ActionFactory {
     public static SortedMap<String, List<List<String>>> createDefaultNoTableActionBlocks(String[] invoer) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>();
         
-        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
+        actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
+        actionBlocks.put(ActionFeatureType_Set_CRS.class.getSimpleName(), ActionFeatureType_Set_CRS.getConstructors());
               
         return actionBlocks;
     }
