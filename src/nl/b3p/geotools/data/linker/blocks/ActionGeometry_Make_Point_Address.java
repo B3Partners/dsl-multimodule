@@ -232,8 +232,8 @@ public class ActionGeometry_Make_Point_Address extends Action {
         String url = null;
 
         String googleBaseUrl = "http://maps.google.nl/maps/geo?q=";
+        
         String country = "Nederland";
-
         String plaats = ",+" + city + ",+" + country;
 
         String hl = "&hl=nl";
@@ -253,6 +253,26 @@ public class ActionGeometry_Make_Point_Address extends Action {
 
         return url;
     }
+    
+    private String createAlternateUrl(String postcode) throws Exception {
+
+        String url = null;
+        
+        String baseUrl = "http://bag42.nl/api/v0/geocode/json?maxitems=1&address=";
+        
+        String pc = postcode.replaceAll(" ", "");
+        String encodedParams = null;
+
+        try {
+            encodedParams = URLEncoder.encode(pc, "UTF-8");
+        } catch (UnsupportedEncodingException ex) {
+            throw new Exception(ex);
+        }
+
+        url = baseUrl + encodedParams;
+
+        return url;
+    }
 
     private String createGisGraphyurl() {
         String url = null;
@@ -264,38 +284,51 @@ public class ActionGeometry_Make_Point_Address extends Action {
             String address3, String city) throws Exception {
         Point p1 = null;
         
-        /* TODO: Plaats is verplicht. Controleren of deze gevuld is 
-         Het gehele adres mag ook niet leeg zijn! */
+        /* TODO: Google Plaats is verplicht. Controleren of deze gevuld is 
+         Het gehele adres mag ook niet leeg zijn!
         if (city == null || city.equals("")) {
             throw new Exception("Plaats is leeg.");
         }
+        */
 
-        String adres = (address1 + " " + address2 + address3).trim();
+        String adres = (address1 + " " + address2 + " " + address3).trim();
 
         if (adres == null || adres.equals("")) {
             throw new Exception("Adres is leeg.");
         }
 
-        String url = createGoogleUrl(adres, city);
+        //String url = createGoogleUrl(adres, city);
+        String url = createAlternateUrl(address1);
 
         JSONObject json;
         try {
             json = readJsonFromUrl(url);
-
-            /* Geeft JSONException als Placemark niet bestaat.
-             Geen locatie gevonden */
+            
+            if (json.getString("status").equals("ZERO_RESULTS")) {
+                throw new Exception("Geen resultaat voor adres: " + adres);
+            }
+            
+            /* Geocoder Stefan de Koning */                
+            Double x = new Double(json.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getString("lat"));
+            Double y = new Double(json.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getString("lng"));
+            
+            /* Google
             try {
                 json.getJSONArray("Placemark");
             } catch (JSONException ex) {
                 throw new Exception("Geen resultaat voor adres: " + adres);
             }
-
-            if (json.getJSONArray("Placemark").length() > 1)
+            
+            Double x = null;
+            Double y = null;
+            if (json.getJSONArray("Placemark").length() > 1) {
                 throw new Exception("Teveel resultaten voor adres: " + adres);
-
-            Double x = (Double) json.getJSONArray("Placemark").getJSONObject(0).getJSONObject("Point").getJSONArray("coordinates").get(0);
-            Double y = (Double) json.getJSONArray("Placemark").getJSONObject(0).getJSONObject("Point").getJSONArray("coordinates").get(1);
-
+            }
+                
+            x = (Double) json.getJSONArray("Placemark").getJSONObject(0).getJSONObject("Point").getJSONArray("coordinates").get(0);
+            y = (Double) json.getJSONArray("Placemark").getJSONObject(0).getJSONObject("Point").getJSONArray("coordinates").get(1);
+            */
+            
             /* Lat is in nederland groter dan lon. Ongeveer Lon 4 en Lat 52 */
             try {
                 Double lat = x;
