@@ -241,7 +241,7 @@ public class DataStoreLinker implements Runnable {
         } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
             throw new FeatureException(resources.getString("report.feature.geometryNotAllowed"));
         } else if (!(((Geometry)feature.getDefaultGeometry()).isValid())) {
-            throw new FeatureException(resources.getString("report.feature.geometryNotValid"));
+            //throw new FeatureException(resources.getString("report.feature.geometryNotValid"));
         }
     }
 
