@@ -28,6 +28,9 @@ public class ActionFeatureType_AttributeNames_Rename extends Action {
 
     @Override
     public EasyFeature execute(EasyFeature feature) throws Exception {
+        /* TODO: Mogelijk x en y kolommen niet verwijderen. Dit gaat anders mis bij inlezen
+         * csv in combinatie met het Maak Point uit waarden blok. Dit mapping blok moet dan
+         * als laatste in de actielijst staan */
         
         /* Create list of all columns and remove columns that are not mapped
          * by user. */

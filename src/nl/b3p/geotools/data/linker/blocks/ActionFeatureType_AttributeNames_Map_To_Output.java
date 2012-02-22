@@ -29,7 +29,11 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
     }
 
     @Override
-    public EasyFeature execute(EasyFeature feature) throws Exception {        
+    public EasyFeature execute(EasyFeature feature) throws Exception {
+        /* TODO: Mogelijk x en y kolommen niet verwijderen. Dit gaat anders mis bij inlezen
+         * csv in combinatie met het Maak Point uit waarden blok. Dit mapping blok moet dan
+         * als laatste in de actielijst staan */
+        
         /* Alle niet gemapte velden van (feature) invoer wissen */
         if (removeColumns == null && allOutputColumns != null &&
                 allOutputColumns.size() > 0) {

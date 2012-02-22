@@ -41,7 +41,7 @@ public class ActionGeometry_Make_Point extends Action {
         if (useID) {
             attributeIDX = attributeID;
 
-        } else {
+        } else {            
             attributeIDX = feature.getAttributeDescriptorIDbyName(attributeName);
             attributeIDY = feature.getAttributeDescriptorIDbyName(attributeNameY);
         }
