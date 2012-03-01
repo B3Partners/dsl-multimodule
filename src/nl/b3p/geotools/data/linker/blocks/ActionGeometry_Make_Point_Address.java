@@ -254,17 +254,15 @@ public class ActionGeometry_Make_Point_Address extends Action {
         return url;
     }
     
-    private String createAlternateUrl(String postcode) throws Exception {
+    private String createAlternateUrl(String address) throws Exception {
 
         String url = null;
         
         String baseUrl = "http://bag42.nl/api/v0/geocode/json?maxitems=1&address=";
-        
-        String pc = postcode.replaceAll(" ", "");
         String encodedParams = null;
 
         try {
-            encodedParams = URLEncoder.encode(pc, "UTF-8");
+            encodedParams = URLEncoder.encode(address, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
             throw new Exception(ex);
         }
@@ -298,14 +296,42 @@ public class ActionGeometry_Make_Point_Address extends Action {
         }
 
         //String url = createGoogleUrl(adres, city);
-        String url = createAlternateUrl(address1);
+        String newAdres = adres.replaceAll(" ", "");
+        String encodeAdres = null;
+        
+        /* Deze geocoder geeft geen resultaten op een aantal plaatnamen */        
+        if (city != null && city.toUpperCase().equals("'S-HERTOGENBOSCH")
+                || city.toUpperCase().equals("'S HERTOGENBOSCH") ) {
+            city = "DEN BOSCH";
+        }
+        
+        if (city != null && city.toUpperCase().equals("'S-GRAVENHAGE")
+                || city.toUpperCase().equals("'S GRAVENHAGE")) {
+            city = "DEN HAAG";
+        }
+        
+        if (city != null && city.toUpperCase().equals("'S-GRAVENDEEL")) {
+            city = "GRAVENDEEL";
+        }
+        
+        if (city != null && city.toUpperCase().equals("DRIEBERGEN-RIJSENBURG")) {
+            city = "DRIEBERGEN";
+        }
+        
+        if (city != null && !city.equals("")) {
+            encodeAdres = newAdres + "+" + city;
+        } else {
+            encodeAdres = newAdres;
+        }        
+        
+        String url = createAlternateUrl(encodeAdres);
 
         JSONObject json;
         try {
             json = readJsonFromUrl(url);
             
             if (json.getString("status").equals("ZERO_RESULTS")) {
-                throw new Exception("Geen resultaat voor adres: " + adres);
+                throw new Exception("Geen resultaat voor adres: " + encodeAdres);
             }
             
             /* Geocoder Stefan de Koning */                

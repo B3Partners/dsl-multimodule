@@ -66,7 +66,15 @@ public class ActionFeatureType_Replace_Class extends Action {
                     feature.setAttributeDescriptor(attributeID, attributeName, newAttributeClass, false);
 
                     if (newAttributeClass.equals(Integer.class)) {
-                        feature.setAttribute(attributeID, Integer.parseInt(value));
+                        
+                        Integer waarde = null;
+                        try {
+                            waarde = Integer.parseInt(value);
+                        } catch (NumberFormatException nfe) {
+                            waarde = 0;
+                        }
+                        
+                        feature.setAttribute(attributeID, waarde);
 
                     } else if (newAttributeClass.equals(String.class)) {
                         feature.setAttribute(attributeID, value);
