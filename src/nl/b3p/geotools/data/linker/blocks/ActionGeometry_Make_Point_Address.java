@@ -314,8 +314,17 @@ public class ActionGeometry_Make_Point_Address extends Action {
             city = "GRAVENDEEL";
         }
         
+        if (city != null && city.toUpperCase().equals("'S-GRAVENZANDE")
+                || city.toUpperCase().equals("'S GRAVENZANDE")) {
+            city = "GRAVENZANDE";
+        }
+        
         if (city != null && city.toUpperCase().equals("DRIEBERGEN-RIJSENBURG")) {
             city = "DRIEBERGEN";
+        }
+        
+        if (city != null && city.toUpperCase().equals("HARDINXVELD-GIESSENDAM")) {
+            city = "HARDINXVELD";
         }
         
         if (city != null && !city.equals("")) {
