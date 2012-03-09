@@ -148,6 +148,14 @@ public class Process implements Serializable, Nameable {
     @Basic(optional = true)
     @Column(name = "user_id")
     private Integer userId;
+    
+    @Basic(optional = true)
+    @Column(name = "user_name")
+    private String userName;
+    
+    @Basic(optional = true)
+    @Column(name = "remarks")
+    private String remarks;
 
     public Process() {
     }
@@ -358,5 +366,21 @@ public class Process implements Serializable, Nameable {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }
