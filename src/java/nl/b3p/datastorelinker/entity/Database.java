@@ -172,6 +172,10 @@ public class Database implements Serializable, Nameable {
     @Column(name = "user_id")
     private Integer userId;
 
+    @Basic(optional = false)
+    @Column(name = "webservice_db")
+    private Boolean webserviceDb = false;
+    
     public Database() {
     }
 
@@ -419,5 +423,13 @@ public class Database implements Serializable, Nameable {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    public Boolean getWebserviceDb() {
+        return webserviceDb;
+    }
+
+    public void setWebserviceDb(Boolean webserviceDb) {
+        this.webserviceDb = webserviceDb;
     }
 }
