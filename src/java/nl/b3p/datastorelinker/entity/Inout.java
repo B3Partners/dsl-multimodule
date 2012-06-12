@@ -215,7 +215,10 @@ public class Inout implements Serializable, Nameable {
             if (name != null) {
                 return name;
             } else {
-                String inoutName = database.getName();
+                String inoutName = "";
+                if (database != null)
+                    inoutName = database.getName();
+                
                 if (tableName != null && !tableName.trim().equals("")) {
                     inoutName += " (" + tableName.trim() + ")";
                 }
