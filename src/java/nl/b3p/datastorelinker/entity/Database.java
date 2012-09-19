@@ -248,6 +248,8 @@ public class Database implements Serializable, Nameable {
         } else {
             if (type == Type.ORACLE) {
                 return host + "/" + schema;
+            } else if(type == Type.POSTGIS){
+                return host + "/" + databaseName +"/"+ schema;
             } else {
                 return host + "/" + databaseName;
             }
