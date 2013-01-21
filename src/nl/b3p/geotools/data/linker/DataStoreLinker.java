@@ -7,7 +7,6 @@ package nl.b3p.geotools.data.linker;
 import com.vividsolutions.jts.geom.Geometry;
 import java.io.File;
 import java.io.IOException;
-import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -21,15 +20,17 @@ import nl.b3p.datastorelinker.util.Namespaces;
 import nl.b3p.datastorelinker.util.Util;
 import nl.b3p.geotools.data.linker.blocks.Action;
 import nl.b3p.geotools.data.linker.blocks.WritableAction;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import nl.b3p.geotools.data.linker.util.LocalizationUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
+import org.geotools.data.FileDataStoreFactorySpi;
 import org.geotools.data.oracle.OracleNGDataStoreFactory;
 import org.geotools.data.postgis.PostgisNGDataStoreFactory;
-import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.data.shapefile.indexed.IndexedShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.jdom.Element;
@@ -428,7 +429,9 @@ public class DataStoreLinker implements Runnable {
                 if (params.containsKey("url")) {
                     String url=(String) params.get("url");
                     if (url.lastIndexOf(".shp") == (url.length()-".shp".length())) {
-                        ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
+                        //ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
+                        FileDataStoreFactorySpi factory = new IndexedShapefileDataStoreFactory();
+                        
                         params.put("url",new File(url).toURL());
                         dataStore = factory.createNewDataStore( params );
                     } else {

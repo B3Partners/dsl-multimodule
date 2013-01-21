@@ -8,8 +8,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
@@ -18,7 +16,7 @@ import nl.b3p.suf2.records.SUF2Record03;
 import nl.b3p.suf2.records.SUF2Record06;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
-import org.geotools.data.jdbc.JDBCDataStore;
+import org.geotools.jdbc.JDBCDataStore;
 /**
  * B3partners B.V. http://www.b3partners.nl
  * @author Roy
