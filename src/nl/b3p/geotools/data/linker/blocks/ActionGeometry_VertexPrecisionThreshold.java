@@ -148,13 +148,16 @@ public class ActionGeometry_VertexPrecisionThreshold extends Action {
             if(x == null) {
                 x = cx;
                 y = cy;
+                //System.out.printf("1st  coord: %.1f, %.1f\n", x, y);
             } else {
                 if(!cx.equals(x) || !cy.equals(y)) {
                     /* Een vertex heeft een coordinaat die verschilt van de eerste
                      * vertex bij de schaal, dus feature ongewijzigd doorlaten
                      */
+                    //System.out.printf("diff coord: %.1f, %.1f\n", cx, cy);
                     return false;
                 }
+                //System.out.printf("same coord: %.1f, %.1f\n", cx, cy);
             }
         }
         return true;
