@@ -70,6 +70,9 @@ public class ActionFactory {
     public static final String ATTRIBUTE_NAME_ADDRESS2 = "attribute_name_address2";
     public static final String ATTRIBUTE_NAME_ADDRESS3 = "attribute_name_address3";
     public static final String ATTRIBUTE_NAME_CITY = "attribute_name_city";
+    
+    public static final String ATTRIBUTE_NAME_DXF_HANDLE = "attribute_name_dxf_handle";
+    public static final String ATTRIBUTE_NAME_OTHER_FILE_HANDLE = "attribute_name_other_file_handle";
 
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
@@ -586,6 +589,14 @@ public class ActionFactory {
 
                 return new ActionGeometry_Make_Point_Address(address1, address2, address3, city, srs);
                 
+            /* Constructors nagaan voor ActionFeature_Add_External_Attributes */
+            } else if (isThisClass(actionClassName, ActionFeature_Add_External_Attributes.class)) {
+                
+                String dxfHandle = (String) properties.get(ATTRIBUTE_NAME_DXF_HANDLE);
+                String otherFileHandle = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_HANDLE);
+
+                return new ActionFeature_Add_External_Attributes(dxfHandle, otherFileHandle);
+                
             } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {                    
                 Integer size = properties.size();
                 
@@ -845,6 +856,8 @@ public class ActionFactory {
 
         actionBlocks.put(ActionGeometry_Make_Point_Address.class.getSimpleName(), ActionGeometry_Make_Point_Address.getConstructors());
 
+        actionBlocks.put(ActionFeature_Add_External_Attributes.class.getSimpleName(), ActionFeature_Add_External_Attributes.getConstructors());
+        
         if (templateOutputType != null && templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
             actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
         }
