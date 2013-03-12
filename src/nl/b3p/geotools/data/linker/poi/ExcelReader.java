@@ -66,7 +66,7 @@ public class ExcelReader {
                         default:
                     }
 
-                    if (r == 0 && index > 0) {
+                    if (r == 0 && index > -1) {
                         record.add(value);
                     }
 

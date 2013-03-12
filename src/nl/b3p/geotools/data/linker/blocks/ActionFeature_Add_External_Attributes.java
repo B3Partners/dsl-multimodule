@@ -86,6 +86,11 @@ public class ActionFeature_Add_External_Attributes extends Action {
             /* Record is kolomnamen eerste regel van Excel + waardes */
             if (record != null && columns != null && record.size() > columns.size()) {
                 for (int i = 0; i < columns.size(); i++) {
+                    /* Koppel kolom zelf niet toevoegen */
+                    if (i == index) {
+                        continue;
+                    }
+                    
                     feature.addAttributeDescriptor(record.get(i), String.class);
                     feature.setAttribute(record.get(i), record.get(i + columns.size()));
                 }
