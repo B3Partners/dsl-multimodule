@@ -17,22 +17,26 @@ public class ActionFeature_Add_External_Attributes extends Action {
 
     private int attributeIDDXFHandle;
     private int attributeIDOtherFileHandle;
+    private int attributeIDOtherFileName;
     private String attributeNameDXFHandle;
     private String attributeNameOtherFileHandle;
+    private String attributeNameOtherFileName;
     private boolean useID = true;
 
     public ActionFeature_Add_External_Attributes(int attributeIDDXFHandle,
-            int attributeIDOtherFileHandle) {
+            int attributeIDOtherFileHandle, int attributeIDOtherFileName) {
 
         this.attributeIDDXFHandle = attributeIDDXFHandle;
         this.attributeIDOtherFileHandle = attributeIDOtherFileHandle;
+        this.attributeIDOtherFileName = attributeIDOtherFileName;
     }
 
     public ActionFeature_Add_External_Attributes(String attributeNameDXFHandle,
-            String attributeNameOtherFileHandle) {
+            String attributeNameOtherFileHandle, String attributeNameOtherFileName) {
 
         this.attributeNameDXFHandle = attributeNameDXFHandle;
         this.attributeNameOtherFileHandle = attributeNameOtherFileHandle;
+        this.attributeNameOtherFileName = attributeNameOtherFileName;
 
         this.useID = false;
     }
@@ -41,6 +45,7 @@ public class ActionFeature_Add_External_Attributes extends Action {
 
         attributeIDDXFHandle = -1;
         attributeIDOtherFileHandle = -1;
+        attributeIDOtherFileName = -1;
 
         String dxfHandle = null;
         EasyFeature f = null;
@@ -59,7 +64,9 @@ public class ActionFeature_Add_External_Attributes extends Action {
         }
 
         /* Check if handle exists in external file */
-        if (dxfHandle != null && !dxfHandle.equals("")) {
+        if (attributeNameOtherFileName != null &&
+                dxfHandle != null && !dxfHandle.equals("")) {
+            
             return addExternalData(feature, dxfHandle);
         }
 
@@ -71,16 +78,14 @@ public class ActionFeature_Add_External_Attributes extends Action {
 
         try {
             List<String> record = null;
-
-            String fileName = "c:\\tmp\\sonderingen.xls";
-            List<String> columns = reader.getColumns(fileName);
+            List<String> columns = reader.getColumns(attributeNameOtherFileName);
 
             /* Kijken of dxfHandle waarde in de Excel kolom 
              * attributeNameOtherFileHandle voorkomt */
             Integer index = columns.indexOf(attributeNameOtherFileHandle.toLowerCase());
             
             if (index != null && index > -1) {
-                record = reader.getRecord(fileName, index, dxfHandle);
+                record = reader.getRecord(attributeNameOtherFileName, index, dxfHandle);
             }
 
             /* Record is kolomnamen eerste regel van Excel + waardes */
@@ -116,9 +121,10 @@ public class ActionFeature_Add_External_Attributes extends Action {
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
-        constructors.add(Arrays.asList(new String[]{
+        constructors.add(Arrays.asList(new String[] {
+                    ActionFactory.ATTRIBUTE_NAME_OTHER_FILE_NAME,
                     ActionFactory.ATTRIBUTE_NAME_DXF_HANDLE,
-                    ActionFactory.ATTRIBUTE_NAME_OTHER_FILE_HANDLE
+                    ActionFactory.ATTRIBUTE_NAME_OTHER_FILE_HANDLE                    
                 }));
 
         return constructors;

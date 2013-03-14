@@ -71,9 +71,10 @@ public class ActionFactory {
     public static final String ATTRIBUTE_NAME_ADDRESS3 = "attribute_name_address3";
     public static final String ATTRIBUTE_NAME_CITY = "attribute_name_city";
     
+    public static final String ATTRIBUTE_NAME_OTHER_FILE_NAME = "attribute_name_other_file_name";
     public static final String ATTRIBUTE_NAME_DXF_HANDLE = "attribute_name_dxf_handle";
     public static final String ATTRIBUTE_NAME_OTHER_FILE_HANDLE = "attribute_name_other_file_handle";
-
+    
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
     public static Action createAction(String actionClassName, Map<String, Object> properties) throws Exception {
@@ -592,10 +593,11 @@ public class ActionFactory {
             /* Constructors nagaan voor ActionFeature_Add_External_Attributes */
             } else if (isThisClass(actionClassName, ActionFeature_Add_External_Attributes.class)) {
                 
+                String otherFileName = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_NAME);
                 String dxfHandle = (String) properties.get(ATTRIBUTE_NAME_DXF_HANDLE);
                 String otherFileHandle = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_HANDLE);
-
-                return new ActionFeature_Add_External_Attributes(dxfHandle, otherFileHandle);
+                                
+                return new ActionFeature_Add_External_Attributes(dxfHandle, otherFileHandle, otherFileName);
                 
             } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {                    
                 Integer size = properties.size();
