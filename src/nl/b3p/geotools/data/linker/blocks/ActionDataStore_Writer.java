@@ -43,6 +43,8 @@ public class ActionDataStore_Writer extends Action {
     private final boolean polygonize;
     private final boolean polygonizeWithAttr;
     private final boolean polygonizeSufLki;
+    private final boolean postPointWithinPolygon;
+    
     private Exception constructorEx;
     private HashMap<String, FeatureWriter> featureWriters = new HashMap();
     private HashMap<String, String> checked = new HashMap();
@@ -83,6 +85,12 @@ public class ActionDataStore_Writer extends Action {
         }if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
         }
+        
+        if (ActionFactory.propertyCheck(properties, "postPointWithinPolygon")) {
+            postPointWithinPolygon = (Boolean) properties.get("postPointWithinPolygon");
+        } else {
+            postPointWithinPolygon = true;
+        }
 
         if (this.polygonize) {
             log.info("Polygonize is configured as post action");
@@ -96,6 +104,16 @@ public class ActionDataStore_Writer extends Action {
         } catch (Exception ex) {
             constructorEx = ex;
         }
+        
+        if (this.postPointWithinPolygon) {
+            log.info("Point_Within_Polygon with attribute is configured as post action");
+            try{
+                collectionActions.add(new CollectionAction_Point_Within_Polygon(dataStore2Write, new HashMap(properties)));
+            }catch(Exception e){
+                log.error("Cannot create Point_Within_Polygon post action",e);
+            }
+        }
+        
         if (this.polygonizeWithAttr) {
             log.info("Polygonize with attribute is configured as post action");
             try{
@@ -218,7 +236,31 @@ public class ActionDataStore_Writer extends Action {
                     }
                 }
             }
-            if(ca instanceof CollectionAction_PolygonizeWithAttr){
+            if(ca instanceof CollectionAction_Point_Within_Polygon){
+                DataStore ds=null;
+                try{
+                    CollectionAction_Point_Within_Polygon cap = (CollectionAction_Point_Within_Polygon) ca;
+                    
+                    FeatureSource fs = dataStore2Write.getFeatureSource(cap.getPointsTable());
+                    FeatureCollection fc = fs.getFeatures();
+                    
+                    FeatureSource fs2 = dataStore2Write.getFeatureSource(cap.getPolygonTable());
+                    FeatureCollection fc2 = fs2.getFeatures();
+                    
+                    ds= DataStoreLinker.openDataStore(this.params);
+                    cap.setDataStore2Write(ds);
+                    
+                    cap.execute(fc, fc2, this);
+                } catch (Exception e) {
+                    log.error("Error while Points within Polygon with attributes.", e);
+                }finally{
+                    if (ds!=null){
+                        ds.dispose();
+                    }
+                }
+            }
+            
+            if (ca instanceof CollectionAction_PolygonizeWithAttr){
                 DataStore ds=null;
                 try{
                     CollectionAction_PolygonizeWithAttr cap = (CollectionAction_PolygonizeWithAttr) ca;
