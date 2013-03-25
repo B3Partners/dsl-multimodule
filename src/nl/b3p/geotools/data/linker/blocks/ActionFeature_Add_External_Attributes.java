@@ -101,8 +101,6 @@ public class ActionFeature_Add_External_Attributes extends Action {
                 }
             }
 
-            /* Kolommen in nabewerking ook toevoegen aan bijbehorend vlak */
-
         } catch (FileNotFoundException ex) {
         } catch (IOException ex) {
         }
