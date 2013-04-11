@@ -89,7 +89,7 @@ public class ActionDataStore_Writer extends Action {
         if (ActionFactory.propertyCheck(properties, "postPointWithinPolygon")) {
             postPointWithinPolygon = (Boolean) properties.get("postPointWithinPolygon");
         } else {
-            postPointWithinPolygon = true;
+            postPointWithinPolygon = false;
         }
 
         if (this.polygonize) {
