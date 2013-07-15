@@ -408,11 +408,13 @@ public class DataStoreLinker implements Runnable {
         if (dbType != null && dbType.equals(TYPE_ORACLE)) {
             log.info("Created OracleNGDataStoreFactory with: " + params);
             
-            //params.put(OracleNGDataStoreFactory.EXPOSE_PK.key, Boolean.TRUE);
+            params.put(OracleNGDataStoreFactory.EXPOSE_PK.key, Boolean.TRUE);
             params.put("min connections", 0);
             params.put("max connections", 50);
             params.put("connection timeout", 60);
             params.put("validate connections", Boolean.FALSE);
+            
+            params.put("Geometry metadata table", "GEOMETRY_COLUMNS");
             
             return (new OracleNGDataStoreFactory()).createDataStore(params);
             
