@@ -3,6 +3,7 @@ package nl.b3p.geotools.data.linker.feature;
 import com.vividsolutions.jts.geom.Geometry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.feature.AttributeTypeBuilder;
@@ -79,6 +80,9 @@ public class EasyFeature {
      * @param attributeDescriptor
      */
     public void insertAttributeDescriptor(int attributeID, AttributeDescriptor attributeDescriptor) {
+        // save userdata
+        Object pk = feature.getUserData().get("sourcePks");
+
         // Add attributeType to current attributeList
         List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
         attributeDescriptors.add(attributeID, attributeDescriptor);
@@ -96,7 +100,8 @@ public class EasyFeature {
         attributes.add(attributeID, null);
         // Build new feature with new values array
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
-    }
+        feature.getUserData().put("sourcePks", pk);
+     }
 
     /**
      * Used for extended AttributeType adding. Build your own AttributeType instead of using the default method
@@ -115,6 +120,9 @@ public class EasyFeature {
      * @param attributeID
      */
     public void removeAttributeDescriptor(int attributeID) throws Exception {
+        // save userdata
+        Object pk = feature.getUserData().get("sourcePks");
+
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
         featureTypeBuilder.init(feature.getFeatureType());
 
@@ -127,7 +135,8 @@ public class EasyFeature {
         attributes.remove(attributeID);
 
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
-    }
+        feature.getUserData().put("sourcePks", pk);
+     }
 
     /**
      * Remove AttributeType by name
@@ -158,6 +167,9 @@ public class EasyFeature {
      * @param attributeDescriptor
      */
     public void setAttributeDescriptor(int attributeID, AttributeDescriptor attributeDescriptor, boolean keepValue) {
+        // save userdata
+        Object pk = feature.getUserData().get("sourcePks");
+
         // Add attributeType to current attributeList
         List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
         attributeDescriptors.set(attributeID, attributeDescriptor);
@@ -177,6 +189,7 @@ public class EasyFeature {
         }
 
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
+        feature.getUserData().put("sourcePks", pk);
     }
 
     public void setAttributeDescriptor(String attributeName, AttributeDescriptor attributeDescriptor) throws Exception {
@@ -277,12 +290,17 @@ public class EasyFeature {
     }
 
     public void setTypeName(String name) {
+        // save userdata
+        Object pk = feature.getUserData().get("sourcePks");
+
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
         featureTypeBuilder.addAll(feature.getFeatureType().getAttributeDescriptors());
         featureTypeBuilder.setName(name);
-
+        
         SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(featureTypeBuilder.buildFeatureType());
         feature = featureBuilder.buildFeature(feature.getID(), feature.getAttributes().toArray(new Object[feature.getAttributeCount()]));
+        
+        feature.getUserData().put("sourcePks", pk);
     }
 
     public String getID() {

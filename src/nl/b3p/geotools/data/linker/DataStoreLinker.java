@@ -416,6 +416,10 @@ public class DataStoreLinker implements Runnable {
         log.debug("openDataStore with: " + params);
 
         DataStore dataStore = null;
+        
+        // TODO: indien je bij het aanmaken van een nieuwe datastore primary
+        // keys wil opgeven dan kan dat via PK_METADATA_TABLE.
+        // Nu nog buggy, fix in 8.7
 
         String dbType = (String) params.get("dbtype");
         if (dbType != null && dbType.equals(TYPE_ORACLE)) {

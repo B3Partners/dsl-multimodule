@@ -1,7 +1,5 @@
 package nl.b3p.geotools.data.linker.blocks;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import java.io.IOException;
@@ -13,12 +11,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import org.geotools.data.*;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.FeatureException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import org.geotools.data.DataStore;
+import org.geotools.data.DefaultTransaction;
+import org.geotools.data.FeatureSource;
+import org.geotools.data.FeatureStore;
+import org.geotools.data.FeatureWriter;
+import org.geotools.data.Transaction;
 import org.geotools.data.oracle.OracleDialect;
 import org.geotools.data.postgis.PostGISDialect;
 import org.geotools.factory.Hints;
@@ -183,13 +186,21 @@ public class ActionDataStore_Writer extends Action {
             featureWriters.put(typename, writer);
         }
 
-        PrimaryKey pk = null;
+        PrimaryKey pks = null;
         if (featurePKs.containsKey(typename)) {
-            pk = featurePKs.get(typename);
+            pks = featurePKs.get(typename);
         } else if (dataStore2Write != null && (dataStore2Write instanceof JDBCDataStore)) {
             JDBCFeatureStore fs = (JDBCFeatureStore) ((JDBCDataStore) dataStore2Write).getFeatureSource(typename);
-            pk = fs.getPrimaryKey();
-            featurePKs.put(typename, pk);
+            pks = fs.getPrimaryKey();
+            // als doel PK is FID (BigDecimal), dan is deze eerder automatisch gegenereerd
+            // we gebruiken deze dan niet en vertrouwen weer op die generatie de komende keer
+            if (pks!=null && pks.getColumns().size()==1) {
+                PrimaryKeyColumn pk = pks.getColumns().get(0);
+                if (pk.getName().equalsIgnoreCase("FID")) {
+                    pks = null;
+                }
+            }
+            featurePKs.put(typename, pks);
         }
 
         //store the typename
@@ -198,7 +209,7 @@ public class ActionDataStore_Writer extends Action {
         }
 
         try {
-            write(writer, pk, feature.getFeature());
+            write(writer, pks, feature.getFeature());
         } catch (Exception ex) {
             //log.debug("Error getting geometry. Feature not written: "+feature.toString(), ex);
             // moeten dit soort dingen niet gewoon in een finally block?!?
@@ -293,28 +304,29 @@ public class ActionDataStore_Writer extends Action {
     }
 
     private void write(FeatureWriter writer, PrimaryKey pk, SimpleFeature feature) throws IOException {
+
+        // Bepaal de primary key(s) van record in de doeltabel
         PrimaryKey usePk = pk;
-        
-        /* TODO: feature UserData wordt gezet in DataStoreLinker.processTypeName()
-         * maar is hier leeg ? Indien tabel gedropped wordt en er dus een nieuwe
-         wordt gemaakt de primary keys gebruiken van bron. */
-        if (dropFirst) {
-            if (feature.getUserData().containsKey("sourcePks")) {
-                usePk = (PrimaryKey) feature.getUserData().get("sourcePks");
-            }
-        }
-        
+            // TODO: overnemen van pk uit source en instellen voor target
+            // kan niet omdat dit niet (gemakkelijk) ondersteund wordt.
+            // Nu wordt de automatisch gegenereerde primary key gebruikt
+            // indien er geen doeltabel wordt gebruikt.
+//          if (dropFirst) {
+//              if (feature.getUserData().containsKey("sourcePks")) {
+//                  usePk = (PrimaryKey) feature.getUserData().get("sourcePks");
+//              }
+//          }
+
         StringBuilder oldfid = new StringBuilder();
         if (usePk != null) {
             List<PrimaryKeyColumn> pkcs = usePk.getColumns();
             for (PrimaryKeyColumn pkc : pkcs) {
                 String cn = pkc.getName();
                 Object o = feature.getAttribute(cn);
-                if (o != null) {
-                    oldfid.append(o);
+                if (o == null) {
+                    throw new IllegalAttributeException("Could not obtain non-null value for primary key " + cn + " for SimpleFeature: " + feature.getID() + "\n");
                 }
-                oldfid.append(".");
-                
+                oldfid.append(o).append(".");
             }
             oldfid.setLength(oldfid.length() - 1);
         }
@@ -340,7 +352,7 @@ public class ActionDataStore_Writer extends Action {
             }
             newFeature.getUserData().put(Hints.USE_PROVIDED_FID, true);
         }
-
+ 
         try {
             /* Ingebouwd dat bij een append alleen gelijke kolomnamen
              * worden toegevoegd. Je hoeft bij een append dus niet meer van te voren te
@@ -449,20 +461,23 @@ public class ActionDataStore_Writer extends Action {
 
             } else if (!append) {
                 log.info("Removing all features from: " + typename2Write);
-                removeAllFeatures(dataStore2Write, typename2Write);
+// CvL: truncate weer aangezet voor tabellen met meer geometrie kolommen
+// later nog eens uitzoeken waarom
                 // Check if DataStore is a Database
-                /*if (dataStore2Write instanceof JDBCDataStore) {
-                 // Empty table
-                 JDBCDataStore database = (JDBCDataStore) dataStore2Write;
-                 Connection con = database.getConnection(Transaction.AUTO_COMMIT);
-                 con.setAutoCommit(true);
+                if (dataStore2Write instanceof JDBCDataStore) {
+                    // Empty table
+                    JDBCDataStore database = (JDBCDataStore) dataStore2Write;
+                    Connection con = database.getConnection(Transaction.AUTO_COMMIT);
+                    con.setAutoCommit(true);
 
-                 // TODO make this function work with all databases
-                 PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
-                 ps.execute();
+                    // TODO make this function work with all databases
+                    PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
+                    ps.execute();
 
-                 con.close();
-                 }*/
+                    con.close();
+                } else {
+                    removeAllFeatures(dataStore2Write, typename2Write);
+                }
             }
             return typename2Write;
         }
