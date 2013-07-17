@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.feature.AttributeTypeBuilder;
+import org.opengis.feature.type.GeometryDescriptor;
 
 /* 
     Map input columns to outputcolumns. User sees list of all input columns and
@@ -38,8 +39,11 @@ public class ActionFeatureType_AttributeNames_Rename extends Action {
                 currentAttributeNames.length > 0) {
 
             removeColumns = new ArrayList<String>();
-            
-            String geomColumn = feature.getFeatureType().getGeometryDescriptor().getName().getLocalPart();
+            GeometryDescriptor gd = feature.getFeatureType().getGeometryDescriptor();
+            String geomColumn = "";
+            if (gd != null) {
+                geomColumn = gd.getName().getLocalPart();
+            }
 
             for (int i = 0; i < feature.getAttributeCount(); i++) {
                 String columnName = feature.getAttributeDescriptorNameByID(i);

@@ -45,12 +45,24 @@ public class ActionCondition_Feature_Class extends ActionCondition {
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
-        if (useGeometry) {
+        // Aanpassing om tabel zonder geometrie te kunnen vullen:
+        // Point,LineString,Polygon,MultiPoint,MultiLineString,MultiPolygon 
+        // compare met Object is altijd false
+        Class left = Object.class;
+
+        if (useGeometry && feature.getFeatureType().getGeometryDescriptor() == null) {
+            attributeName = null;
+        } else if (useGeometry) {
             attributeName = feature.getFeatureType().getGeometryDescriptor().getLocalName();
         }
 
-        fixAttributeID(feature);
-        Class left = feature.getAttribute(attributeID).getClass();
+        if (attributeName != null) {
+            fixAttributeID(feature);
+            Object o = feature.getAttribute(attributeID);
+            if (o != null) {
+                left = o.getClass();
+            }
+        }
 
         return compare(feature, left, ActionCondition.CompareType.EQUAL, right);
     }

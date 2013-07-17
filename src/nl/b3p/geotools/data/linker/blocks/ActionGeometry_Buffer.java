@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import org.opengis.feature.type.GeometryDescriptor;
 
 /**
  * Buffer geometries (make them thicker)
@@ -30,7 +31,11 @@ public class ActionGeometry_Buffer extends Action {
             throw new Exception("Buffersize is " + bufferSize + "; must be above zero");
         }
 
-        attributeName = feature.getFeatureType().getGeometryDescriptor().getName().getLocalPart();
+        GeometryDescriptor gd = feature.getFeatureType().getGeometryDescriptor();
+        if (gd == null) {
+            return feature;
+        }
+        attributeName = gd.getName().getLocalPart();
         fixAttributeID(feature);
 
         // Get current geometry

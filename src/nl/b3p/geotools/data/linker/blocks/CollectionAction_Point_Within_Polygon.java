@@ -35,8 +35,10 @@ public class CollectionAction_Point_Within_Polygon extends CollectionAction {
     private DataStore dataStore2Write = null;
     private String pointsTable = null;
     private String polygonTable = null;
+    
     private static final String MATCHED = "_matched";
-
+    private static final int BUFFER_POINT = 1;
+    
     public CollectionAction_Point_Within_Polygon(DataStore dataStore2Write, Map properties) throws Exception {
         /* TODO: Add post actions to GUI with params.
          New table which links post actions to process. */
@@ -92,7 +94,7 @@ public class CollectionAction_Point_Within_Polygon extends CollectionAction {
                 Geometry geom = (Geometry) feature.getDefaultGeometry();
 
                 /* Small buffer for Point with intersects filter */
-                geom = geom.buffer(1);
+                geom = geom.buffer(BUFFER_POINT);
 
                 /* Filters */
                 polyCheck = (Filter) ff.intersects(ff.property("the_geom"), ff.literal(geom));
@@ -100,7 +102,7 @@ public class CollectionAction_Point_Within_Polygon extends CollectionAction {
 
                 newFc = polygonCollection.subCollection(andFil);
                 
-                if (newFc != null && newFc.size() == 1) {
+                if (newFc != null && newFc.size() > 0) {
                     SimpleFeature sf = (SimpleFeature) newFc.features().next();
                     resultMap.put(feature, sf);
                 }

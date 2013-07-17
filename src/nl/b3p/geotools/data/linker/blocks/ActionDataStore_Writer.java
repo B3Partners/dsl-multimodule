@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
@@ -20,17 +21,23 @@ import nl.b3p.geotools.data.linker.FeatureException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.data.oracle.OracleDialect;
 import org.geotools.data.postgis.PostGISDialect;
+import org.geotools.factory.Hints;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.IllegalAttributeException;
 import org.geotools.jdbc.JDBCDataStore;
+import org.geotools.jdbc.JDBCFeatureStore;
+import org.geotools.jdbc.PrimaryKey;
+import org.geotools.jdbc.PrimaryKeyColumn;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.GeometryDescriptor;
 import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 
 /**
  * Write to a datastore (file or JDBC)
+ *
  * @author Gertjan Al, B3Partners
  */
 public class ActionDataStore_Writer extends Action {
@@ -44,9 +51,9 @@ public class ActionDataStore_Writer extends Action {
     private final boolean polygonizeWithAttr;
     private final boolean polygonizeSufLki;
     private final boolean postPointWithinPolygon;
-    
     private Exception constructorEx;
     private HashMap<String, FeatureWriter> featureWriters = new HashMap();
+    private HashMap<String, PrimaryKey> featurePKs = new HashMap();
     private HashMap<String, String> checked = new HashMap();
     private ArrayList<String> featureTypeNames = new ArrayList();
     private static final int MAX_CONNECTIONS_NR = 50;
@@ -82,10 +89,11 @@ public class ActionDataStore_Writer extends Action {
             polygonizeSufLki = (Boolean) properties.get(ActionFactory.POLYGONIZESUFLKI);
         } else {
             polygonizeSufLki = false;
-        }if (!params.containsKey(MAX_CONNECTIONS)) {
+        }
+        if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
         }
-        
+
         if (ActionFactory.propertyCheck(properties, "postPointWithinPolygon")) {
             postPointWithinPolygon = (Boolean) properties.get("postPointWithinPolygon");
         } else {
@@ -98,45 +106,45 @@ public class ActionDataStore_Writer extends Action {
         }
 
         try {
-            dataStore2Write = DataStoreLinker.openDataStore(params,true);
+            dataStore2Write = DataStoreLinker.openDataStore(params);
             initDone = (dataStore2Write != null);
 
         } catch (Exception ex) {
             constructorEx = ex;
         }
-        
+
         if (this.postPointWithinPolygon) {
             log.info("Point_Within_Polygon with attribute is configured as post action");
-            try{
+            try {
                 collectionActions.add(new CollectionAction_Point_Within_Polygon(dataStore2Write, new HashMap(properties)));
-            }catch(Exception e){
-                log.error("Cannot create Point_Within_Polygon post action",e);
+            } catch (Exception e) {
+                log.error("Cannot create Point_Within_Polygon post action", e);
             }
         }
-        
+
         if (this.polygonizeWithAttr) {
             log.info("Polygonize with attribute is configured as post action");
-            try{
-                collectionActions.add(new CollectionAction_PolygonizeWithAttr(dataStore2Write,new HashMap(properties)));
-            }catch(Exception e){
-                log.error("Can not create PolygonizeWithAttr post action",e);
+            try {
+                collectionActions.add(new CollectionAction_PolygonizeWithAttr(dataStore2Write, new HashMap(properties)));
+            } catch (Exception e) {
+                log.error("Can not create PolygonizeWithAttr post action", e);
             }
-        }else if (this.polygonizeSufLki) {
+        } else if (this.polygonizeSufLki) {
             log.info("Polygonize with attribute is configured as post action");
-            try{
-                collectionActions.add(new CollectionAction_PolygonizeSufLki(dataStore2Write,new HashMap(properties)));
-            }catch(Exception e){
-                log.error("Can not create PolygonizeWithAttr post action",e);
+            try {
+                collectionActions.add(new CollectionAction_PolygonizeSufLki(dataStore2Write, new HashMap(properties)));
+            } catch (Exception e) {
+                log.error("Can not create PolygonizeWithAttr post action", e);
             }
         }
     }
     /* public ActionDataStore_Writer(Map params, Boolean append, Boolean dropFirst) {
-    this(params,append,dropFirst,null,null);
-    }*/
+     this(params,append,dropFirst,null,null);
+     }*/
 
     /*public ActionDataStore_Writer(Map params) {
-    this(params,null,null);
-    }*/
+     this(params,null,null);
+     }*/
     public EasyFeature execute(EasyFeature feature) throws Exception {
         if (!initDone) {
             throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file.\nUsed parameters:\n" + params.toString() + "\n\n" + constructorEx.getLocalizedMessage());
@@ -145,14 +153,14 @@ public class ActionDataStore_Writer extends Action {
         feature = fixFeatureTypeName(feature);
         String typename = feature.getFeatureType().getTypeName();
         //get the correct typename from the datastore
-        String newTypeName=correctTypeName(typename, dataStore2Write);
+        String newTypeName = correctTypeName(typename, dataStore2Write);
         //if not the same (case sensitive) then change the typename
-        if (!newTypeName.equals(typename)){
+        if (!newTypeName.equals(typename)) {
             feature.setTypeName(newTypeName);
-            typename=newTypeName;
+            typename = newTypeName;
         }
-        
-        FeatureWriter writer;
+
+        FeatureWriter writer = null;
         if (featureWriters.containsKey(typename)) {
             writer = featureWriters.get(typename);
         } else {
@@ -168,31 +176,29 @@ public class ActionDataStore_Writer extends Action {
                 checked.put(params.toString() + typename, "");
                 processedTypes++;
                 //correct the typename after a possible creation of the schema
-                typename=correctTypeName(typename, dataStore2Write);
+                typename = correctTypeName(typename, dataStore2Write);
             }
 
             writer = dataStore2Write.getFeatureWriterAppend(typename, Transaction.AUTO_COMMIT);
             featureWriters.put(typename, writer);
         }
+
+        PrimaryKey pk = null;
+        if (featurePKs.containsKey(typename)) {
+            pk = featurePKs.get(typename);
+        } else if (dataStore2Write != null && (dataStore2Write instanceof JDBCDataStore)) {
+            JDBCFeatureStore fs = (JDBCFeatureStore) ((JDBCDataStore) dataStore2Write).getFeatureSource(typename);
+            pk = fs.getPrimaryKey();
+            featurePKs.put(typename, pk);
+        }
+
         //store the typename
         if (!featureTypeNames.contains(typename)) {
             featureTypeNames.add(typename);
         }
 
-        // TODO: Deze twee checks verplaatsen naar DataStoreLinker.testFeature() ?? Overleg.
-        Object the_geom = feature.getAttribute(feature.getFeatureType().getGeometryDescriptor().getLocalName());
-        if (the_geom == null) {
-            throw new FeatureException("No DefaultGeometry AttributeType found.");
-        }
-        
         try {
-            if (the_geom instanceof GeometryCollection &&
-                    ((GeometryCollection)the_geom).getNumGeometries() == 0) {
-                throw new FeatureException("GeometryCollection is empty.");
-            }
-
-            write(writer, feature.getFeature());
-
+            write(writer, pk, feature.getFeature());
         } catch (Exception ex) {
             //log.debug("Error getting geometry. Feature not written: "+feature.toString(), ex);
             // moeten dit soort dingen niet gewoon in een finally block?!?
@@ -201,6 +207,7 @@ public class ActionDataStore_Writer extends Action {
                 writer.close();
             }
             featureWriters.remove(typename);
+            featurePKs.remove(typename);
 
             throw new FeatureException("Error getting geometry. Feature not written.", ex);
         }
@@ -212,8 +219,9 @@ public class ActionDataStore_Writer extends Action {
     public void close() throws Exception {
         log.info("Closing ActionDataStore Writer");
         closeConnections();
-        if (dataStore2Write!=null)
+        if (dataStore2Write != null) {
             dataStore2Write.dispose();
+        }
     }
 
     @Override
@@ -225,54 +233,58 @@ public class ActionDataStore_Writer extends Action {
             if (ca instanceof CollectionAction_Polygonize) {
                 for (int s = 0; s < featureTypeNames.size(); s++) {
                     try {
+                        GeometryDescriptor gd = dataStore2Write.getSchema(featureTypeNames.get(s)).getGeometryDescriptor();
+                        if (gd == null) {
+                            continue;
+                        }
                         Class geometryTypeBinding = dataStore2Write.getSchema(featureTypeNames.get(s)).getGeometryDescriptor().getType().getBinding();
                         if (LineString.class == geometryTypeBinding || MultiLineString.class == geometryTypeBinding) {
                             FeatureSource fs = dataStore2Write.getFeatureSource(featureTypeNames.get(s));
                             FeatureCollection fc = fs.getFeatures();
-                            ca.execute(fc,this);
+                            ca.execute(fc, this);
                         }
                     } catch (Exception e) {
                         log.error("Error while Polygonizing the lines.", e);
                     }
                 }
             }
-            if(ca instanceof CollectionAction_Point_Within_Polygon){
-                DataStore ds=null;
-                try{
+            if (ca instanceof CollectionAction_Point_Within_Polygon) {
+                DataStore ds = null;
+                try {
                     CollectionAction_Point_Within_Polygon cap = (CollectionAction_Point_Within_Polygon) ca;
-                    
+
                     FeatureSource fs = dataStore2Write.getFeatureSource(cap.getPointsTable());
                     FeatureCollection fc = fs.getFeatures();
-                    
+
                     FeatureSource fs2 = dataStore2Write.getFeatureSource(cap.getPolygonTable());
                     FeatureCollection fc2 = fs2.getFeatures();
-                    
-                    ds= DataStoreLinker.openDataStore(this.params);
+
+                    ds = DataStoreLinker.openDataStore(this.params);
                     cap.setDataStore2Write(ds);
-                    
+
                     cap.execute(fc, fc2, this);
                 } catch (Exception e) {
                     log.error("Error while Points within Polygon with attributes.", e);
-                }finally{
-                    if (ds!=null){
+                } finally {
+                    if (ds != null) {
                         ds.dispose();
                     }
                 }
             }
-            
-            if (ca instanceof CollectionAction_PolygonizeWithAttr){
-                DataStore ds=null;
-                try{
+
+            if (ca instanceof CollectionAction_PolygonizeWithAttr) {
+                DataStore ds = null;
+                try {
                     CollectionAction_PolygonizeWithAttr cap = (CollectionAction_PolygonizeWithAttr) ca;
                     FeatureSource fs = dataStore2Write.getFeatureSource(cap.getAttributeFeatureName());
                     FeatureCollection fc = fs.getFeatures();
-                    ds= DataStoreLinker.openDataStore(this.params);
+                    ds = DataStoreLinker.openDataStore(this.params);
                     cap.setDataStore2Write(ds);
-                    cap.execute(fc,this);
+                    cap.execute(fc, this);
                 } catch (Exception e) {
                     log.error("Error while Polygonizing the lines with attributes.", e);
-                }finally{
-                    if (ds!=null){
+                } finally {
+                    if (ds != null) {
                         ds.dispose();
                     }
                 }
@@ -280,32 +292,82 @@ public class ActionDataStore_Writer extends Action {
         }
     }
 
-    private void write(FeatureWriter writer, SimpleFeature feature) throws IOException {
-        // Write to datastore
+    private void write(FeatureWriter writer, PrimaryKey pk, SimpleFeature feature) throws IOException {
+        PrimaryKey usePk = pk;
+        
+        /* TODO: feature UserData wordt gezet in DataStoreLinker.processTypeName()
+         * maar is hier leeg ? Indien tabel gedropped wordt en er dus een nieuwe
+         wordt gemaakt de primary keys gebruiken van bron. */
+        if (dropFirst) {
+            if (feature.getUserData().containsKey("sourcePks")) {
+                usePk = (PrimaryKey) feature.getUserData().get("sourcePks");
+            }
+        }
+        
+        StringBuilder oldfid = new StringBuilder();
+        if (usePk != null) {
+            List<PrimaryKeyColumn> pkcs = usePk.getColumns();
+            for (PrimaryKeyColumn pkc : pkcs) {
+                String cn = pkc.getName();
+                Object o = feature.getAttribute(cn);
+                if (o != null) {
+                    oldfid.append(o);
+                }
+                oldfid.append(".");
+                
+            }
+            oldfid.setLength(oldfid.length() - 1);
+        }
+
         SimpleFeature newFeature = (SimpleFeature) writer.next();
+
+        if (oldfid.length() > 0
+                && newFeature.getClass().getName()
+                .equals("org.geotools.jdbc.JDBCFeatureReader$ResultSetFeature")) {
+            // feature heeft automatisch gegenereerde fid, pas truc toe om te
+            // overriden. Bug met HINTS.USE_PROVIDED_FID zit ook nog in Geotools 9.3
+            // TODO: kan mogelijk beter door andere systematiek via addAttributes op store
+            try {
+                Method m = newFeature.getClass().getMethod("setID", String.class);
+                m.setAccessible(true);
+                m.invoke(newFeature, oldfid.toString());
+            } catch (Exception e) {
+                if (e instanceof IOException) {
+                    throw (IOException) e;
+                } else {
+                    throw new IOException("Cannot set FID", e);
+                }
+            }
+            newFeature.getUserData().put(Hints.USE_PROVIDED_FID, true);
+        }
 
         try {
             /* Ingebouwd dat bij een append alleen gelijke kolomnamen
              * worden toegevoegd. Je hoeft bij een append dus niet meer van te voren te
              * zorgen dat bron en doel exact gelijke kolommen bevatten.
+             * 
+             * CvL: altijd alleen geldig kolommen overzetten, ongeldige kolommen geven
+             * altijd problemen, dus waarom dan toch proberen.
+             * 
+             * TODO: Test zonder target tabel!
              */
-            if (append && !dropFirst) {
-                List<AttributeDescriptor> targets = newFeature.getFeatureType()
-                        .getAttributeDescriptors();
+//            if (append && !dropFirst) {
+            List<AttributeDescriptor> targets = newFeature.getFeatureType()
+                    .getAttributeDescriptors();
 
-                for (AttributeDescriptor descr : targets) {
-                    Name name = descr.getName();
-                    AttributeDescriptor tmp = feature.getFeatureType().getDescriptor(name);
+            for (AttributeDescriptor descr : targets) {
+                Name name = descr.getName();
+                AttributeDescriptor tmp = feature.getFeatureType().getDescriptor(name);
 
-                    if (tmp != null) {
-                        newFeature.setAttribute(name, feature.getAttribute(name));
-                    }
+                if (tmp != null) {
+                    newFeature.setAttribute(name, feature.getAttribute(name));
                 }
-
-            } else {
-                newFeature.setAttributes(feature.getAttributes());
             }
-            
+
+//            } else {
+//                newFeature.setAttributes(feature.getAttributes());
+//            }
+
         } catch (IllegalAttributeException writeProblem) {
             throw new IllegalAttributeException("Could not create " + feature.getFeatureType().getTypeName() + " out of provided SimpleFeature: " + feature.getID() + "\n" + writeProblem);
         }
@@ -322,6 +384,7 @@ public class ActionDataStore_Writer extends Action {
         }
         featureWriters.clear();
     }
+
     /**
      * Check the schema and return the name.
      */
@@ -333,18 +396,18 @@ public class ActionDataStore_Writer extends Action {
             boolean typeExists = Arrays.asList(dataStore2Write.getTypeNames()).contains(typename2Write);
 
             /*
-            for (int i = 0; i < typeNamesFound.length; i++) {
-            if (typename2Write.equals(typeNamesFound[i])) {
-                    typeExists=true;
-            break;
-                }
-            }
+             for (int i = 0; i < typeNamesFound.length; i++) {
+             if (typename2Write.equals(typeNamesFound[i])) {
+             typeExists=true;
+             break;
+             }
+             }
              */
 
             if (dropFirst && typeExists) {
                 /*The drop schema bestaat nog niet in geotools. Wordt nu wel gemaakt en zal binnen
                  * kort beschikbaar zijn. Tot die tijd maar verwijderen dmv sql script....
-                */
+                 */
 
                 // Check if DataStore is a Database
                 if (dataStore2Write instanceof JDBCDataStore) {
@@ -352,26 +415,27 @@ public class ActionDataStore_Writer extends Action {
                     // Drop table
                     JDBCDataStore database = null;
                     Connection con = null;
-                    try{
+                    try {
                         database = (JDBCDataStore) dataStore2Write;
                         con = database.getDataSource().getConnection();
                         con.setAutoCommit(true);
 
                         // TODO make this function work with all databases
-                        PreparedStatement ps=null;
-                        if (database.getSQLDialect() instanceof PostGISDialect){
-                            ps= con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema()+"\".\""+typename2Write + "\"; "
+                        PreparedStatement ps = null;
+                        if (database.getSQLDialect() instanceof PostGISDialect) {
+                            ps = con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema() + "\".\"" + typename2Write + "\"; "
                                     + "DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + featureType.getTypeName() + "'");
                             ps.execute();
-                        } else if(database.getSQLDialect() instanceof OracleDialect){
-                            ps= con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema()+"\".\""+typename2Write + "\"");
+                        } else if (database.getSQLDialect() instanceof OracleDialect) {
+                            ps = con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema() + "\".\"" + typename2Write + "\"");
                             ps.execute();
-                            ps = con.prepareStatement("DELETE FROM MDSYS.SDO_GEOM_METADATA_TABLE WHERE SDO_TABLE_NAME = '"+featureType.getTypeName()+"'");
+                            ps = con.prepareStatement("DELETE FROM MDSYS.SDO_GEOM_METADATA_TABLE WHERE SDO_TABLE_NAME = '" + featureType.getTypeName() + "'");
                             ps.execute();
                         }
-                    }finally{
-                        if (database != null)
+                    } finally {
+                        if (database != null) {
                             database.closeSafe(con);
+                        }
                     }
                 }
                 typeExists = false;
@@ -381,24 +445,24 @@ public class ActionDataStore_Writer extends Action {
             // If table does not exist, create new
             if (!typeExists) {
                 log.info("Creating new table with name: " + featureType.getTypeName());
-                 dataStore2Write.createSchema(featureType);
+                dataStore2Write.createSchema(featureType);
 
             } else if (!append) {
                 log.info("Removing all features from: " + typename2Write);
                 removeAllFeatures(dataStore2Write, typename2Write);
                 // Check if DataStore is a Database
                 /*if (dataStore2Write instanceof JDBCDataStore) {
-                    // Empty table
-                    JDBCDataStore database = (JDBCDataStore) dataStore2Write;
-                    Connection con = database.getConnection(Transaction.AUTO_COMMIT);
-                    con.setAutoCommit(true);
+                 // Empty table
+                 JDBCDataStore database = (JDBCDataStore) dataStore2Write;
+                 Connection con = database.getConnection(Transaction.AUTO_COMMIT);
+                 con.setAutoCommit(true);
 
-                    // TODO make this function work with all databases
-                    PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
-                    ps.execute();
+                 // TODO make this function work with all databases
+                 PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
+                 ps.execute();
 
-                    con.close();
-                }*/
+                 con.close();
+                 }*/
             }
             return typename2Write;
         }
@@ -442,25 +506,28 @@ public class ActionDataStore_Writer extends Action {
     }
 
     private String correctTypeName(String typeName, DataStore dataStore2Write) throws IOException {
-        String[] typeNames= dataStore2Write.getTypeNames();
-        for (int i=0; i < typeNames.length; i++){
-            if (typeNames[i].equalsIgnoreCase(typeName)){
+        String[] typeNames = dataStore2Write.getTypeNames();
+        for (int i = 0; i < typeNames.length; i++) {
+            if (typeNames[i].equalsIgnoreCase(typeName)) {
                 return typeNames[i];
             }
         }
         return typeName;
     }
-    private void removeAllFeatures(DataStore datastore, String typeName) throws IOException, Exception{
-        DefaultTransaction transaction = new DefaultTransaction("removeTransaction");
-        FeatureStore<SimpleFeatureType, SimpleFeature> store = (FeatureStore<SimpleFeatureType, SimpleFeature>) datastore.getFeatureSource( typeName );
 
-        store.removeFeatures(Filter.INCLUDE);
-        try{
+    private void removeAllFeatures(DataStore datastore, String typeName) throws IOException, Exception {
+        DefaultTransaction transaction = new DefaultTransaction("removeTransaction");
+        FeatureStore<SimpleFeatureType, SimpleFeature> store = (FeatureStore<SimpleFeatureType, SimpleFeature>) datastore.getFeatureSource(typeName);
+
+        /* TODO: Moet deze niet bin nen try ? Anders transaction nooit geclosed ? */        
+        try {
+            store.removeFeatures(Filter.INCLUDE);
+            
             transaction.commit();
-        }catch(Exception e){
+        } catch (Exception e) {
             transaction.rollback();
             throw e;
-        }finally{
+        } finally {
             transaction.close();
         }
     }

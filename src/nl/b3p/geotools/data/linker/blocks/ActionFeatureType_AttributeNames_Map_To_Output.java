@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.feature.AttributeTypeBuilder;
+import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.AttributeType;
+import org.opengis.feature.type.GeometryDescriptor;
 
 /* Map output columns to inputcolumns. User sees list of all output columns and can
  choose input columns per output column from a dropdown. */
@@ -39,7 +42,11 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
                 allOutputColumns.size() > 0) {
             
             removeColumns = new ArrayList<String>();
-            String geomColumn = feature.getFeatureType().getGeometryDescriptor().getName().getLocalPart();
+            GeometryDescriptor gd = feature.getFeatureType().getGeometryDescriptor();
+            String geomColumn = "";
+            if (gd != null) {
+                geomColumn = gd.getName().getLocalPart();
+            }
 
             for (int i = 0; i < feature.getAttributeCount(); i++) {
 
@@ -72,7 +79,15 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
                 AttributeTypeBuilder atb = new AttributeTypeBuilder();
                 atb.init(feature.getFeatureType().getDescriptor(attributeIds[i]));
                 
-                feature.setAttributeDescriptor(attributeIds[i], atb.buildDescriptor(currentAttributeNames[i]), true);              
+                // een voor een overzetten omdat anders de volgorde in de 
+                // indexen verhaspeld wordt en velden in verkeerde kolommen komen
+                AttributeType type = feature.getFeatureType().getDescriptor(attributeIds[i]).getType();
+                Class binding = type.getBinding();
+                atb.setName(currentAttributeNames[i]);
+                atb.setBinding(binding);
+                AttributeDescriptor ad = atb.buildDescriptor(currentAttributeNames[i]);
+                                
+                feature.setAttributeDescriptor(attributeIds[i], ad, true);              
             }
         }               
 

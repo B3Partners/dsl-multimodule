@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -324,7 +325,11 @@ public class EasyFeature {
     }
 
     public void setCRS(CoordinateReferenceSystem crs) throws Exception {
-        String geometryName = feature.getDefaultGeometryProperty().getDescriptor().getLocalName();
+        GeometryAttribute ga =feature.getDefaultGeometryProperty();
+        if (ga==null) {
+            return;
+        }
+        String geometryName = ga.getDescriptor().getLocalName();
         boolean isNillable = feature.getFeatureType().getGeometryDescriptor().isNillable();
         Class binding = feature.getFeatureType().getGeometryDescriptor().getType().getBinding();
         int attributeID = getAttributeDescriptorIDbyName(geometryName);

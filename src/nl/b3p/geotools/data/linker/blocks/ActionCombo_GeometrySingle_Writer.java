@@ -7,11 +7,9 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import nl.b3p.geotools.data.linker.ActionFactory;
 
 /**
  *
@@ -37,6 +35,7 @@ public class ActionCombo_GeometrySingle_Writer extends ActionCombo implements Wr
         condition_V.addActionToList(false, condition_MP);
         condition_MP.addActionToList(false, condition_ML);
         condition_ML.addActionToList(false, condition_MV);
+        condition_MV.addActionToList(false, datastore);
 
         condition_P.addActionToList(true, new ActionFeatureType_Replace_Class(Point.class, true));
        // ActionDataStore_Writer dsw_p = new ActionDataStore_Writer(new HashMap(params), append, dropFirst);

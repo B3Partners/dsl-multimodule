@@ -40,7 +40,7 @@ public class ActionFeatureType_Replace_Class extends Action {
 
     @Override
     public EasyFeature execute(EasyFeature feature) throws Exception {
-        if (useGeometry) {
+        if (useGeometry && feature.getFeatureType().getGeometryDescriptor() != null) {
             attributeName = feature.getFeatureType().getGeometryDescriptor().getLocalName();
         }
 

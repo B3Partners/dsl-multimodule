@@ -33,20 +33,22 @@ import org.geotools.data.postgis.PostgisNGDataStoreFactory;
 import org.geotools.data.shapefile.indexed.IndexedShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
+import org.geotools.jdbc.JDBCDataStore;
+import org.geotools.jdbc.JDBCFeatureStore;
+import org.geotools.jdbc.PrimaryKey;
 import org.jdom.Element;
 import org.jdom.input.DOMBuilder;
 import org.opengis.feature.simple.SimpleFeature;
 
 /**
  * Convert batch to actionList and execute it
+ *
  * @author Gertjan Al, B3Partners
  */
 public class DataStoreLinker implements Runnable {
 
     private static final Log log = LogFactory.getLog(DataStoreLinker.class);
-
     private final static ResourceBundle resources = LocalizationUtil.getResources();
-
     public static final String ACTIONLIST_PREFIX = "actionlist";
     public static final String ACTION_PREFIX = "action";
     public static final String TYPE_PREFIX = "type";
@@ -54,19 +56,14 @@ public class DataStoreLinker implements Runnable {
     public static final String DATASTORE2READ_PREFIX = "read.datastore.";
     public static final String READ_TYPENAME = "read.typename";
     protected static final String DEFAULT_WRITER = "ActionCombo_GeometrySingle_Writer";
-
     protected Status status;
-
     protected DataStore dataStore2Read;
     protected ActionList actionList;
     protected Properties batch;
-
     protected nl.b3p.datastorelinker.entity.Process process;
     protected boolean disposed;
-
     private int exceptionLogCount = 0;
     private static final int MAX_EXCEPTION_LOG_COUNT = 10;
-    
     public static final String TYPE_ORACLE = "oracle";
     public static final String TYPE_POSTGIS = "postgis";
 
@@ -108,15 +105,15 @@ public class DataStoreLinker implements Runnable {
     }
 
     /**
-     * Calculating the size can take a very long time depending on the implementation
-     * of the chosen datastore. Some implementations walk through all features
-     * to calculate the size.
-     * 
+     * Calculating the size can take a very long time depending on the
+     * implementation of the chosen datastore. Some implementations walk through
+     * all features to calculate the size.
+     *
      * @throws IOException
      */
     private void calculateSizes() throws IOException {
         int totalFeatureSize = 0;
-        if (dataStore2Read!=null){
+        if (dataStore2Read != null) {
             for (String typeName2Read : getTypeNames()) {
                 FeatureCollection fc = dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
                 totalFeatureSize += fc.size();
@@ -153,9 +150,10 @@ public class DataStoreLinker implements Runnable {
      * Process all features in dataStore2Read
      */
     public void process() throws Exception {
-        if (disposed)
+        if (disposed) {
             throw new Exception("Dsl already used. Please create a new instance of this class");
-        
+        }
+
         try {
             for (String typeName2Read : getTypeNames()) {
                 processTypeName(typeName2Read);
@@ -179,19 +177,32 @@ public class DataStoreLinker implements Runnable {
         FeatureCollection fc = dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
         FeatureIterator iterator = fc.features();
 
+        PrimaryKey pk = null;
+        if (dataStore2Read != null && (dataStore2Read instanceof JDBCDataStore)) {
+            JDBCFeatureStore fs = (JDBCFeatureStore) ((JDBCDataStore) dataStore2Read).getFeatureSource(typeName2Read);
+            pk = fs.getPrimaryKey();
+        }
+
         try {
+
             while (iterator.hasNext()) {
                 feature = (SimpleFeature) iterator.next();
 
                 if (status.getVisitedFeatures() % 10000 == 0) {
-                    log.info("" + status.getVisitedFeatures() +"/"+status.getTotalFeatureSize() + " features processed (" + typeName2Read + ")");
+                    log.info("" + status.getVisitedFeatures() + "/" + status.getTotalFeatureSize() + " features processed (" + typeName2Read + ")");
                 }
 
+                if (pk != null) {
+                    Map userData = feature.getUserData();
+                    userData.put("sourcePks", pk);
+                }
+                
                 processFeature(feature);
 
                 // TODO: rollback? option to rollback or not?
-                if (status.isInterrupted())
+                if (status.isInterrupted()) {
                     throw new InterruptedException("User canceled the process.");
+                }
             }
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
@@ -202,16 +213,18 @@ public class DataStoreLinker implements Runnable {
     }
 
     private void processFeature(SimpleFeature feature) throws Exception {
-        if (!mustProcessFeature())
+        if (!mustProcessFeature()) {
             return;
+        }
 
         try {
-            testFeature(feature);
-            if(actionList.process(new EasyFeature(feature)) != null) {
+            // TODO: CvL: moet ook zonder geometrie werken, verder uitzoeken
+//            testFeature(feature); Methode wissen ?
+            if (actionList.process(new EasyFeature(feature)) != null) {
                 status.incrementProcessedFeatures();
             }
-        } catch(Exception e) {
-            if(exceptionLogCount++ < MAX_EXCEPTION_LOG_COUNT) {
+        } catch (Exception e) {
+            if (exceptionLogCount++ < MAX_EXCEPTION_LOG_COUNT) {
                 log.error("Exception tijdens processen van feature (exception nr. " + exceptionLogCount + " van max " + MAX_EXCEPTION_LOG_COUNT + " die worden gelogd)", e);
             }
 
@@ -219,12 +232,10 @@ public class DataStoreLinker implements Runnable {
         }
         status.incrementVisitedFeatures();
     }
-    
+
     private boolean mustProcessFeature() {
-        return status.getVisitedFeatures() >= status.getFeatureStart() && (
-                    (status.getVisitedFeatures() <= status.getFeatureEnd() && status.getFeatureEnd() >= 0) ||
-                    (status.getFeatureEnd() < 0)
-                );
+        return status.getVisitedFeatures() >= status.getFeatureStart() && ((status.getVisitedFeatures() <= status.getFeatureEnd() && status.getFeatureEnd() >= 0)
+                || (status.getFeatureEnd() < 0));
     }
 
     // Waarom zijn deze checks er überhaupt?
@@ -232,7 +243,9 @@ public class DataStoreLinker implements Runnable {
     // - Misschien om zeker te zijn dat de actions een echte geometrie tot hun bsechikking hebben?
     // - Snelheid misschien?
     /**
-     * Throws an exception if there is something wrong with the feature's geometry.
+     * Throws an exception if there is something wrong with the feature's
+     * geometry.
+     *
      * @param feature
      * @return
      */
@@ -241,7 +254,7 @@ public class DataStoreLinker implements Runnable {
             throw new FeatureException(resources.getString("report.feature.hasNoGeometry"));
         } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
             throw new FeatureException(resources.getString("report.feature.geometryNotAllowed"));
-        } else if (!(((Geometry)feature.getDefaultGeometry()).isValid())) {
+        } else if (!(((Geometry) feature.getDefaultGeometry()).isValid())) {
             //throw new FeatureException(resources.getString("report.feature.geometryNotValid"));
         }
     }
@@ -262,13 +275,13 @@ public class DataStoreLinker implements Runnable {
         if (actions != null) {
             Element actionsElement = new DOMBuilder().build(actions);
             for (Object actionObject : actionsElement.getChildren("action", Namespaces.DSL_NAMESPACE)) {
-                Element actionElement = (Element)actionObject;
+                Element actionElement = (Element) actionObject;
 
                 Map<String, Object> parameters = new HashMap<String, Object>();
                 Element parametersElement = actionElement.getChild("parameters", Namespaces.DSL_NAMESPACE);
                 if (parametersElement != null) {
                     for (Object parameterObject : parametersElement.getChildren("parameter", Namespaces.DSL_NAMESPACE)) {
-                        Element parameterElement = (Element)parameterObject;
+                        Element parameterElement = (Element) parameterObject;
 
                         String key = parameterElement.getChildTextTrim("paramId", Namespaces.DSL_NAMESPACE);
                         Object value = parameterElement.getChildTextTrim("value", Namespaces.DSL_NAMESPACE);
@@ -352,11 +365,11 @@ public class DataStoreLinker implements Runnable {
                         }
                     }
                     /*
-                    if (params.get(TYPE_PREFIX) instanceof String && params.get(SETTINGS_PREFIX) instanceof Map) {
-                    actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), (Map) params.get(SETTINGS_PREFIX)));
-                    } else {
-                    throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String and " + ACTION_PREFIX + Integer.toString(count) + "." + SETTINGS_PREFIX + " to be a Map");
-                    }
+                     if (params.get(TYPE_PREFIX) instanceof String && params.get(SETTINGS_PREFIX) instanceof Map) {
+                     actionList.add(ActionFactory.createAction((String) params.get(TYPE_PREFIX), (Map) params.get(SETTINGS_PREFIX)));
+                     } else {
+                     throw new Exception("Expected " + ACTION_PREFIX + Integer.toString(count) + "." + TYPE_PREFIX + " to be String and " + ACTION_PREFIX + Integer.toString(count) + "." + SETTINGS_PREFIX + " to be a Map");
+                     }
                      * */
                 } else {
                     throw new Exception("No type found for action" + Integer.toString(count));
@@ -391,51 +404,60 @@ public class DataStoreLinker implements Runnable {
     }
 
     /**/
-    public static DataStore openDataStore(Map params) throws Exception{
-        return openDataStore(params,false);
+    public static DataStore openDataStore(Map params) throws Exception {
+        return openDataStore(params, false);
     }
 
     /**
-     * Open a dataStore (save). If create new is set to true, a datastore wil be created even if the file
-     * is not there yet.
+     * Open a dataStore (save). If create new is set to true, a datastore wil be
+     * created even if the file is not there yet.
      */
     public static DataStore openDataStore(Map params, boolean createNew) throws Exception {
         log.debug("openDataStore with: " + params);
-        
+
         DataStore dataStore = null;
-        
-        String dbType = (String) params.get("dbtype");       
+
+        String dbType = (String) params.get("dbtype");
         if (dbType != null && dbType.equals(TYPE_ORACLE)) {
-            log.info("Created OracleNGDataStoreFactory with: " + params);
-            
             params.put(OracleNGDataStoreFactory.EXPOSE_PK.key, Boolean.TRUE);
             params.put("min connections", 0);
             params.put("max connections", 50);
             params.put("connection timeout", 60);
             params.put("validate connections", Boolean.FALSE);
-            
-            params.put("Geometry metadata table", "GEOMETRY_COLUMNS");
-            
+
+            log.debug("Created OracleNGDataStoreFactory with: " + params);
+
+            /* TODO: nagaan of je Geotools naar eigen gemaakte
+             * geometry columns kunt laten kijken */
+            //params.put("Geometry metadata table", "GEOMETRY_COLUMNS");
+
             return (new OracleNGDataStoreFactory()).createDataStore(params);
-            
+
         } else if (dbType != null && dbType.equals(TYPE_POSTGIS)) {
-            log.info("Created PostgisNGDataStoreFactory with: " + params);
+            params.put(PostgisNGDataStoreFactory.EXPOSE_PK.key, Boolean.TRUE);
+            params.put("min connections", 0);
+            params.put("max connections", 50);
+            params.put("connection timeout", 60);
+            params.put("validate connections", Boolean.FALSE);
+
+            log.debug("Created PostgisNGDataStoreFactory with: " + params);
+
             return (new PostgisNGDataStoreFactory()).createDataStore(params);
         }
-        
+
         String errormsg = "DataStore could not be found using parameters";
 
         try {
             dataStore = DataStoreFinder.getDataStore(params);
-            if (dataStore == null && createNew){
+            if (dataStore == null && createNew) {
                 if (params.containsKey("url")) {
-                    String url=(String) params.get("url");
-                    if (url.lastIndexOf(".shp") == (url.length()-".shp".length())) {
+                    String url = (String) params.get("url");
+                    if (url.lastIndexOf(".shp") == (url.length() - ".shp".length())) {
                         //ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
                         FileDataStoreFactorySpi factory = new IndexedShapefileDataStoreFactory();
-                        
-                        params.put("url",new File(url).toURL());
-                        dataStore = factory.createNewDataStore( params );
+
+                        params.put("url", new File(url).toURL());
+                        dataStore = factory.createNewDataStore(params);
                     } else {
                         log.warn("Can not create a new datastore, filetype unknown.");
                     }
@@ -498,8 +520,10 @@ public class DataStoreLinker implements Runnable {
 
     /**
      * Make HashMap structure from propertylist
-     * @param batch     Original properties list
-     * @param filter    Specified to filter start of properties, like 'actionlist.action'
+     *
+     * @param batch Original properties list
+     * @param filter Specified to filter start of properties, like
+     * 'actionlist.action'
      * @return
      * @throws java.io.IOException
      */
@@ -558,12 +582,12 @@ public class DataStoreLinker implements Runnable {
         String[] typenames = null;
         if (batch != null && batch.containsKey(READ_TYPENAME)) {
             // One table / schema
-            typenames = new String[] {
+            typenames = new String[]{
                 batch.getProperty(READ_TYPENAME)
             };
         } else if (process != null && process.getInput().getTableName() != null) {
             // One table / schema
-            typenames = new String[] {
+            typenames = new String[]{
                 process.getInput().getTableName()
             };
         }
@@ -574,5 +598,4 @@ public class DataStoreLinker implements Runnable {
         }
         return typenames;
     }
-
 }
