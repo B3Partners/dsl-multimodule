@@ -471,7 +471,8 @@ public class ActionDataStore_Writer extends Action {
                     con.setAutoCommit(true);
 
                     // TODO make this function work with all databases
-                    PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
+                    //PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
+                    PreparedStatement ps = con.prepareStatement("DELETE FROM \"" + typename2Write + "\"");
                     ps.execute();
 
                     con.close();
