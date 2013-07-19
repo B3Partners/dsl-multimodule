@@ -324,7 +324,9 @@ public class ActionDataStore_Writer extends Action {
                 String cn = pkc.getName();
                 Object o = feature.getAttribute(cn);
                 if (o == null) {
-                    throw new IllegalAttributeException("Could not obtain non-null value for primary key " + cn + " for SimpleFeature: " + feature.getID() + "\n");
+                    // primary is blijkbaar niet gemapt, dan vertrouwen op autonumber
+					oldfid = null;
+					break;
                 }
                 oldfid.append(o).append(".");
             }
@@ -333,7 +335,7 @@ public class ActionDataStore_Writer extends Action {
 
         SimpleFeature newFeature = (SimpleFeature) writer.next();
 
-        if (oldfid.length() > 0
+        if (oldfid!=null && oldfid.length() > 0
                 && newFeature.getClass().getName()
                 .equals("org.geotools.jdbc.JDBCFeatureReader$ResultSetFeature")) {
             // feature heeft automatisch gegenereerde fid, pas truc toe om te
