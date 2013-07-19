@@ -116,6 +116,57 @@ public class EasyFeature {
     }
 
     /**
+     * Remove all AttributeTypes with values
+     * @param boolean keepGeom do not remove geometry column
+     */
+    public void removeAllAttributeDescriptors(boolean keepGeom) throws Exception {
+        // save userdata
+        Object pk = feature.getUserData().get("sourcePks");
+
+        String geometryName = null;
+        Integer geometryID = null;
+        GeometryAttribute ga = null;
+        AttributeDescriptor gad = null;
+        if (keepGeom) {
+            ga = feature.getDefaultGeometryProperty();
+            if (ga != null) {
+                geometryName = ga.getDescriptor().getLocalName();
+                geometryID = getAttributeDescriptorIDbyName(geometryName);
+            }
+        }
+
+        SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
+        featureTypeBuilder.init(feature.getFeatureType());
+
+        List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
+        if (geometryID!=null) {
+            gad = attributeDescriptors.get(geometryID);
+        }
+        attributeDescriptors = new ArrayList<AttributeDescriptor>();
+        if (keepGeom && gad!=null) {
+            attributeDescriptors.add(gad);
+        }
+        featureTypeBuilder.setAttributes(attributeDescriptors);
+
+        SimpleFeatureBuilder simpleFeatureBuilder = new SimpleFeatureBuilder(featureTypeBuilder.buildFeatureType());
+        List<Object> attributes = feature.getAttributes();
+        Object[] values = null;
+        if (keepGeom && gad != null) {
+            Object value =  null;
+            if (geometryID != null) {
+                 value = attributes.get(geometryID);
+            }
+            values = new Object[]{value};
+        }
+        if (values==null) {
+            feature = simpleFeatureBuilder.buildFeature(getID());
+        } else {
+            feature = simpleFeatureBuilder.buildFeature(getID(), values);            
+        }
+        feature.getUserData().put("sourcePks", pk);
+     }
+    
+    /**
      * Remove AttributeType at attributeTypeID
      * @param attributeID
      */

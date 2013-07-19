@@ -2,9 +2,12 @@ package nl.b3p.geotools.data.linker.blocks;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.feature.AttributeTypeBuilder;
+import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.type.GeometryDescriptor;
@@ -13,87 +16,123 @@ import org.opengis.feature.type.GeometryDescriptor;
  choose input columns per output column from a dropdown. */
 public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
 
-    private Integer[] attributeIds;
-    private String[] currentAttributeNames;
-    private String[] newAttributeNames;
+    private String[] outputAttributeNames;
+    private String[] inputAttributeNames;
     
     private List<String> allOutputColumns;
-    private List<String> removeColumns = null;
     
     protected String description = "Kies per uitvoerkolom een invoerkolom.";
 
-    public ActionFeatureType_AttributeNames_Map_To_Output(String[] currentAttributeNames, String[] newAttributeNames, List<String> outputColumns) {
-        this.currentAttributeNames = currentAttributeNames;
-        this.newAttributeNames = newAttributeNames;
+    public ActionFeatureType_AttributeNames_Map_To_Output(String[] outputAttributeNames, String[] inputAttributeNames, List<String> outputColumns) {
+        this.outputAttributeNames = outputAttributeNames;
+        this.inputAttributeNames = inputAttributeNames;
         
         if (outputColumns != null && outputColumns.size() > 0) {
             this.allOutputColumns = outputColumns;
         }
     }
 
+     /**
+     * simpele container voor attribuut
+     */
+    protected class AttributeSummary  {
+        Class binding;
+        Object value;
+        String name;
+ 
+        AttributeSummary(String name, Object value, Class binding) {
+            this.binding = binding;
+            this.value = value;
+            this.name = name;
+        }
+    }
+    
     @Override
     public EasyFeature execute(EasyFeature feature) throws Exception {
-        /* TODO: Mogelijk x en y kolommen niet verwijderen. Dit gaat anders mis bij inlezen
-         * csv in combinatie met het Maak Point uit waarden blok. Dit mapping blok moet dan
-         * als laatste in de actielijst staan */
-        
-        /* Alle niet gemapte velden van (feature) invoer wissen */
-        if (removeColumns == null && allOutputColumns != null &&
-                allOutputColumns.size() > 0) {
-            
-            removeColumns = new ArrayList<String>();
-            GeometryDescriptor gd = feature.getFeatureType().getGeometryDescriptor();
-            String geomColumn = "";
-            if (gd != null) {
-                geomColumn = gd.getName().getLocalPart();
-            }
+ 
+        // geen mapping ingesteld
+        if (allOutputColumns == null || allOutputColumns.size() == 0) {
+            return feature;
+        }
 
-            for (int i = 0; i < feature.getAttributeCount(); i++) {
+        // Alle attributen bewaren
+        Map<String, AttributeSummary> inputAttributes = new HashMap<String, AttributeSummary>();
+        for (int i = 0; i < inputAttributeNames.length; i++) {
+            // haal id van column op
+            Integer inputColumnId = getAttributeId(feature, inputAttributeNames[i]);
+            // haal descriptor van input op
+            AttributeDescriptor inputAd = feature.getFeatureType().getDescriptor(inputColumnId);
+            // haal type van input op
+            AttributeType at = inputAd.getType();
+            inputAttributes.put(inputAttributeNames[i],
+                    new AttributeSummary(inputAttributeNames[i],
+                    feature.getAttribute(inputColumnId), at.getBinding()));
+        }
 
-                String columnName = feature.getAttributeDescriptorNameByID(i);
+        // verwijder dan alle niet-geom kolommen
+        feature.removeAllAttributeDescriptors(true); // keepGeom = true
 
-                /* Do not remove the geom column */
-                if (!columnName.equals(geomColumn)) {
-                    removeColumns.add(columnName);
+        // haal geom kolom op na verwijderen andere attributen
+        String geometryName = null;
+        GeometryAttribute ga = feature.getFeature().getDefaultGeometryProperty();
+        if (ga != null) {
+            geometryName = ga.getDescriptor().getLocalName();
+        }
+ 
+        for (String outputColumnName : allOutputColumns) {
+            // haal naam van de input op obv index
+            String inputColumnName = null;
+            for (int i = 0; i < outputAttributeNames.length; i++) {
+                if (outputAttributeNames[i].equals(outputColumnName)) {
+                    inputColumnName = inputAttributeNames[i];
+                    break;
                 }
             }
 
-            removeColumns.removeAll(Arrays.asList(newAttributeNames));            
-        }
-        
-        /* Remove columns that are not mapped by user. */
-        for (String columnName : removeColumns) {
-            int attributeId = feature.getAttributeDescriptorIDbyName(columnName);
-            feature.removeAttributeDescriptor(attributeId);
-        }
-        
-        /* TODO: Van alle niet gemapte uitvoervelden die niet ook als invoer voorkomen
-         * een kolom toevoegen met lege waarde */
-        
-        /* Voor alle gemapte velden feature kolomnaam omzetten naar bijbehorende
-         * uitvoer kolom */
-        if (newAttributeNames != null && newAttributeNames.length > 0) {            
-            attributeIds = getAttributeIds(feature, newAttributeNames);
-            
-            for (int i=0; i < newAttributeNames.length; i++) {
-                AttributeTypeBuilder atb = new AttributeTypeBuilder();
-                atb.init(feature.getFeatureType().getDescriptor(attributeIds[i]));
-                
-                // een voor een overzetten omdat anders de volgorde in de 
-                // indexen verhaspeld wordt en velden in verkeerde kolommen komen
-                AttributeType type = feature.getFeatureType().getDescriptor(attributeIds[i]).getType();
-                Class binding = type.getBinding();
-                atb.setName(currentAttributeNames[i]);
-                atb.setBinding(binding);
-                AttributeDescriptor ad = atb.buildDescriptor(currentAttributeNames[i]);
-                                
-                feature.setAttributeDescriptor(attributeIds[i], ad, true);              
+            // default binding voor niet gemapte velden is String
+            Class binding = String.class;
+            Object value = null;
+            String name = outputColumnName;
+            if (inputColumnName != null) {
+                AttributeSummary as = inputAttributes.get(inputColumnName);
+                binding = as.binding;
+                value = as.value;
             }
-        }               
+       
+            // check of we de geom kolom willen hernoemen
+            // als dit 2 keer gebeurt, dan wordt alleen de laatste gevuld
+            if (inputColumnName!=null && inputColumnName.equalsIgnoreCase(geometryName)) {
+                // hernoem geom kolom
+                int geometryID = -1;
+               List<AttributeDescriptor> attributeDescriptors = feature.getFeatureType().getAttributeDescriptors();
+                for (int i = 0; i < attributeDescriptors.size(); i++) {
+                    if (attributeDescriptors.get(i).getLocalName().equalsIgnoreCase(geometryName)) {
+                        geometryID = i;
+                        break;
+                    }
+                }
+                
+                
+                // Reload original attributeType
+                AttributeTypeBuilder atb = new AttributeTypeBuilder();
+                atb.init(feature.getFeatureType().getDescriptor(geometryID));
+
+                // Overwrite attributeType with "attributeType with new name"
+                feature.setAttributeDescriptor(geometryID, atb.buildDescriptor(name), true);
+
+            } else {
+                // voeg nieuwe kolom toe
+                feature.addAttributeDescriptor(name, binding);
+                // haal nieuwe id van column op
+                Integer newColumnId = getAttributeId(feature, name);
+                // zet waarde in nieuwe kolom
+                feature.setAttribute(newColumnId, value);
+            }
+        }
 
         return feature;
-    }
-
+    }    
+    
     @Override
     public String toString() {
         return "Kies per uitvoerkolom een invoerkolom.";
