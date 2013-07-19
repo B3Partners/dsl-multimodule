@@ -198,7 +198,7 @@ public class EasyFeature {
     }
 
     /**
-     * Defaiult way to set AttributeType at specified attributeID, overwrites the current AttributeType at that index
+     * Default way to set AttributeType at specified attributeID, overwrites the current AttributeType at that index
      * @param attributeID
      * @param name
      * @param binding
@@ -407,7 +407,7 @@ public class EasyFeature {
         Geometry geom = (Geometry) getAttribute(geometryName);
 
         // Remove geometryColumn
-        removeAttributeDescriptor(geometryName);
+        //removeAttributeDescriptor(geometryName);
 
         // Create new geometryColumn with previous settings
         insertAttributeDescriptor(attributeID, buildGeometryAttributeDescriptor(geometryName, binding, isNillable, crs));

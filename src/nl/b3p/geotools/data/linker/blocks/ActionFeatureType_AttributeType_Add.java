@@ -26,10 +26,11 @@ public class ActionFeatureType_AttributeType_Add extends Action {
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
+        fixAttributeID(feature);
         if (attributeID == -1) {
             feature.addAttributeDescriptor(attributeName, attributeClass);
         } else {
-            feature.insertAttributeDescriptor(attributeID, attributeName, attributeClass);
+            feature.setAttributeDescriptor(attributeID, attributeName, attributeClass, true);
         }
         return feature;
     }
