@@ -330,7 +330,9 @@ public class ActionDataStore_Writer extends Action {
                 }
                 oldfid.append(o).append(".");
             }
-            oldfid.setLength(oldfid.length() - 1);
+            if(oldfid != null){
+                oldfid.setLength(oldfid.length() - 1);
+            }
         }
 
         SimpleFeature newFeature = (SimpleFeature) writer.next();
