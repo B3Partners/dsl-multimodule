@@ -192,14 +192,6 @@ public class ActionDataStore_Writer extends Action {
         } else if (dataStore2Write != null && (dataStore2Write instanceof JDBCDataStore)) {
             JDBCFeatureStore fs = (JDBCFeatureStore) ((JDBCDataStore) dataStore2Write).getFeatureSource(typename);
             pks = fs.getPrimaryKey();
-            // als doel PK is FID (BigDecimal), dan is deze eerder automatisch gegenereerd
-            // we gebruiken deze dan niet en vertrouwen weer op die generatie de komende keer
-            if (pks!=null && pks.getColumns().size()==1) {
-                PrimaryKeyColumn pk = pks.getColumns().get(0);
-                if (pk.getName().equalsIgnoreCase("FID")) {
-                    pks = null;
-                }
-            }
             featurePKs.put(typename, pks);
         }
 
