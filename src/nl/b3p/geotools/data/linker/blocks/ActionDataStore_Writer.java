@@ -457,23 +457,47 @@ public class ActionDataStore_Writer extends Action {
 
             } else if (!append) {
                 log.info("Removing all features from: " + typename2Write);
-// CvL: truncate weer aangezet voor tabellen met meer geometrie kolommen
-// later nog eens uitzoeken waarom
+				boolean deleteSuccess = false;
                 // Check if DataStore is a Database
                 if (dataStore2Write instanceof JDBCDataStore) {
                     // Empty table
                     JDBCDataStore database = (JDBCDataStore) dataStore2Write;
-                    Connection con = database.getConnection(Transaction.AUTO_COMMIT);
-                    con.setAutoCommit(true);
-
-                    // TODO make this function work with all databases
-                    //PreparedStatement ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
-                    PreparedStatement ps = con.prepareStatement("DELETE FROM \"" + typename2Write + "\"");
-                    ps.execute();
-
-                    con.close();
-                } else {
+					// try truncate
+					try {
+						Connection con = database.getConnection(Transaction.AUTO_COMMIT);
+                        PreparedStatement ps = null;
+                        if (database.getSQLDialect() instanceof PostGISDialect) {
+							ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\" CASCADE");
+                        } else { //if (database.getSQLDialect() instanceof OracleDialect) {
+                            ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
+                        }
+						ps.execute();
+						deleteSuccess = true;
+		                log.info("Removing using truncate");
+					} catch (Exception e) {
+						log.debug("Removing using truncate failed: ", e);
+ 						try {
+							Connection con1 = database.getConnection(Transaction.AUTO_COMMIT);
+							PreparedStatement ps = con1.prepareStatement("DELETE FROM \"" + typename2Write + "\"");
+							ps.execute();
+							deleteSuccess = true;
+							log.info("Removing using delete from table");
+						} catch (Exception e) {
+							log.debug("Removing using delete from table failed: ", e);
+						} finally {
+							if (con1!=null) {
+								con1.close();
+							}
+						}
+					} finally {
+					if (con!=null ) {
+							con.close();
+						}
+					}
+                } 
+				if	(!deleteSuccess) {
                     removeAllFeatures(dataStore2Write, typename2Write);
+		            log.info("Removing using geotools");
                 }
             }
             return typename2Write;
