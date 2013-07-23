@@ -354,6 +354,45 @@ public class EasyFeature {
         feature.getUserData().put("sourcePks", pk);
     }
 
+    public EasyFeature copy() {
+        return copy(null, null);
+    }
+
+    public EasyFeature copy(String ID) {
+        return copy(null, ID);
+    }
+
+    public EasyFeature copy(String name, String ID) {
+        SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
+        // Use typename and ID of source if name or ID is empty
+        if (name == null) {
+            name = feature.getFeatureType().getTypeName();
+        }
+        if (ID == null) {
+            ID = feature.getID();
+        }
+        featureTypeBuilder.setName(name);
+        
+        // Build FeatureType
+        List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
+        //featureTypeBuilder.init(feature.getFeatureType());
+        featureTypeBuilder.setAttributes(attributeDescriptors);
+
+        // Create new Feature
+        SimpleFeatureBuilder simpleFeatureBuilder = new SimpleFeatureBuilder(featureTypeBuilder.buildFeatureType());
+
+        // Create feature attributes list
+        List<Object> attributes = feature.getAttributes();
+         
+        // Build new feature with new values array
+        SimpleFeature f = simpleFeatureBuilder.buildFeature(ID, attributes.toArray(new Object[attributes.size()]));
+
+        // copy user data
+        f.getUserData().putAll(feature.getUserData());
+        
+        return new EasyFeature(f);
+    }
+    
     public String getID() {
         return feature.getID();
     }
