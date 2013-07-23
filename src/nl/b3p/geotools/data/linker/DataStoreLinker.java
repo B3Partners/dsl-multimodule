@@ -192,9 +192,12 @@ public class DataStoreLinker implements Runnable {
                     log.info("" + status.getVisitedFeatures() + "/" + status.getTotalFeatureSize() + " features processed (" + typeName2Read + ")");
                 }
 
+                Map userData = feature.getUserData();
                 if (pk != null) {
-                    Map userData = feature.getUserData();
                     userData.put("sourcePks", pk);
+                }
+                if (!iterator.hasNext()) {
+                    userData.put("lastFeature", Boolean.TRUE);
                 }
                 
                 processFeature(feature);

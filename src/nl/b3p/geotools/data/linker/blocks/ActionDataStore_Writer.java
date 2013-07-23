@@ -380,6 +380,10 @@ public class ActionDataStore_Writer extends Action {
             throw new IllegalAttributeException("Could not create " + feature.getFeatureType().getTypeName() + " out of provided SimpleFeature: " + feature.getID() + "\n" + writeProblem);
         }
         writer.write();
+		
+		// TODO CvL: the following code append features to a DataStore
+		//FeatureReader reader = DataUtilities.reader(new Feature[] { newFeature1, newFeature2, ... } );
+		//newFeatureStore.addFeatures(reader);
     }
 
     private void closeConnections() throws Exception {
