@@ -3,39 +3,40 @@ package nl.b3p.geotools.data.linker.blocks;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.FeatureException;
+import nl.b3p.geotools.data.linker.Status;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.geotools.data.DataStore;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
-import org.geotools.data.FeatureWriter;
 import org.geotools.data.Transaction;
 import org.geotools.data.oracle.OracleDialect;
 import org.geotools.data.postgis.PostGISDialect;
 import org.geotools.factory.Hints;
+import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
-import org.geotools.feature.IllegalAttributeException;
+import org.geotools.feature.FeatureIterator;
 import org.geotools.jdbc.JDBCDataStore;
 import org.geotools.jdbc.JDBCFeatureStore;
 import org.geotools.jdbc.PrimaryKey;
 import org.geotools.jdbc.PrimaryKeyColumn;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.feature.type.Name;
 import org.opengis.filter.Filter;
 
 /**
@@ -55,14 +56,22 @@ public class ActionDataStore_Writer extends Action {
     private final boolean polygonizeSufLki;
     private final boolean postPointWithinPolygon;
     private Exception constructorEx;
-    private HashMap<String, FeatureWriter> featureWriters = new HashMap();
+    private HashMap<String, FeatureStore> featureStores = new HashMap();
     private HashMap<String, PrimaryKey> featurePKs = new HashMap();
     private HashMap<String, String> checked = new HashMap();
     private ArrayList<String> featureTypeNames = new ArrayList();
+    private HashMap<String, FeatureCollection> featureCollectionCache = new HashMap();
+    private HashMap<String, Integer> featureBatchSizes = new HashMap();
+    private HashMap<String, List<String>> featureErrors = new HashMap();
     private static final int MAX_CONNECTIONS_NR = 50;
     private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
+    private static final int BATCHSIZE = 50;
+    private static final int INCREASEFACTOR = 2;
+    private static final int DECREASEFACTOR = 10;
     private ArrayList<CollectionAction> collectionActions = new ArrayList();
+    private Random generator = new Random( (new Date()).getTime() );
+
 
     public ActionDataStore_Writer(Map params, Map properties) {// Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClassificationAttribute){
         this.params = params;
@@ -141,13 +150,7 @@ public class ActionDataStore_Writer extends Action {
             }
         }
     }
-    /* public ActionDataStore_Writer(Map params, Boolean append, Boolean dropFirst) {
-     this(params,append,dropFirst,null,null);
-     }*/
 
-    /*public ActionDataStore_Writer(Map params) {
-     this(params,null,null);
-     }*/
     public EasyFeature execute(EasyFeature feature) throws Exception {
         if (!initDone) {
             throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file.\nUsed parameters:\n" + params.toString() + "\n\n" + constructorEx.getLocalizedMessage());
@@ -163,74 +166,200 @@ public class ActionDataStore_Writer extends Action {
             typename = newTypeName;
         }
 
-        FeatureWriter writer = null;
-        if (featureWriters.containsKey(typename)) {
-            writer = featureWriters.get(typename);
+        PrimaryKey pks = null;
+        FeatureCollection fc = null;
+        FeatureStore store = null;
+        List<String> errors = null;
+        int batchsize = BATCHSIZE;
+        if (featureTypeNames.contains(typename)) {
+            pks = featurePKs.get(typename);
+            fc = featureCollectionCache.get(typename);
+            store = featureStores.get(typename);
+            batchsize = featureBatchSizes.get(typename);
+            errors = featureErrors.get(typename);
         } else {
-
-            if (featureWriters.size() + 1 == MAX_CONNECTIONS_NR) {
-                // If max connections reached, commit all data and continue
-                close();
-                dataStore2Write = DataStoreLinker.openDataStore(params);
-                log.warn("Closing all connections (too many featureWriters loaded)");
-            }
             if (!checked.containsKey(params.toString() + typename)) {
                 checkSchema(feature.getFeatureType());
                 checked.put(params.toString() + typename, "");
                 processedTypes++;
-                //correct the typename after a possible creation of the schema
-                typename = correctTypeName(typename, dataStore2Write);
             }
-
-            writer = dataStore2Write.getFeatureWriterAppend(typename, Transaction.AUTO_COMMIT);
-            featureWriters.put(typename, writer);
-        }
-
-        PrimaryKey pks = null;
-        if (featurePKs.containsKey(typename)) {
-            pks = featurePKs.get(typename);
-        } else if (dataStore2Write != null && (dataStore2Write instanceof JDBCDataStore)) {
-            JDBCFeatureStore fs = (JDBCFeatureStore) ((JDBCDataStore) dataStore2Write).getFeatureSource(typename);
-            pks = fs.getPrimaryKey();
+            fc = new DefaultFeatureCollection(typename, feature.getFeatureType());
+            featureCollectionCache.put(typename, fc);
+            if (dataStore2Write != null) {
+                if (dataStore2Write instanceof JDBCDataStore) {
+                    JDBCFeatureStore fs = (JDBCFeatureStore) ((JDBCDataStore) dataStore2Write).getFeatureSource(typename);
+                    pks = fs.getPrimaryKey();
+                    store = fs;
+                } else {
+                    store = (FeatureStore) (dataStore2Write).getFeatureSource(typename);
+                }
+            }
+            featureStores.put(typename, store);
             featurePKs.put(typename, pks);
-        }
-
-        //store the typename
-        if (!featureTypeNames.contains(typename)) {
+            featureBatchSizes.put(typename, batchsize);
+            featureErrors.put(typename, new ArrayList<String>());
+            // remember that typename is processed
             featureTypeNames.add(typename);
         }
 
-        try {
-            write(writer, pks, feature.getFeature());
-        } catch (Exception ex) {
-            //log.debug("Error getting geometry. Feature not written: "+feature.toString(), ex);
-            // moeten dit soort dingen niet gewoon in een finally block?!?
-            //Remove writer so a new writer is created when the next feature is processed
-            if (writer != null) {
-                writer.close();
-            }
-            featureWriters.remove(typename);
-            featurePKs.remove(typename);
+        // put feature in correct collection for write later
+        prepareWrite(fc, pks, feature);
 
-            throw new FeatureException("Error getting geometry. Feature not written.", ex);
+        if (fc.size() >= batchsize || 
+                feature.getFeature().getUserData().containsKey("lastFeature")) {
+
+            try {
+                batchsize = writeCollection(fc, store, batchsize);
+                featureBatchSizes.put(typename, batchsize);
+            } catch (Exception ex) {
+                throw new FeatureException("Error writing feature collection. Features not written.", ex);
+            } finally {
+                 fc.retainAll(new ArrayList());
+            }
         }
 
         return feature;
     }
 
+    private void prepareWrite(FeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {
+        // Bepaal de primary key(s) van record in de doeltabel
+        PrimaryKey usePk = pk;
+        // TODO: overnemen van pk uit source en instellen voor target
+        // kan niet omdat dit niet (gemakkelijk) ondersteund wordt.
+        // Nu wordt de automatisch gegenereerde primary key gebruikt
+        // indien er geen doeltabel wordt gebruikt.
+//          if (dropFirst) {
+//              if (feature.getUserData().containsKey("sourcePks")) {
+//                  usePk = (PrimaryKey) feature.getUserData().get("sourcePks");
+//              }
+//          }
+
+        SimpleFeature newFeature = feature.getFeature();
+
+        // bouw pk uit gemapte waarden uit bron
+        StringBuilder oldfid = new StringBuilder();
+        if (usePk != null) {
+            List<PrimaryKeyColumn> pkcs = usePk.getColumns();
+            for (PrimaryKeyColumn pkc : pkcs) {
+                String cn = pkc.getName();
+                Object o = feature.getAttribute(cn);
+                if (o == null) {
+                    // primary is blijkbaar niet gemapt, dan vertrouwen op autonumber
+                    oldfid = null;
+                    break;
+                }
+                oldfid.append(o).append(".");
+            }
+            if (oldfid != null) {
+                oldfid.setLength(oldfid.length() - 1);
+            }
+        }
+        if (oldfid != null && oldfid.length() > 0) {
+            // voeg pk toe aan feature en zeg deze te gebruiken
+            newFeature = feature.copy(oldfid.toString()).getFeature();
+            newFeature.getUserData().put(Hints.USE_PROVIDED_FID, true);
+        }
+
+        fc.add(newFeature);
+    }
+    
+    private int writeCollection(FeatureCollection fc, FeatureStore store, int batchsize) throws FeatureException, IOException {
+        // maak nieuwe subcollecties
+        SimpleFeatureType type = (SimpleFeatureType) fc.getSchema();
+        int orgbatchsize = batchsize;
+        int stamp = generator.nextInt( 10000 );
+        int orgfcsize = fc.size();
+        log.info("Starting write out for typename: " + type.getTypeName() + 
+                " with batch size: " + orgbatchsize + 
+                " and stamp: " + stamp +
+                " and size: " + orgfcsize);
+
+        FeatureCollection currentFc = new DefaultFeatureCollection(type.getTypeName(), type);
+        List removeList = new ArrayList();
+        FeatureIterator fi = fc.features();
+        int count = 0;
+        while (fi.hasNext() && count < batchsize) {
+            SimpleFeature newFeature = (SimpleFeature) fi.next();
+            currentFc.add(newFeature);
+            removeList.add(newFeature);
+            count++;
+        }
+        fc.removeAll(removeList);
+        
+        if (!fc.isEmpty()) {
+            batchsize = writeCollection(fc, store, batchsize);
+        }
+        
+        Transaction t = new DefaultTransaction("add");
+        store.setTransaction(t);
+        try {
+            store.addFeatures(currentFc);
+            t.commit();
+            batchsize *= INCREASEFACTOR;
+            if (batchsize > 5000) {
+                batchsize = 5000;
+            }
+            currentFc.retainAll(new ArrayList());
+        } catch (IOException ex) {
+            t.rollback();
+            if (batchsize == 1) {
+                // als slechts een enkele feature niet geprocessed kan worden
+                // dan opgeven
+                SimpleFeature f = (SimpleFeature) (currentFc.toArray())[0];
+                String message = ExceptionUtils.getRootCauseMessage(ex) +
+                        ": " + f.getID();
+                featureErrors.get(type.getTypeName()).add(message);
+                return batchsize;
+            }
+            batchsize /= DECREASEFACTOR;
+            if (batchsize < 2) {
+                batchsize = 1;
+            }
+            log.info("Rollback for feature type: " + type.getTypeName()
+                    + ", retry with new batch size: " + batchsize);
+            batchsize = writeCollection(currentFc, store, batchsize);
+        } finally {
+            t.close();
+        }
+        log.info("finishing write out for typename: " + type.getTypeName() + 
+                " with batch size: " + orgbatchsize + 
+                " and stamp: " + stamp +
+                " and size: " + orgfcsize);
+        return batchsize;
+
+    }
+  
     @Override
     public void close() throws Exception {
         log.info("Closing ActionDataStore Writer");
-        closeConnections();
         if (dataStore2Write != null) {
             dataStore2Write.dispose();
         }
     }
 
     @Override
-    public void processPostCollectionActions() {
-        log.info("Process Post actions ActionDataStoreWriter");
+    public void processPostCollectionActions(Status status) {
+        log.info("Collect errors from ActionDataStore_Writer");
+        if (dataStore2Write != null) {
+            try {
+                String typeNames[] = dataStore2Write.getTypeNames();
+                List<String> errors = null;
+                for (int i = 0; i < typeNames.length; i++) {
+                    errors = featureErrors.get(typeNames[i]);
+                    if (errors != null && !errors.isEmpty()) {
+                        for (int j=0 ; j<errors.size(); j++) {
+                            status.addNonFatalError(errors.get(j), null);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                status.addNonFatalError("Error collecting errors from ActionDataStore_Writer", null);
+                log.error("Error collecting errors from ActionDataStore_Writer.", e);
+            }
+        }
+
         for (int i = 0; i < collectionActions.size(); i++) {
+            log.info("Process Post actions ActionDataStore_Writer");
             CollectionAction ca = collectionActions.get(i);
             //do the polygonize function
             if (ca instanceof CollectionAction_Polygonize) {
@@ -247,6 +376,7 @@ public class ActionDataStore_Writer extends Action {
                             ca.execute(fc, this);
                         }
                     } catch (Exception e) {
+                        status.addNonFatalError("Error while polygonizing the lines", null);
                         log.error("Error while Polygonizing the lines.", e);
                     }
                 }
@@ -267,6 +397,7 @@ public class ActionDataStore_Writer extends Action {
 
                     cap.execute(fc, fc2, this);
                 } catch (Exception e) {
+                    status.addNonFatalError("Error while points within polygon with attributes", null);
                     log.error("Error while Points within Polygon with attributes.", e);
                 } finally {
                     if (ds != null) {
@@ -285,7 +416,8 @@ public class ActionDataStore_Writer extends Action {
                     cap.setDataStore2Write(ds);
                     cap.execute(fc, this);
                 } catch (Exception e) {
-                    log.error("Error while Polygonizing the lines with attributes.", e);
+                    status.addNonFatalError("Error while polygonizing the lines with attributes", null);
+                    log.error("Error while polygonizing the lines with attributes.", e);
                 } finally {
                     if (ds != null) {
                         ds.dispose();
@@ -295,128 +427,15 @@ public class ActionDataStore_Writer extends Action {
         }
     }
 
-    private void write(FeatureWriter writer, PrimaryKey pk, SimpleFeature feature) throws IOException {
-
-        // Bepaal de primary key(s) van record in de doeltabel
-        PrimaryKey usePk = pk;
-            // TODO: overnemen van pk uit source en instellen voor target
-            // kan niet omdat dit niet (gemakkelijk) ondersteund wordt.
-            // Nu wordt de automatisch gegenereerde primary key gebruikt
-            // indien er geen doeltabel wordt gebruikt.
-//          if (dropFirst) {
-//              if (feature.getUserData().containsKey("sourcePks")) {
-//                  usePk = (PrimaryKey) feature.getUserData().get("sourcePks");
-//              }
-//          }
-
-        StringBuilder oldfid = new StringBuilder();
-        if (usePk != null) {
-            List<PrimaryKeyColumn> pkcs = usePk.getColumns();
-            for (PrimaryKeyColumn pkc : pkcs) {
-                String cn = pkc.getName();
-                Object o = feature.getAttribute(cn);
-                if (o == null) {
-                    // primary is blijkbaar niet gemapt, dan vertrouwen op autonumber
-					oldfid = null;
-					break;
-                }
-                oldfid.append(o).append(".");
-            }
-            if(oldfid != null){
-                oldfid.setLength(oldfid.length() - 1);
-            }
-        }
-
-        SimpleFeature newFeature = (SimpleFeature) writer.next();
-
-        if (oldfid!=null && oldfid.length() > 0
-                && newFeature.getClass().getName()
-                .equals("org.geotools.jdbc.JDBCFeatureReader$ResultSetFeature")) {
-            // feature heeft automatisch gegenereerde fid, pas truc toe om te
-            // overriden. Bug met HINTS.USE_PROVIDED_FID zit ook nog in Geotools 9.3
-            // TODO: kan mogelijk beter door andere systematiek via addAttributes op store
-            try {
-                Method m = newFeature.getClass().getMethod("setID", String.class);
-                m.setAccessible(true);
-                m.invoke(newFeature, oldfid.toString());
-            } catch (Exception e) {
-                if (e instanceof IOException) {
-                    throw (IOException) e;
-                } else {
-                    throw new IOException("Cannot set FID", e);
-                }
-            }
-            newFeature.getUserData().put(Hints.USE_PROVIDED_FID, true);
-        }
- 
-        try {
-            /* Ingebouwd dat bij een append alleen gelijke kolomnamen
-             * worden toegevoegd. Je hoeft bij een append dus niet meer van te voren te
-             * zorgen dat bron en doel exact gelijke kolommen bevatten.
-             * 
-             * CvL: altijd alleen geldig kolommen overzetten, ongeldige kolommen geven
-             * altijd problemen, dus waarom dan toch proberen.
-             * 
-             * TODO: Test zonder target tabel!
-             */
-//            if (append && !dropFirst) {
-            List<AttributeDescriptor> targets = newFeature.getFeatureType()
-                    .getAttributeDescriptors();
-
-            for (AttributeDescriptor descr : targets) {
-                Name name = descr.getName();
-                AttributeDescriptor tmp = feature.getFeatureType().getDescriptor(name);
-
-                if (tmp != null) {
-                    newFeature.setAttribute(name, feature.getAttribute(name));
-                }
-            }
-
-//            } else {
-//                newFeature.setAttributes(feature.getAttributes());
-//            }
-
-        } catch (IllegalAttributeException writeProblem) {
-            throw new IllegalAttributeException("Could not create " + feature.getFeatureType().getTypeName() + " out of provided SimpleFeature: " + feature.getID() + "\n" + writeProblem);
-        }
-        writer.write();
-		
-		// TODO CvL: the following code append features to a DataStore
-		//FeatureReader reader = DataUtilities.reader(new Feature[] { newFeature1, newFeature2, ... } );
-		//newFeatureStore.addFeatures(reader);
-    }
-
-    private void closeConnections() throws Exception {
-        // Commit datastore
-        // close connection
-        Iterator iter = featureWriters.keySet().iterator();
-        while (iter.hasNext()) {
-            FeatureWriter writer = featureWriters.get((String) iter.next());
-            writer.close();
-        }
-        featureWriters.clear();
-    }
-
     /**
      * Check the schema and return the name.
      */
     private String checkSchema(SimpleFeatureType featureType) throws Exception {
         if (initDone) {
-            //boolean typeExists = false;
-            //String[] typeNamesFound = dataStore2Write.getTypeNames();
-            String typename2Write = featureType.getTypeName();
+             String typename2Write = featureType.getTypeName();
             boolean typeExists = Arrays.asList(dataStore2Write.getTypeNames()).contains(typename2Write);
 
-            /*
-             for (int i = 0; i < typeNamesFound.length; i++) {
-             if (typename2Write.equals(typeNamesFound[i])) {
-             typeExists=true;
-             break;
-             }
-             }
-             */
-
-            if (dropFirst && typeExists) {
+             if (dropFirst && typeExists) {
                 /*The drop schema bestaat nog niet in geotools. Wordt nu wel gemaakt en zal binnen
                  * kort beschikbaar zijn. Tot die tijd maar verwijderen dmv sql script....
                  */
@@ -467,8 +486,9 @@ public class ActionDataStore_Writer extends Action {
                     // Empty table
                     JDBCDataStore database = (JDBCDataStore) dataStore2Write;
 					// try truncate
+                    Connection con = null;
 					try {
-						Connection con = database.getConnection(Transaction.AUTO_COMMIT);
+						con = database.getConnection(Transaction.AUTO_COMMIT);
                         PreparedStatement ps = null;
                         if (database.getSQLDialect() instanceof PostGISDialect) {
 							ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\" CASCADE");
@@ -480,14 +500,15 @@ public class ActionDataStore_Writer extends Action {
 		                log.info("Removing using truncate");
 					} catch (Exception e) {
 						log.debug("Removing using truncate failed: ", e);
+                        Connection con1 = null;
  						try {
-							Connection con1 = database.getConnection(Transaction.AUTO_COMMIT);
+							con1 = database.getConnection(Transaction.AUTO_COMMIT);
 							PreparedStatement ps = con1.prepareStatement("DELETE FROM \"" + typename2Write + "\"");
 							ps.execute();
 							deleteSuccess = true;
 							log.info("Removing using delete from table");
-						} catch (Exception e) {
-							log.debug("Removing using delete from table failed: ", e);
+						} catch (Exception e2) {
+							log.debug("Removing using delete from table failed: ", e2);
 						} finally {
 							if (con1!=null) {
 								con1.close();
@@ -559,7 +580,7 @@ public class ActionDataStore_Writer extends Action {
         DefaultTransaction transaction = new DefaultTransaction("removeTransaction");
         FeatureStore<SimpleFeatureType, SimpleFeature> store = (FeatureStore<SimpleFeatureType, SimpleFeature>) datastore.getFeatureSource(typeName);
 
-        /* TODO: Moet deze niet bin nen try ? Anders transaction nooit geclosed ? */        
+        /* TODO: Moet deze niet binnen try ? Anders transaction nooit geclosed ? */        
         try {
             store.removeFeatures(Filter.INCLUDE);
             
