@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import nl.b3p.geotools.data.linker.FeatureException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.feature.AttributeTypeBuilder;
@@ -14,6 +15,7 @@ import org.opengis.feature.type.AttributeType;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.opengis.feature.type.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
@@ -81,7 +83,7 @@ public class EasyFeature {
      */
     public void insertAttributeDescriptor(int attributeID, AttributeDescriptor attributeDescriptor) {
         // save userdata
-        Object pk = feature.getUserData().get("sourcePks");
+        Map<Object, Object> ud = feature.getUserData();
 
         // Add attributeType to current attributeList
         List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
@@ -100,7 +102,7 @@ public class EasyFeature {
         attributes.add(attributeID, null);
         // Build new feature with new values array
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
-        feature.getUserData().put("sourcePks", pk);
+        feature.getUserData().putAll(ud);
      }
 
     /**
@@ -121,7 +123,7 @@ public class EasyFeature {
      */
     public void removeAllAttributeDescriptors(boolean keepGeom) throws Exception {
         // save userdata
-        Object pk = feature.getUserData().get("sourcePks");
+        Map<Object, Object> ud = feature.getUserData();
 
         String geometryName = null;
         Integer geometryID = null;
@@ -163,7 +165,7 @@ public class EasyFeature {
         } else {
             feature = simpleFeatureBuilder.buildFeature(getID(), values);            
         }
-        feature.getUserData().put("sourcePks", pk);
+        feature.getUserData().putAll(ud);
      }
     
     /**
@@ -172,7 +174,7 @@ public class EasyFeature {
      */
     public void removeAttributeDescriptor(int attributeID) throws Exception {
         // save userdata
-        Object pk = feature.getUserData().get("sourcePks");
+       Map<Object, Object> ud = feature.getUserData();
 
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
         featureTypeBuilder.init(feature.getFeatureType());
@@ -186,7 +188,7 @@ public class EasyFeature {
         attributes.remove(attributeID);
 
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
-        feature.getUserData().put("sourcePks", pk);
+        feature.getUserData().putAll(ud);
      }
 
     /**
@@ -219,7 +221,7 @@ public class EasyFeature {
      */
     public void setAttributeDescriptor(int attributeID, AttributeDescriptor attributeDescriptor, boolean keepValue) {
         // save userdata
-        Object pk = feature.getUserData().get("sourcePks");
+       Map<Object, Object> ud = feature.getUserData();
 
         // Add attributeType to current attributeList
         List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
@@ -240,14 +242,13 @@ public class EasyFeature {
         }
 
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
-        feature.getUserData().put("sourcePks", pk);
+        feature.getUserData().putAll(ud);
     }
 
     public void setAttributeDescriptor(String attributeName, AttributeDescriptor attributeDescriptor) throws Exception {
         if (containsAttributeDescriptor(attributeName)) {
             int attributeID = getAttributeDescriptorIDbyName(attributeName);
-            removeAttributeDescriptor(attributeName);
-            insertAttributeDescriptor(attributeID, attributeDescriptor);
+            setAttributeDescriptor(attributeID, attributeDescriptor, true);
         } else {
             addAttributeDescriptor(attributeDescriptor);
         }
@@ -259,14 +260,14 @@ public class EasyFeature {
      * @return
      * @throws java.lang.Exception
      */
-    public int getAttributeDescriptorIDbyName(String name) throws Exception {
+    public int getAttributeDescriptorIDbyName(String name) throws FeatureException {
         List<AttributeDescriptor> attributeDescriptors = feature.getFeatureType().getAttributeDescriptors();
         for (int i = 0; i < attributeDescriptors.size(); i++) {
             if (attributeDescriptors.get(i).getLocalName().equalsIgnoreCase(name)) {
                 return i;
             }
         }
-        throw new Exception("Unable to locate attributeID of '" + name + "' " + toString());
+        throw new FeatureException("Unable to locate attributeID of '" + name + "' " + toString());
     }
 
     /**
@@ -342,7 +343,7 @@ public class EasyFeature {
 
     public void setTypeName(String name) {
         // save userdata
-        Object pk = feature.getUserData().get("sourcePks");
+       Map<Object, Object> ud = feature.getUserData();
 
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
         featureTypeBuilder.addAll(feature.getFeatureType().getAttributeDescriptors());
@@ -351,8 +352,8 @@ public class EasyFeature {
         SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(featureTypeBuilder.buildFeatureType());
         feature = featureBuilder.buildFeature(feature.getID(), feature.getAttributes().toArray(new Object[feature.getAttributeCount()]));
         
-        feature.getUserData().put("sourcePks", pk);
-    }
+         feature.getUserData().putAll(ud);
+   }
 
     public EasyFeature copy() {
         return copy(null, null);
@@ -442,16 +443,35 @@ public class EasyFeature {
         Class binding = feature.getFeatureType().getGeometryDescriptor().getType().getBinding();
         int attributeID = getAttributeDescriptorIDbyName(geometryName);
 
-        // Cache current geometry value
-        Geometry geom = (Geometry) getAttribute(geometryName);
+         // Create new geometryColumn with previous settings
+        setAttributeDescriptor(attributeID, buildGeometryAttributeDescriptor(geometryName, binding, isNillable, crs), true);
+     }
+    
+    public void repairGeometry() throws FeatureException {
+        Class binding = feature.getDefaultGeometry().getClass();
+        FeatureType ft = feature.getFeatureType();
+        Class typeBinding = ft.getGeometryDescriptor().getType().getBinding();
 
-        // Remove geometryColumn
-        //removeAttributeDescriptor(geometryName);
+        if (!binding.equals(typeBinding)) {
 
-        // Create new geometryColumn with previous settings
-        insertAttributeDescriptor(attributeID, buildGeometryAttributeDescriptor(geometryName, binding, isNillable, crs));
+            log.debug("feature binding: " + binding.toString() + 
+                    " for feature: " + feature.getID());
+            log.debug("feature type binding: " + typeBinding.toString() + 
+                    " for feature type: " + ft.getName().getLocalPart());
 
-        // Set cached geometry back
-        setAttribute(geometryName, geom);
+            GeometryAttribute ga = feature.getDefaultGeometryProperty();
+            CoordinateReferenceSystem crs = 
+                    ga.getDescriptor().getCoordinateReferenceSystem();
+            String geometryName = ga.getDescriptor().getLocalName();
+            boolean isNillable = 
+                    feature.getFeatureType().getGeometryDescriptor().isNillable();
+            int attributeID = getAttributeDescriptorIDbyName(geometryName);
+
+            // Create new geometryColumn with repaired binding
+            setAttributeDescriptor(attributeID, 
+                    buildGeometryAttributeDescriptor(geometryName, binding, isNillable, crs), true);
+            
+        }
     }
+    
 }

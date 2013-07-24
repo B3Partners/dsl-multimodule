@@ -96,7 +96,7 @@ public abstract class Action {
         // Used for closing iterator or reader / writer
     }
 
-    public void processPostCollectionActions(){
+    public void processPostCollectionActions(Status status){
         
     }
 }

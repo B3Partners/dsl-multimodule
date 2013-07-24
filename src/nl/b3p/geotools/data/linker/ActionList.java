@@ -96,11 +96,15 @@ public class ActionList extends ArrayList<Action> {
         return result;
     }
 
-    public void processPostCollectionActions() {
+    /**
+     * processes after all features have been read and written
+     * @param status to collect messages on the way
+     */
+    public void processPostCollectionActions(Status status) {
         Iterator iter = iterator();
         while (iter.hasNext()) {
             Action action = (Action) iter.next();
-            action.processPostCollectionActions();
+            action.processPostCollectionActions(status);
         }
     }
 }

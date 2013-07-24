@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
+import nl.b3p.geotools.data.linker.Status;
 
 /**
  * Split geometries in Point, Line, Polygon, MultiPoint, MultiLine, MultiPolygon
@@ -100,8 +101,8 @@ public class ActionCombo_GeometrySplitter_Writer extends ActionCombo implements 
     }
 
     @Override
-    public void processPostCollectionActions(){
-        datastore.processPostCollectionActions();
+    public void processPostCollectionActions(Status status){
+        datastore.processPostCollectionActions(status);
     }
 
     public String getDescription_NL() {

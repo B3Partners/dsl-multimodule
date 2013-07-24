@@ -4,7 +4,6 @@
  */
 package nl.b3p.geotools.data.linker;
 
-import com.vividsolutions.jts.geom.Geometry;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -202,14 +201,13 @@ public class DataStoreLinker implements Runnable {
                 
                 processFeature(feature);
 
-                // TODO: rollback? option to rollback or not?
                 if (status.isInterrupted()) {
                     throw new InterruptedException("User canceled the process.");
                 }
             }
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
-            actionList.processPostCollectionActions();
+            actionList.processPostCollectionActions(status);
         } finally {
             fc.close(iterator);
         }
@@ -221,9 +219,12 @@ public class DataStoreLinker implements Runnable {
         }
 
         try {
-            // TODO: CvL: moet ook zonder geometrie werken, verder uitzoeken
-//            testFeature(feature); Methode wissen ?
-            if (actionList.process(new EasyFeature(feature)) != null) {
+            EasyFeature ef = new EasyFeature(feature);
+            if (ef.getFeature().getDefaultGeometry() != null) {
+                // repair if necessary (e.g. no geom metadata in oracle)
+                ef.repairGeometry();
+            }
+             if (actionList.process(ef) != null) {
                 status.incrementProcessedFeatures();
             }
         } catch (Exception e) {
@@ -239,27 +240,6 @@ public class DataStoreLinker implements Runnable {
     private boolean mustProcessFeature() {
         return status.getVisitedFeatures() >= status.getFeatureStart() && ((status.getVisitedFeatures() <= status.getFeatureEnd() && status.getFeatureEnd() >= 0)
                 || (status.getFeatureEnd() < 0));
-    }
-
-    // Waarom zijn deze checks er überhaupt?
-    // Geotools gooit toch wel zelf een Exception als er iets mis is met de geom (?).
-    // - Misschien om zeker te zijn dat de actions een echte geometrie tot hun bsechikking hebben?
-    // - Snelheid misschien?
-    /**
-     * Throws an exception if there is something wrong with the feature's
-     * geometry.
-     *
-     * @param feature
-     * @return
-     */
-    public static void testFeature(SimpleFeature feature) throws FeatureException {
-        if (feature.getDefaultGeometry() == null) {
-            throw new FeatureException(resources.getString("report.feature.hasNoGeometry"));
-        } else if (!(feature.getDefaultGeometry() instanceof Geometry)) {
-            throw new FeatureException(resources.getString("report.feature.geometryNotAllowed"));
-        } else if (!(((Geometry) feature.getDefaultGeometry()).isValid())) {
-            //throw new FeatureException(resources.getString("report.feature.geometryNotValid"));
-        }
     }
 
     /**
