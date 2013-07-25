@@ -232,8 +232,9 @@ public class DataStoreLinker implements Runnable {
                 log.error("Exception tijdens processen van feature (exception nr. " + exceptionLogCount + " van max " + MAX_EXCEPTION_LOG_COUNT + " die worden gelogd)", e);
             }
 
-            status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), status.getVisitedFeatures());
-        }
+            status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), feature.getID());
+//            status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), status.getVisitedFeatures());
+         }
         status.incrementVisitedFeatures();
     }
 

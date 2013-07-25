@@ -62,7 +62,7 @@ public class ActionDataStore_Writer extends Action {
     private ArrayList<String> featureTypeNames = new ArrayList();
     private HashMap<String, FeatureCollection> featureCollectionCache = new HashMap();
     private HashMap<String, Integer> featureBatchSizes = new HashMap();
-    private HashMap<String, List<String>> featureErrors = new HashMap();
+    private HashMap<String, List<List<String>>> featureErrors = new HashMap();
     private static final int MAX_CONNECTIONS_NR = 50;
     private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
@@ -169,7 +169,7 @@ public class ActionDataStore_Writer extends Action {
         PrimaryKey pks = null;
         FeatureCollection fc = null;
         FeatureStore store = null;
-        List<String> errors = null;
+        List<List<String>> errors = null;
         int batchsize = BATCHSIZE;
         if (featureTypeNames.contains(typename)) {
             pks = featurePKs.get(typename);
@@ -306,8 +306,7 @@ public class ActionDataStore_Writer extends Action {
                 // als slechts een enkele feature niet geprocessed kan worden
                 // dan opgeven
                 SimpleFeature f = (SimpleFeature) (currentFc.toArray())[0];
-                String message = ExceptionUtils.getRootCauseMessage(ex) +
-                        ": " + f.getID();
+                List<String> message = new ArrayList() { ExceptionUtils.getRootCauseMessage(ex) , f.getID()};
                 featureErrors.get(type.getTypeName()).add(message);
                 return batchsize;
             }
@@ -348,12 +347,13 @@ public class ActionDataStore_Writer extends Action {
                     errors = featureErrors.get(typeNames[i]);
                     if (errors != null && !errors.isEmpty()) {
                         for (int j=0 ; j<errors.size(); j++) {
-                            status.addNonFatalError(errors.get(j), null);
+							List<String> message = errors.get(j);
+                           status.addWriteError(message.get(0), message.get(1));
                         }
                     }
                 }
             } catch (IOException e) {
-                status.addNonFatalError("Error collecting errors from ActionDataStore_Writer", null);
+                status.addWriteError("Error collecting errors from ActionDataStore_Writer", null);
                 log.error("Error collecting errors from ActionDataStore_Writer.", e);
             }
         }
@@ -376,7 +376,7 @@ public class ActionDataStore_Writer extends Action {
                             ca.execute(fc, this);
                         }
                     } catch (Exception e) {
-                        status.addNonFatalError("Error while polygonizing the lines", null);
+                        status.addWriteError("Error while polygonizing the lines", "");
                         log.error("Error while Polygonizing the lines.", e);
                     }
                 }
@@ -397,7 +397,7 @@ public class ActionDataStore_Writer extends Action {
 
                     cap.execute(fc, fc2, this);
                 } catch (Exception e) {
-                    status.addNonFatalError("Error while points within polygon with attributes", null);
+                    status.addWriteError("Error while points within polygon with attributes", "");
                     log.error("Error while Points within Polygon with attributes.", e);
                 } finally {
                     if (ds != null) {
@@ -416,7 +416,7 @@ public class ActionDataStore_Writer extends Action {
                     cap.setDataStore2Write(ds);
                     cap.execute(fc, this);
                 } catch (Exception e) {
-                    status.addNonFatalError("Error while polygonizing the lines with attributes", null);
+                    status.addWriteError("Error while polygonizing the lines with attributes", "");
                     log.error("Error while polygonizing the lines with attributes.", e);
                 } finally {
                     if (ds != null) {
