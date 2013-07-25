@@ -202,12 +202,13 @@ public class DataStoreLinker implements Runnable {
                 processFeature(feature);
 
                 if (status.isInterrupted()) {
+                    actionList.processPostCollectionActions(status);
                     throw new InterruptedException("User canceled the process.");
                 }
             }
+            actionList.processPostCollectionActions(status);
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
-            actionList.processPostCollectionActions(status);
         } finally {
             fc.close(iterator);
         }

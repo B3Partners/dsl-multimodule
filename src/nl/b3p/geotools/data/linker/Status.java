@@ -69,11 +69,11 @@ public class Status {
 
     private void init() {
         nonFatalErrorMap = new HashMap<String, List<String>>();
-		writeErrorMap =  = new HashMap<String, List<String>>();
+		writeErrorMap = new HashMap<String, List<String>>();
     }
 
     public synchronized void addNonFatalError(String errorString, String featureKey) {
-        incrementnonFatalErrorCount();
+        incrementNonFatalErrorCount();
         //log.warn("[" + featureNumber + "] " + errorString);
         if (!nonFatalErrorMap.containsKey(errorString)) {
             nonFatalErrorMap.put(errorString, new ArrayList<String>());
@@ -85,8 +85,8 @@ public class Status {
         return nonFatalErrorMap;
     }
 
-    public synchronized void addWriteErrorMap(String errorString, String featureKey) {
-        incrementnonFatalErrorCount();
+    public synchronized void addWriteError(String errorString, String featureKey) {
+        incrementWriteErrorCount();
         //log.warn("[" + featureNumber + "] " + errorString);
         if (!writeErrorMap.containsKey(errorString)) {
             writeErrorMap.put(errorString, new ArrayList<String>());

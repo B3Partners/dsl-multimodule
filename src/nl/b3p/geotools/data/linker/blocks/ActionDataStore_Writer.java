@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.MultiLineString;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -171,6 +172,10 @@ public class ActionDataStore_Writer extends Action {
         FeatureStore store = null;
         List<List<String>> errors = null;
         int batchsize = BATCHSIZE;
+        //TODO aanpassen batchsize mogelijk maken
+        //hiermee kan dan ook (via batch size is -1) in een transactie oude records
+        //worden verwijderd en nieuwe records worden toegevoegd, zodat een volledige
+        //rollback gedaan kan worden
         if (featureTypeNames.contains(typename)) {
             pks = featurePKs.get(typename);
             fc = featureCollectionCache.get(typename);
@@ -179,7 +184,13 @@ public class ActionDataStore_Writer extends Action {
             errors = featureErrors.get(typename);
         } else {
             if (!checked.containsKey(params.toString() + typename)) {
-                checkSchema(feature.getFeatureType());
+                
+                //TODO uitzoeken of drop ook in de transactie kan
+                boolean delayRemoveUntilFirstCommit = false;
+                if (batchsize == -1) {
+                    delayRemoveUntilFirstCommit = true;
+                }
+                checkSchema(feature.getFeatureType(), delayRemoveUntilFirstCommit);
                 checked.put(params.toString() + typename, "");
                 processedTypes++;
             }
@@ -197,7 +208,7 @@ public class ActionDataStore_Writer extends Action {
             featureStores.put(typename, store);
             featurePKs.put(typename, pks);
             featureBatchSizes.put(typename, batchsize);
-            featureErrors.put(typename, new ArrayList<String>());
+            featureErrors.put(typename, new ArrayList<List<String>>());
             // remember that typename is processed
             featureTypeNames.add(typename);
         }
@@ -205,7 +216,9 @@ public class ActionDataStore_Writer extends Action {
         // put feature in correct collection for write later
         prepareWrite(fc, pks, feature);
 
-        if (fc.size() >= batchsize || 
+        // start writing when number of features is larger than batch size,
+        // except when batch size is -1, then always wait for last feature
+        if ((fc.size() >= batchsize && batchsize!=-1)|| 
                 feature.getFeature().getUserData().containsKey("lastFeature")) {
 
             try {
@@ -274,42 +287,75 @@ public class ActionDataStore_Writer extends Action {
                 " and stamp: " + stamp +
                 " and size: " + orgfcsize);
 
-        FeatureCollection currentFc = new DefaultFeatureCollection(type.getTypeName(), type);
-        List removeList = new ArrayList();
-        FeatureIterator fi = fc.features();
-        int count = 0;
-        while (fi.hasNext() && count < batchsize) {
-            SimpleFeature newFeature = (SimpleFeature) fi.next();
-            currentFc.add(newFeature);
-            removeList.add(newFeature);
-            count++;
-        }
-        fc.removeAll(removeList);
-        
-        if (!fc.isEmpty()) {
-            batchsize = writeCollection(fc, store, batchsize);
+        FeatureCollection currentFc = null;
+        if (batchsize == -1) {
+            // alles in een keer
+            currentFc = fc;
+        } else {
+            // splits de collectie zodat in delen geprobeerd kan worden te schrijven
+            currentFc = new DefaultFeatureCollection(type.getTypeName(), type);
+            List removeList = new ArrayList();
+            FeatureIterator fi = fc.features();
+            int count = 0;
+            while (fi.hasNext() && count < batchsize) {
+                SimpleFeature newFeature = (SimpleFeature) fi.next();
+                currentFc.add(newFeature);
+                removeList.add(newFeature);
+                count++;
+            }
+            fc.removeAll(removeList);
+
+            if (!fc.isEmpty()) {
+                batchsize = writeCollection(fc, store, batchsize);
+            }
         }
         
         Transaction t = new DefaultTransaction("add");
         store.setTransaction(t);
         try {
+            if (batchsize == -1) {
+                // als alles in een keer, dan ook pas oude feature weggooien
+                // als nieuwe insert ok zijn (dus in zelfde transactie)
+                log.info("Removing all features from: " + type.getTypeName() + 
+                        " within insert transaction.");
+                store.removeFeatures(Filter.INCLUDE);
+            }
+            // schrijf batch aan features
             store.addFeatures(currentFc);
             t.commit();
+            
+            // indien succesvol dan volgende keer grotere batch
             batchsize *= INCREASEFACTOR;
             if (batchsize > 5000) {
                 batchsize = 5000;
             }
             currentFc.retainAll(new ArrayList());
+            
         } catch (IOException ex) {
+            
             t.rollback();
+            
+            if (batchsize == -1) {
+                // als batch size is -1 dan is de gehele collectie in een keer
+                // geschreven en moet niet geprobeerd worden in kleinere delen
+                // te committen, meteen foutmelding sturen
+                List<String> message = new ArrayList( 
+                    Arrays.asList(ExceptionUtils.getRootCauseMessage(ex), "*"));
+                featureErrors.get(type.getTypeName()).add(message);
+                return batchsize;
+            }
+            
             if (batchsize == 1) {
                 // als slechts een enkele feature niet geprocessed kan worden
                 // dan opgeven
                 SimpleFeature f = (SimpleFeature) (currentFc.toArray())[0];
-                List<String> message = new ArrayList() { ExceptionUtils.getRootCauseMessage(ex) , f.getID()};
+                List<String> message = new ArrayList( 
+                    Arrays.asList(ExceptionUtils.getRootCauseMessage(ex), f.getID()));
                 featureErrors.get(type.getTypeName()).add(message);
                 return batchsize;
             }
+            
+            // probeer opnieuw met aangepast batch size
             batchsize /= DECREASEFACTOR;
             if (batchsize < 2) {
                 batchsize = 1;
@@ -317,6 +363,7 @@ public class ActionDataStore_Writer extends Action {
             log.info("Rollback for feature type: " + type.getTypeName()
                     + ", retry with new batch size: " + batchsize);
             batchsize = writeCollection(currentFc, store, batchsize);
+            
         } finally {
             t.close();
         }
@@ -342,7 +389,7 @@ public class ActionDataStore_Writer extends Action {
         if (dataStore2Write != null) {
             try {
                 String typeNames[] = dataStore2Write.getTypeNames();
-                List<String> errors = null;
+                List<List<String>> errors = null;
                 for (int i = 0; i < typeNames.length; i++) {
                     errors = featureErrors.get(typeNames[i]);
                     if (errors != null && !errors.isEmpty()) {
@@ -430,7 +477,8 @@ public class ActionDataStore_Writer extends Action {
     /**
      * Check the schema and return the name.
      */
-    private String checkSchema(SimpleFeatureType featureType) throws Exception {
+    private String checkSchema(SimpleFeatureType featureType, 
+            boolean delayRemoveUntilFirstCommit) throws Exception {
         if (initDone) {
              String typename2Write = featureType.getTypeName();
             boolean typeExists = Arrays.asList(dataStore2Write.getTypeNames()).contains(typename2Write);
@@ -450,19 +498,7 @@ public class ActionDataStore_Writer extends Action {
                         database = (JDBCDataStore) dataStore2Write;
                         con = database.getDataSource().getConnection();
                         con.setAutoCommit(true);
-
-                        // TODO make this function work with all databases
-                        PreparedStatement ps = null;
-                        if (database.getSQLDialect() instanceof PostGISDialect) {
-                            ps = con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema() + "\".\"" + typename2Write + "\"; "
-                                    + "DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + featureType.getTypeName() + "'");
-                            ps.execute();
-                        } else if (database.getSQLDialect() instanceof OracleDialect) {
-                            ps = con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema() + "\".\"" + typename2Write + "\"");
-                            ps.execute();
-                            ps = con.prepareStatement("DELETE FROM MDSYS.SDO_GEOM_METADATA_TABLE WHERE SDO_TABLE_NAME = '" + featureType.getTypeName() + "'");
-                            ps.execute();
-                        }
+                        dropTable(database, con, typename2Write);
                     } finally {
                         if (database != null) {
                             database.closeSafe(con);
@@ -478,35 +514,27 @@ public class ActionDataStore_Writer extends Action {
                 log.info("Creating new table with name: " + featureType.getTypeName());
                 dataStore2Write.createSchema(featureType);
 
-            } else if (!append) {
+            } else if (!append && !delayRemoveUntilFirstCommit) {
                 log.info("Removing all features from: " + typename2Write);
 				boolean deleteSuccess = false;
                 // Check if DataStore is a Database
                 if (dataStore2Write instanceof JDBCDataStore) {
                     // Empty table
                     JDBCDataStore database = (JDBCDataStore) dataStore2Write;
-					// try truncate
                     Connection con = null;
 					try {
 						con = database.getConnection(Transaction.AUTO_COMMIT);
-                        PreparedStatement ps = null;
-                        if (database.getSQLDialect() instanceof PostGISDialect) {
-							ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\" CASCADE");
-                        } else { //if (database.getSQLDialect() instanceof OracleDialect) {
-                            ps = con.prepareStatement("TRUNCATE TABLE \"" + typename2Write + "\"");
-                        }
-						ps.execute();
+                        // try truncate: fast
+                        removeAllFeaturesWithTruncate(database, con, typename2Write);
 						deleteSuccess = true;
-		                log.info("Removing using truncate");
 					} catch (Exception e) {
 						log.debug("Removing using truncate failed: ", e);
                         Connection con1 = null;
  						try {
 							con1 = database.getConnection(Transaction.AUTO_COMMIT);
-							PreparedStatement ps = con1.prepareStatement("DELETE FROM \"" + typename2Write + "\"");
-							ps.execute();
+                            // try delete from table: mot so fast
+                            removeAllFeaturesWithDelete(database, con, typename2Write);
 							deleteSuccess = true;
-							log.info("Removing using delete from table");
 						} catch (Exception e2) {
 							log.debug("Removing using delete from table failed: ", e2);
 						} finally {
@@ -521,6 +549,7 @@ public class ActionDataStore_Writer extends Action {
 					}
                 } 
 				if	(!deleteSuccess) {
+                    // try using geotools: slowest
                     removeAllFeatures(dataStore2Write, typename2Write);
 		            log.info("Removing using geotools");
                 }
@@ -575,15 +604,47 @@ public class ActionDataStore_Writer extends Action {
         }
         return typeName;
     }
+    
+    private void dropTable(JDBCDataStore database, Connection con, String typeName) throws SQLException {
+
+        // TODO make this function work with all databases
+        PreparedStatement ps = null;
+        if (database.getSQLDialect() instanceof PostGISDialect) {
+            ps = con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema() + "\".\"" + typeName + "\"; "
+                    + "DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + typeName + "'");
+            ps.execute();
+        } else if (database.getSQLDialect() instanceof OracleDialect) {
+            ps = con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema() + "\".\"" + typeName + "\"");
+            ps.execute();
+            ps = con.prepareStatement("DELETE FROM MDSYS.SDO_GEOM_METADATA_TABLE WHERE SDO_TABLE_NAME = '" + typeName + "'");
+            ps.execute();
+        }
+    }
+    
+    private void removeAllFeaturesWithTruncate(JDBCDataStore database, Connection con, String typeName) throws SQLException {
+        PreparedStatement ps = null;
+        if (database.getSQLDialect() instanceof PostGISDialect) {
+            ps = con.prepareStatement("TRUNCATE TABLE \"" + typeName + "\" CASCADE");
+        } else { //if (database.getSQLDialect() instanceof OracleDialect) {
+            ps = con.prepareStatement("TRUNCATE TABLE \"" + typeName + "\"");
+        }
+        ps.execute();
+		log.info("Removing using truncate");
+   }
+
+    private void removeAllFeaturesWithDelete(JDBCDataStore database, Connection con, String typeName) throws SQLException {
+        PreparedStatement ps = con.prepareStatement("DELETE FROM \"" + typeName + "\"");
+        ps.execute();
+        log.info("Removing using delete from table");
+    }
 
     private void removeAllFeatures(DataStore datastore, String typeName) throws IOException, Exception {
         DefaultTransaction transaction = new DefaultTransaction("removeTransaction");
         FeatureStore<SimpleFeatureType, SimpleFeature> store = (FeatureStore<SimpleFeatureType, SimpleFeature>) datastore.getFeatureSource(typeName);
 
-        /* TODO: Moet deze niet binnen try ? Anders transaction nooit geclosed ? */        
         try {
             store.removeFeatures(Filter.INCLUDE);
-            
+
             transaction.commit();
         } catch (Exception e) {
             transaction.rollback();
