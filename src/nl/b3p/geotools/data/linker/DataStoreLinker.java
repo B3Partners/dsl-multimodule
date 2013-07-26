@@ -182,9 +182,7 @@ public class DataStoreLinker implements Runnable {
             FeatureSource fs = ((JDBCDataStore) dataStore2Read).getFeatureSource(typeName2Read);
             if (fs instanceof JDBCFeatureStore) {
                 pk = ((JDBCFeatureStore)fs).getPrimaryKey();
-            } else {
-                throw new FeatureException("Table cannot be written: no primary key?");
-            }
+             }
         }
 
         try {

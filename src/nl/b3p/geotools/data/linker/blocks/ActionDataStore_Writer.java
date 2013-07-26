@@ -198,11 +198,15 @@ public class ActionDataStore_Writer extends Action {
             featureCollectionCache.put(typename, fc);
             if (dataStore2Write != null) {
                 if (dataStore2Write instanceof JDBCDataStore) {
-                    JDBCFeatureStore fs = (JDBCFeatureStore) ((JDBCDataStore) dataStore2Write).getFeatureSource(typename);
-                    pks = fs.getPrimaryKey();
-                    store = fs;
+                    FeatureSource fs = ((JDBCDataStore) dataStore2Write).getFeatureSource(typename, Transaction.AUTO_COMMIT);
+                    if (fs instanceof JDBCFeatureStore) {
+                        store = (JDBCFeatureStore) fs;
+                        pks = ((JDBCFeatureStore) fs).getPrimaryKey();
+                    } else {
+                        throw new FeatureException("Table cannot be written: no primary key?");
+                    }
                 } else {
-                    store = (FeatureStore) (dataStore2Write).getFeatureSource(typename);
+                    store = (FeatureStore) dataStore2Write.getFeatureSource(typename);
                 }
             }
             featureStores.put(typename, store);

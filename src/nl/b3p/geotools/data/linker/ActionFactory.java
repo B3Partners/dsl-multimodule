@@ -680,7 +680,9 @@ public class ActionFactory {
         for (String prop : find) {
 
             // Check if map contains property
-            if (!properties.containsKey(prop)) {                
+            if (!properties.containsKey(prop)) {
+                found = false;
+            } else if (properties.get(prop) == null) {
                 found = false;
             } else if (properties.get(prop).toString().equals("")) {
                 found = false;
@@ -703,11 +705,11 @@ public class ActionFactory {
     public static void failedConstructor(Class actionClass, Map properties) throws Exception {
         Method[] methods = actionClass.getMethods();
         boolean found = false;
-        String[][] constructors = null;
+        List<List<String>> constructors = null;
 
         for (int i = 0; i < methods.length; i++) {
-            if (methods[i].getName().equals("getConstructors")) {
-                constructors = (String[][]) methods[i].invoke(actionClass);
+            if (methods[i].getName().equals("getConstructors")) {              
+                constructors = (List<List<String>>) methods[i].invoke(actionClass);
                 found = (constructors != null);
                 break;
             }
@@ -718,12 +720,12 @@ public class ActionFactory {
             // Strip { and }
             String propertyString = properties.toString().substring(1, properties.toString().length() - 1).replaceAll(", ", "\n");
 
-            for (int i = 0; i < constructors.length; i++) {
+            for (int i = 0; i < constructors.size(); i++) {
                 String missing = "";
                 constructorString += " " + actionClass.getSimpleName() + "(";
-                for (int j = 0; j < constructors[i].length; j++) {
-                    constructorString += constructors[i][j] + (j != constructors[i].length - 1 ? ", " : "");
-                    missing += (!properties.containsKey(constructors[i][j]) ? " " + constructors[i][j] : "");
+                for (int j = 0; j < constructors.get(i).size(); j++) {
+                    constructorString += constructors.get(i).get(j) + (j != constructors.get(i).size() - 1 ? ", " : "");
+                    missing += (!properties.containsKey(constructors.get(i).get(j)) ? " " + constructors.get(i).get(j) : "");
                 }
                 constructorString += ")\n - Missing parameter(s):" + missing + "\n\n";
                 if (missing.equals("")) {
