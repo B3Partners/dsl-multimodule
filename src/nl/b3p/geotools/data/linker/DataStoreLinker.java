@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
+import org.geotools.data.FeatureSource;
 import org.geotools.data.FileDataStoreFactorySpi;
 import org.geotools.data.oracle.OracleNGDataStoreFactory;
 import org.geotools.data.postgis.PostgisNGDataStoreFactory;
@@ -178,8 +179,12 @@ public class DataStoreLinker implements Runnable {
 
         PrimaryKey pk = null;
         if (dataStore2Read != null && (dataStore2Read instanceof JDBCDataStore)) {
-            JDBCFeatureStore fs = (JDBCFeatureStore) ((JDBCDataStore) dataStore2Read).getFeatureSource(typeName2Read);
-            pk = fs.getPrimaryKey();
+            FeatureSource fs = ((JDBCDataStore) dataStore2Read).getFeatureSource(typeName2Read);
+            if (fs instanceof JDBCFeatureStore) {
+                pk = ((JDBCFeatureStore)fs).getPrimaryKey();
+            } else {
+                throw new FeatureException("Table cannot be written: no primary key?");
+            }
         }
 
         try {
