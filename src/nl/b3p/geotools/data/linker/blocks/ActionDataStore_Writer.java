@@ -512,7 +512,6 @@ public class ActionDataStore_Writer extends Action {
                 typeExists = false;
             }
 
-
             // If table does not exist, create new
             if (!typeExists) {
                 log.info("Creating new table with name: " + featureType.getTypeName());

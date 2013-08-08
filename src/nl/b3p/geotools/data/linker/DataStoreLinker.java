@@ -231,7 +231,10 @@ public class DataStoreLinker implements Runnable {
              if (actionList.process(ef) != null) {
                 status.incrementProcessedFeatures();
             }
-        } catch (Exception e) {
+        }
+        /*TODO: Onderscheid maken tussen fatal Exception en niet Fatal Exception. Als er een Fatal
+        wordt gethrowed dan moet er worden gestopt met features processen.*/
+        catch (Exception e) {
             if (exceptionLogCount++ < MAX_EXCEPTION_LOG_COUNT) {
                 log.error("Exception tijdens processen van feature (exception nr. " + exceptionLogCount + " van max " + MAX_EXCEPTION_LOG_COUNT + " die worden gelogd)", e);
             }

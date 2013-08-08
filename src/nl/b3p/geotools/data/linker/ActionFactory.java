@@ -260,7 +260,7 @@ public class ActionFactory {
             } else if (isThisClass(actionClassName, ActionFeatureType_Typename_Update.class)) {
                 if (propertyCheck(properties, NEW_TYPENAME, APPEND)) {
                     String newTypeName = (String) properties.get(NEW_TYPENAME);
-                    boolean append = toBoolean((String) properties.get(APPEND));
+                    boolean append = toBoolean(properties.get(APPEND).toString());
                     return new ActionFeatureType_Typename_Update(newTypeName, append);
 
                 } else if (propertyCheck(properties, NEW_TYPENAME)) {
