@@ -4,6 +4,8 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
+
 /**
  * Transform SimpleFeature for use inside Oracle
  * @author Gertjan
@@ -36,6 +38,16 @@ public class ActionCombo_Fix_To_Oracle extends ActionCombo {
         ActionFeatureType_Typename_Substring actionTypenameSubstring = 
                 new ActionFeatureType_Typename_Substring(ORACLE_MAX_TABLE_NAME_LENGTH, true);
         actionTypenameLength.addActionToList(true, actionTypenameSubstring);
+    }
+    
+    @Override
+    public EasyFeature execute(EasyFeature feature) throws Exception {
+        for (int i = 0; i < feature.getAttributeCount(); i++) {
+            Action action = new ActionFeatureType_AttributeName_Case(i, true);
+            action.execute(feature);
+        }
+
+        return feature;
     }
 
     public String getDescription_NL() {
