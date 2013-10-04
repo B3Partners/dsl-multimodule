@@ -599,6 +599,15 @@ public class ActionFactory {
                                 
                 return new ActionFeature_Add_External_Attributes(dxfHandle, otherFileHandle, otherFileName);
                 
+                /* Constructors nagaan voor Action_XY_Intersects_Add_Mapped_Attrib */
+            } else if (isThisClass(actionClassName, Action_XY_Intersects_Add_Mapped_Attrib.class)) {
+                
+                String otherFileName = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_NAME);
+                String dxfHandle = (String) properties.get(ATTRIBUTE_NAME_DXF_HANDLE);
+                String otherFileHandle = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_HANDLE);
+                                
+                return new ActionFeature_Add_External_Attributes(dxfHandle, otherFileHandle, otherFileName);
+                
             } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {                    
                 Integer size = properties.size();
                 
