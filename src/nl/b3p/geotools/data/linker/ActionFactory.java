@@ -15,6 +15,7 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Create actionBlocks for given Classname and parameters (properties)
+ *
  * @author Boy de Wit
  */
 public class ActionFactory {
@@ -43,10 +44,10 @@ public class ActionFactory {
     //Default: true. Set to true if you want load every classification seperate in the memory. (takes longer, but less mem usages)
     public static final String POLYGONIZE_ONECLASSINMEMORY = "polygonize_oneClassInMemory";
     public static final String POLYGONIZEWITHATTR = "polygonizeWithAttr";
-    public static final String POLYGONIZEWITHATTR_CQLFILTER_ATTRIBUTE="polygonizeWithAttr_cqlfilter";
-    public static final String POLYGONIZEWITHATTR_ATTRIBUTEFEATURENAME_ATTRIBUTE="polygonizeWithAttr_attributeFeatureName";
-    public static final String POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE="polygonizeWithAttr_lineFeatureName";
-    public static final String POLYGONIZEWITHATTR_LINECLOSETOLERANCE_ATTRIBUTE="polygonizeWithAttr_lineCloseTolerance";
+    public static final String POLYGONIZEWITHATTR_CQLFILTER_ATTRIBUTE = "polygonizeWithAttr_cqlfilter";
+    public static final String POLYGONIZEWITHATTR_ATTRIBUTEFEATURENAME_ATTRIBUTE = "polygonizeWithAttr_attributeFeatureName";
+    public static final String POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE = "polygonizeWithAttr_lineFeatureName";
+    public static final String POLYGONIZEWITHATTR_LINECLOSETOLERANCE_ATTRIBUTE = "polygonizeWithAttr_lineCloseTolerance";
     public static final String POLYGONIZESUFLKI = "polygonizeSufLki";
     public static final String TRYCAST = "trycast";
     public static final String OBJECT_FIND = "object_find";
@@ -65,16 +66,19 @@ public class ActionFactory {
     public static final String REPLACEMENT = "replacement";
     public static final String SCALE = "scale";
     public static final String FLOAT_PRECISION = "float_precision";
-
     public static final String ATTRIBUTE_NAME_ADDRESS1 = "attribute_name_address1";
     public static final String ATTRIBUTE_NAME_ADDRESS2 = "attribute_name_address2";
     public static final String ATTRIBUTE_NAME_ADDRESS3 = "attribute_name_address3";
     public static final String ATTRIBUTE_NAME_CITY = "attribute_name_city";
-    
     public static final String ATTRIBUTE_NAME_OTHER_FILE_NAME = "attribute_name_other_file_name";
     public static final String ATTRIBUTE_NAME_DXF_HANDLE = "attribute_name_dxf_handle";
     public static final String ATTRIBUTE_NAME_OTHER_FILE_HANDLE = "attribute_name_other_file_handle";
-    
+    public static final String ATTRIBUTE_NAME_OUTPUTDB_ID = "attribute_name_outputdb_id";
+    public static final String ATTRIBUTE_NAME_OUTPUT_TABLE = "attribute_name_output_table";
+    public static final String ATTRIBUTE_NAME_POLY_TABLE = "attribute_name_poly_table";
+    public static final String ATTRIBUTE_NAME_MATCH_SRC_COLUMN = "attribute_name_match_src_column";
+    public static final String ATTRIBUTE_NAME_MATCH_POLY_COLUMN = "attribute_name_match_poly_column";
+    public static final String ATTRIBUTE_NAME_MATCH_GEOM = "attribute_name_match_geom";
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
     public static Action createAction(String actionClassName, Map<String, Object> properties) throws Exception {
@@ -299,7 +303,7 @@ public class ActionFactory {
                     Object obj = properties.get(OBJECT_REPLACE);
                     Map map = new HashMap();
 
-                    if (obj instanceof String) {                        
+                    if (obj instanceof String) {
                         map.put("class", "java.lang.String");
                         map.put("value", (String) obj);
                         replace = createObject(map);
@@ -309,7 +313,7 @@ public class ActionFactory {
                         replace = createObject(map);
                     } else if (obj instanceof Float) {
                         map.put("class", "java.lang.Float");
-                        map.put("value", (Float) obj);                        
+                        map.put("value", (Float) obj);
                         replace = createObject(map);
                     } else if (obj instanceof Double) {
                         map.put("class", "java.lang.Double");
@@ -319,7 +323,7 @@ public class ActionFactory {
                         Map newValue = (HashMap) obj;
                         replace = createObject(newValue);
                     }
-                    
+
                     boolean append = toBoolean((String) properties.get(APPEND));
                     return new ActionFeature_Value_Set(attributeName, replace, append);
 
@@ -560,28 +564,28 @@ public class ActionFactory {
                 } else {
                     failedConstructor(ActionFeatureType_Typename_AppendAttribute.class, properties);
                 }
-            } else if(isThisClass(actionClassName, ActionGeometry_RemoveDuplicateVertices.class)) {
+            } else if (isThisClass(actionClassName, ActionGeometry_RemoveDuplicateVertices.class)) {
                 return new ActionGeometry_RemoveDuplicateVertices();
-            } else if(isThisClass(actionClassName, ActionFeature_Value_ReplaceText.class)) {
+            } else if (isThisClass(actionClassName, ActionFeature_Value_ReplaceText.class)) {
 
                 ActionFeature_Value_ReplaceText a = new ActionFeature_Value_ReplaceText();
 
-                a.setAttribute((String)properties.get(ATTRIBUTE_NAME));
-                a.setSearch((String)properties.get(OBJECT_FIND));
-                a.setReplacement((String)properties.get(OBJECT_REPLACE));
-            
+                a.setAttribute((String) properties.get(ATTRIBUTE_NAME));
+                a.setSearch((String) properties.get(OBJECT_FIND));
+                a.setReplacement((String) properties.get(OBJECT_REPLACE));
+
                 return a;
-            } else if(isThisClass(actionClassName, ActionGeometry_VertexPrecisionThreshold.class)) {
+            } else if (isThisClass(actionClassName, ActionGeometry_VertexPrecisionThreshold.class)) {
                 ActionGeometry_VertexPrecisionThreshold a = new ActionGeometry_VertexPrecisionThreshold();
 
-                a.setScale(toInteger((String)properties.get(SCALE)));
+                a.setScale(toInteger((String) properties.get(SCALE)));
                 //a.setFloatPrecision(toBoolean((String)properties.get(FLOAT_PRECISION)));
 
                 return a;
 
-            /* Constructors nagaan voor ActionGeometry_Make_Point_Address */
+                /* Constructors nagaan voor ActionGeometry_Make_Point_Address */
             } else if (isThisClass(actionClassName, ActionGeometry_Make_Point_Address.class)) {
-                
+
                 String address1 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS1);
                 String address2 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS2);
                 String address3 = (String) properties.get(ATTRIBUTE_NAME_ADDRESS3);
@@ -589,89 +593,92 @@ public class ActionFactory {
                 String srs = (String) properties.get(SRS);
 
                 return new ActionGeometry_Make_Point_Address(address1, address2, address3, city, srs);
-                
-            /* Constructors nagaan voor ActionFeature_Add_External_Attributes */
+
+                /* Constructors nagaan voor ActionFeature_Add_External_Attributes */
             } else if (isThisClass(actionClassName, ActionFeature_Add_External_Attributes.class)) {
-                
+
                 String otherFileName = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_NAME);
                 String dxfHandle = (String) properties.get(ATTRIBUTE_NAME_DXF_HANDLE);
                 String otherFileHandle = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_HANDLE);
-                                
+
                 return new ActionFeature_Add_External_Attributes(dxfHandle, otherFileHandle, otherFileName);
-                
+
                 /* Constructors nagaan voor Action_XY_Intersects_Add_Mapped_Attrib */
             } else if (isThisClass(actionClassName, Action_XY_Intersects_Add_Mapped_Attrib.class)) {
-                
-                String otherFileName = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_NAME);
-                String dxfHandle = (String) properties.get(ATTRIBUTE_NAME_DXF_HANDLE);
-                String otherFileHandle = (String) properties.get(ATTRIBUTE_NAME_OTHER_FILE_HANDLE);
-                                
-                return new ActionFeature_Add_External_Attributes(dxfHandle, otherFileHandle, otherFileName);
-                
-            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {                    
+
+                Long outputDbId = toLong((String) properties.get(ATTRIBUTE_NAME_OUTPUTDB_ID));
+                String outputTable = (String) properties.get(ATTRIBUTE_NAME_OUTPUT_TABLE);
+                String polyTable = (String) properties.get(ATTRIBUTE_NAME_POLY_TABLE);
+                String matchSrcColumn = (String) properties.get(ATTRIBUTE_NAME_MATCH_SRC_COLUMN);
+                String matchPolyColumn = (String) properties.get(ATTRIBUTE_NAME_MATCH_POLY_COLUMN);
+                Boolean matchGeom = toBoolean((String) properties.get(ATTRIBUTE_NAME_MATCH_GEOM));              
+
+                return new Action_XY_Intersects_Add_Mapped_Attrib(outputDbId, outputTable, polyTable, matchSrcColumn, matchPolyColumn, matchGeom);
+
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {
                 Integer size = properties.size();
-                
+
                 if (size == null && size < 1) {
                     return null;
                 }
-                
+
                 List<String> currentNames = new ArrayList<String>();
                 List<String> newNames = new ArrayList<String>();
-                
+
                 for (Entry<String, Object> entry : properties.entrySet()) {
-                    String currentField = entry.getKey();                    
+                    String currentField = entry.getKey();
                     String nieuw = (String) entry.getValue();
-                    
-                    if (currentField != null && currentField.length() > 0 && nieuw != null && nieuw.length() > 0) {                  
+
+                    if (currentField != null && currentField.length() > 0 && nieuw != null && nieuw.length() > 0) {
                         currentNames.add(currentField);
                         newNames.add(nieuw);
                     }
                 }
-                
+
                 if (currentNames.size() < 1 && currentNames.size() != newNames.size()) {
                     return null;
                 }
-                
-                String[] invoer = (String[])currentNames.toArray(new String[currentNames.size()]);
-                String[] uitvoer = (String[])newNames.toArray(new String[newNames.size()]);
 
-                return new ActionFeatureType_AttributeNames_Rename(invoer, uitvoer); 
-                
-             } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Map_To_Output.class)) {                    
+                String[] invoer = (String[]) currentNames.toArray(new String[currentNames.size()]);
+                String[] uitvoer = (String[]) newNames.toArray(new String[newNames.size()]);
+
+                return new ActionFeatureType_AttributeNames_Rename(invoer, uitvoer);
+
+            } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Map_To_Output.class)) {
                 Integer size = properties.size();
-                
+
                 if (size == null && size < 1) {
                     return null;
                 }
-                
+
                 List<String> currentNames = new ArrayList<String>();
                 List<String> newNames = new ArrayList<String>();
-                
+
                 List<String> allOutputColumns = new ArrayList<String>();
-                
+
                 for (Entry<String, Object> entry : properties.entrySet()) {
-                    String currentField = entry.getKey();                    
+                    String currentField = entry.getKey();
                     String nieuw = (String) entry.getValue();
-                    
-                    if (currentField != null && currentField.length() > 0 && nieuw != null && nieuw.length() > 0) {                  
+
+                    if (currentField != null && currentField.length() > 0 && nieuw != null && nieuw.length() > 0) {
                         currentNames.add(currentField);
                         newNames.add(nieuw);
                     }
-                    
+
                     if (currentField != null && currentField.length() > 0) {
                         allOutputColumns.add(currentField);
                     }
                 }
-                
+
                 if (currentNames.size() < 1 && currentNames.size() != newNames.size()) {
                     return null;
                 }
-                
-                String[] invoer = (String[])currentNames.toArray(new String[currentNames.size()]);
-                String[] uitvoer = (String[])newNames.toArray(new String[newNames.size()]);
 
-                return new ActionFeatureType_AttributeNames_Map_To_Output(invoer, uitvoer, allOutputColumns);  
-                
+                String[] invoer = (String[]) currentNames.toArray(new String[currentNames.size()]);
+                String[] uitvoer = (String[]) newNames.toArray(new String[newNames.size()]);
+
+                return new ActionFeatureType_AttributeNames_Map_To_Output(invoer, uitvoer, allOutputColumns);
+
             } else {
                 throw new UnsupportedOperationException(actionClassName + " is not yet implemented in ActionFactory");
             }
@@ -709,7 +716,8 @@ public class ActionFactory {
     }
 
     /**
-     *  Constructing the action failed. This function helps the user resolve the problem (find missing parameters)
+     * Constructing the action failed. This function helps the user resolve the
+     * problem (find missing parameters)
      */
     public static void failedConstructor(Class actionClass, Map properties) throws Exception {
         Method[] methods = actionClass.getMethods();
@@ -717,7 +725,7 @@ public class ActionFactory {
         List<List<String>> constructors = null;
 
         for (int i = 0; i < methods.length; i++) {
-            if (methods[i].getName().equals("getConstructors")) {              
+            if (methods[i].getName().equals("getConstructors")) {
                 constructors = (List<List<String>>) methods[i].invoke(actionClass);
                 found = (constructors != null);
                 break;
@@ -824,6 +832,10 @@ public class ActionFactory {
     public static int toInteger(String value) {
         return Integer.parseInt(value);
     }
+    
+    public static Long toLong(String value) {
+        return new Long(value);
+    }
 
     public static ActionCondition.CompareType toCompareType(String value) {
         return ActionCondition.CompareType.byString(value);
@@ -870,45 +882,47 @@ public class ActionFactory {
         actionBlocks.put(ActionGeometry_Make_Point_Address.class.getSimpleName(), ActionGeometry_Make_Point_Address.getConstructors());
 
         actionBlocks.put(ActionFeature_Add_External_Attributes.class.getSimpleName(), ActionFeature_Add_External_Attributes.getConstructors());
-        
+
         if (templateOutputType != null && templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
             actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
         }
-        
+
         if (templateOutputType != null && !templateOutputType.equals(Inout.TEMPLATE_OUTPUT_NO_TABLE)) {
             actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
         }
-        
+
+        actionBlocks.put(Action_XY_Intersects_Add_Mapped_Attrib.class.getSimpleName(), Action_XY_Intersects_Add_Mapped_Attrib.getConstructors());
+
         return actionBlocks;
     }
-    
+
     public static SortedMap<String, List<List<String>>> createDefaultUseTableActionBlocks(String[] uitvoer) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>().descendingMap();
-        
+
         actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
         actionBlocks.put(ActionFeatureType_Set_CRS.class.getSimpleName(), ActionFeatureType_Set_CRS.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
-        
+
         return actionBlocks;
     }
-    
+
     public static SortedMap<String, List<List<String>>> createDefaultUseAsTemplateActionBlocks(String[] uitvoer) {
-        SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>().descendingMap();    
-        
+        SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>().descendingMap();
+
         actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
         actionBlocks.put(ActionFeatureType_Set_CRS.class.getSimpleName(), ActionFeatureType_Set_CRS.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeNames_Map_To_Output.class.getSimpleName(), ActionFeatureType_AttributeNames_Map_To_Output.getConstructors(uitvoer));
-        
+
         return actionBlocks;
     }
-    
+
     public static SortedMap<String, List<List<String>>> createDefaultNoTableActionBlocks(String[] invoer) {
         SortedMap<String, List<List<String>>> actionBlocks = new TreeMap<String, List<List<String>>>().descendingMap();
-        
+
         actionBlocks.put(ActionFeatureType_Typename_Update.class.getSimpleName(), ActionFeatureType_Typename_Update.getConstructors());
         actionBlocks.put(ActionFeatureType_Set_CRS.class.getSimpleName(), ActionFeatureType_Set_CRS.getConstructors());
         actionBlocks.put(ActionFeatureType_AttributeNames_Rename.class.getSimpleName(), ActionFeatureType_AttributeNames_Rename.getConstructors(invoer));
-        
+
         return actionBlocks;
     }
 
