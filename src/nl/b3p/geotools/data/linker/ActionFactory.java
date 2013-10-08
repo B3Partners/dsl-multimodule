@@ -75,6 +75,7 @@ public class ActionFactory {
     public static final String ATTRIBUTE_NAME_OTHER_FILE_HANDLE = "attribute_name_other_file_handle";
     public static final String ATTRIBUTE_NAME_OUTPUTDB_ID = "attribute_name_outputdb_id";
     public static final String ATTRIBUTE_NAME_OUTPUT_TABLE = "attribute_name_output_table";
+    public static final String ATTRIBUTE_NAME_OUTPUT_GEOM_COLUMN = "attribute_name_output_geom_column";
     public static final String ATTRIBUTE_NAME_POLY_TABLE = "attribute_name_poly_table";
     public static final String ATTRIBUTE_NAME_MATCH_SRC_COLUMN = "attribute_name_match_src_column";
     public static final String ATTRIBUTE_NAME_MATCH_POLY_COLUMN = "attribute_name_match_poly_column";
@@ -607,13 +608,14 @@ public class ActionFactory {
             } else if (isThisClass(actionClassName, Action_XY_Intersects_Add_Mapped_Attrib.class)) {
 
                 Long outputDbId = toLong((String) properties.get(ATTRIBUTE_NAME_OUTPUTDB_ID));
-                String outputTable = (String) properties.get(ATTRIBUTE_NAME_OUTPUT_TABLE);
+                //String outputTable = (String) properties.get(ATTRIBUTE_NAME_OUTPUT_TABLE);
+                String outputgeomColumn = (String) properties.get(ATTRIBUTE_NAME_OUTPUT_GEOM_COLUMN);
                 String polyTable = (String) properties.get(ATTRIBUTE_NAME_POLY_TABLE);
                 String matchSrcColumn = (String) properties.get(ATTRIBUTE_NAME_MATCH_SRC_COLUMN);
                 String matchPolyColumn = (String) properties.get(ATTRIBUTE_NAME_MATCH_POLY_COLUMN);
                 Boolean matchGeom = toBoolean((String) properties.get(ATTRIBUTE_NAME_MATCH_GEOM));              
 
-                return new Action_XY_Intersects_Add_Mapped_Attrib(outputDbId, outputTable, polyTable, matchSrcColumn, matchPolyColumn, matchGeom);
+                return new Action_XY_Intersects_Add_Mapped_Attrib(outputDbId, outputgeomColumn, polyTable, matchSrcColumn, matchPolyColumn, matchGeom);
 
             } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {
                 Integer size = properties.size();
