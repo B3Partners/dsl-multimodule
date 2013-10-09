@@ -6,7 +6,6 @@ import com.vividsolutions.jts.geom.Polygon;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -14,7 +13,6 @@ import nl.b3p.commons.jpa.JpaUtilServlet;
 import nl.b3p.datastorelinker.entity.Database;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
-import static nl.b3p.geotools.data.linker.blocks.CollectionAction_Point_Within_Polygon.log;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,7 +26,6 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.filter.Filter;
 import org.geotools.filter.text.cql2.CQL;
-import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.hibernate.Session;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -43,14 +40,15 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
 
     protected static final Log logger = LogFactory.getLog(Action_XY_Intersects_Add_Mapped_Attrib.class);
     private Long outputDatabaseId = null;
-    //private String outputTableName = null;
     private String outputGeomColumn = null;
     private String polyTableName = null;
     private String matchSourceColumn = null;
     private String matchPolyTableColumn = null;
     private Boolean matchGeom = null;
-    private static ActionDataStore_Writer outputDatastore = null;
+    private static DataStore ds = null;
     private static FeatureSource outputFs = null;
+    private static final String SRS = "EPSG:28992";
+    private static final String KEY_LAST_FEATURE = "lastFeature";
 
     public Action_XY_Intersects_Add_Mapped_Attrib(
             Long outputDatabaseId, String outputGeomColumn,
@@ -58,7 +56,6 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
             String matchPolyTableColumn, Boolean matchGeom) {
 
         this.outputDatabaseId = outputDatabaseId;
-        //this.outputTableName = outputTableName;
         this.outputGeomColumn = outputGeomColumn;
         this.polyTableName = polyTableName;
         this.matchSourceColumn = matchSourceColumn;
@@ -88,29 +85,25 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
             params.put("validate connections", false);
             params.put("user", db.getUsername());
             params.put("database", db.getDatabaseName());
-
         } else { // normale uitvoer gebruiken
         }
 
-        properties.put("append", false);
-        properties.put("drop", true);
-        properties.put("params", params);
-
-        outputDatastore = new ActionDataStore_Writer(params, properties);
-
         FeatureSource fs = null;
         try {
-            DataStore ds = DataStoreLinker.openDataStore(params);
-
-            if (ds != null) {
-                outputFs = ds.getFeatureSource(polyTableName);
-            }
+            ds = DataStoreLinker.openDataStore(params);
+            outputFs = ds.getFeatureSource(polyTableName);
         } catch (Exception ex) {
             logger.error("Fout tijdens openen Datastore.", ex);
         }
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
+        Boolean lastFeature = false;
+        Map currentUserData = feature.getFeature().getUserData();
+
+        if (currentUserData != null && currentUserData.containsKey(KEY_LAST_FEATURE)) {
+            lastFeature = true;
+        }
 
         /* Make sure you are using The create geometry from 
          * values Action Block. */
@@ -136,6 +129,7 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
         }
 
         /* Query op vlakken tabel */
+        EasyFeature newFeature = null;
         if (outputFs != null) {
             FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
@@ -162,48 +156,42 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
                 vlakken = outputFs.getFeatures(doBoth);
             }
 
-            FeatureIterator it = vlakken.features();
-            while (it.hasNext()) {
-                SimpleFeature polyF = (SimpleFeature) it.next();
-
-                if (polyF != null) {
-                    feature = buildNewFeature(feature.getFeature(), polyF);
-                    break;
-                }
+            if (vlakken == null || vlakken.size() < 1 && !lastFeature) {
+                return null;
             }
 
-            /* close it */
-            if (vlakken != null && it != null) {
+            if (vlakken != null && vlakken.size() > 0) {
+                FeatureIterator it = vlakken.features();
+                while (it.hasNext()) {
+                    SimpleFeature polyF = (SimpleFeature) it.next();
+
+                    if (polyF != null) {
+                        newFeature = buildNewFeature(feature.getFeature(), polyF);
+                        break;
+                    }
+                }
                 vlakken.close(it);
+            }
+
+            /* TODO: Currently the batched processing assumes
+             * the ActionBlock always returns a feature. This Block and
+             * the new Filter block wont always return a feature.
+             * 
+             * Still when the last input feature passes this Block the
+             * Writer still needs to write the remaining batched collection.
+             */
+            if (lastFeature && newFeature == null) {
+                return feature;
+            } else if (lastFeature && newFeature != null) {
+                Map userData = newFeature.getFeature().getUserData();
+                userData.put(KEY_LAST_FEATURE, Boolean.TRUE);
             }
         }
 
-        /* Opgeven welke velden van gm_koppel mee gekopieerd moeten worden
-         * via Mapping block */
-
-        /* Zo ja dan nieuw vlak feature maken met aantal attrib velden van gm_koppel
-         KOPP_ID_ADMIN, MAPID, X, Y, OCODE */
-
-        /* Hier kunnen daarna views op gemaakt worden */
-
-        return feature;
+        return newFeature;
     }
 
     private EasyFeature buildNewFeature(SimpleFeature sourceF, SimpleFeature polyF) {
-        EasyFeature newF = null;
-
-        // Get the index of the geometryColumn/value
-        SimpleFeatureType type = polyF.getFeatureType();
-        int geometryColumnIndex = -1;
-        String geomColumn = type.getGeometryDescriptor().getName().getLocalPart();
-        List<AttributeDescriptor> attributeDescriptors = type.getAttributeDescriptors();
-        for (int i = 0; i < attributeDescriptors.size(); i++) {
-            if (attributeDescriptors.get(i).getLocalName().equalsIgnoreCase(geomColumn)) {
-                geometryColumnIndex = i;
-            }
-        }
-
-        /* New columns(difference from both tables */
         SimpleFeatureType sourceFt = (SimpleFeatureType) sourceF.getFeatureType();
         SimpleFeatureType polyFt = (SimpleFeatureType) polyF.getFeatureType();
 
@@ -214,8 +202,7 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
 
         List<AttributeDescriptor> newAttrDescr = new ArrayList();
         for (AttributeDescriptor pDescr : sourceAttrDescr) {
-            /* Do not add geom column again */
-            if (pDescr.getName().getLocalPart().equals(currentGeomColumn)) {
+            if (pDescr.getLocalName().equals(currentGeomColumn)) {
                 continue;
             }
 
@@ -224,33 +211,49 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
             }
         }
 
+        newAttrDescr.add(polyFt.getGeometryDescriptor());
+
+        Integer geometryColumnIndex = newAttrDescr.size() - 1;
+
         /* Create new table based on polygon and extra columns */
-        SimpleFeatureType newFt = createNewFeatureType(sourceFt, polyFt, geometryColumnIndex, Polygon.class, newAttrDescr);
-        
-        return newF;
+        SimpleFeatureType newFt = createNewFeatureType(
+                sourceFt,
+                polyFt,
+                geometryColumnIndex,
+                Polygon.class,
+                newAttrDescr);
+
+        return createFeature(newFt, sourceF, polyF, geometryColumnIndex);
     }
 
     private SimpleFeatureType createNewFeatureType(
-            SimpleFeatureType featureType,
-            SimpleFeatureType polyF,
-            int attributeId, Class binding,
-            List<AttributeDescriptor> extraAttr) {
+            SimpleFeatureType sourceFt,
+            SimpleFeatureType polyFt,
+            Integer geometryColumnIndex,
+            Class binding,
+            List<AttributeDescriptor> newAttrDescr) {
 
         AttributeTypeBuilder attributeTypeBuilder = new AttributeTypeBuilder();
-        attributeTypeBuilder.setName(polyF.getGeometryDescriptor().getName().getLocalPart());
-        attributeTypeBuilder.setLength(256);
         attributeTypeBuilder.setBinding(binding);
-        attributeTypeBuilder.setCRS(polyF.getGeometryDescriptor().getCoordinateReferenceSystem());
+        attributeTypeBuilder.setName(sourceFt.getGeometryDescriptor().getName().getLocalPart());
 
-        AttributeDescriptor geomDescr = attributeTypeBuilder.buildDescriptor(polyF.getGeometryDescriptor().getName().getLocalPart());
-        extraAttr.set(attributeId, geomDescr);
-        
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
-        featureTypeBuilder.init(featureType);
-        featureTypeBuilder.setAttributes(extraAttr);
-        featureTypeBuilder.setName(featureType.getName().getLocalPart());
+        featureTypeBuilder.setAttributes(newAttrDescr);
+        featureTypeBuilder.setSRS(SRS);
+        featureTypeBuilder.setName(sourceFt.getTypeName());
 
         return featureTypeBuilder.buildFeatureType();
+    }
+
+    private EasyFeature createFeature(SimpleFeatureType newFt,
+            SimpleFeature sourceF, SimpleFeature polyF, Integer geometryColumnIndex) {
+
+        Geometry geom = (Geometry) polyF.getDefaultGeometry();
+
+        List<Object> srcAttrib = sourceF.getAttributes();
+        srcAttrib.set(geometryColumnIndex, geom);
+
+        return new EasyFeature(SimpleFeatureBuilder.build(newFt, srcAttrib, "" + sourceF.getID()));
     }
 
     public String toString() {
@@ -266,7 +269,6 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
 
         constructors.add(Arrays.asList(new String[]{
             ActionFactory.ATTRIBUTE_NAME_OUTPUTDB_ID,
-            //ActionFactory.ATTRIBUTE_NAME_OUTPUT_TABLE,
             ActionFactory.ATTRIBUTE_NAME_OUTPUT_GEOM_COLUMN,
             ActionFactory.ATTRIBUTE_NAME_POLY_TABLE,
             ActionFactory.ATTRIBUTE_NAME_MATCH_SRC_COLUMN,
@@ -278,9 +280,9 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
     }
 
     @Override
-        public void close() throws Exception {
-        if (outputDatastore != null) {
-            outputDatastore.close();
+    public void close() throws Exception {
+        if (ds != null) {
+            ds.dispose();
         }
     }
 }

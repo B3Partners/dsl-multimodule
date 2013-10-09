@@ -34,7 +34,6 @@ import org.geotools.jdbc.JDBCDataStore;
 import org.geotools.jdbc.JDBCFeatureStore;
 import org.geotools.jdbc.PrimaryKey;
 import org.geotools.jdbc.PrimaryKeyColumn;
-import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.GeometryDescriptor;
@@ -68,6 +67,7 @@ public class ActionDataStore_Writer extends Action {
     private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
     private static final int BATCHSIZE = 50;
+    private static final int MAX_BATCHSIZE = 5000;
     private static final int INCREASEFACTOR = 2;
     private static final int DECREASEFACTOR = 10;
     private ArrayList<CollectionAction> collectionActions = new ArrayList();
@@ -222,7 +222,7 @@ public class ActionDataStore_Writer extends Action {
 
         // start writing when number of features is larger than batch size,
         // except when batch size is -1, then always wait for last feature
-        if ((fc.size() >= batchsize && batchsize!=-1)|| 
+        if ((fc.size() >= batchsize && batchsize !=-1 ) || 
                 feature.getFeature().getUserData().containsKey("lastFeature")) {
 
             try {
@@ -330,11 +330,12 @@ public class ActionDataStore_Writer extends Action {
             
             // indien succesvol dan volgende keer grotere batch
             batchsize *= INCREASEFACTOR;
-            if (batchsize > 5000) {
-                batchsize = 5000;
-            }
-            currentFc.retainAll(new ArrayList());
             
+            if (batchsize > MAX_BATCHSIZE) {
+                batchsize = MAX_BATCHSIZE;
+            }
+            
+            currentFc.retainAll(new ArrayList());            
         } catch (IOException ex) {
             
             t.rollback();
@@ -346,6 +347,7 @@ public class ActionDataStore_Writer extends Action {
                 List<String> message = new ArrayList( 
                     Arrays.asList(ExceptionUtils.getRootCauseMessage(ex), "*"));
                 featureErrors.get(type.getTypeName()).add(message);
+                
                 return batchsize;
             }
             
