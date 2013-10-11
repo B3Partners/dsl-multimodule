@@ -98,13 +98,6 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
-        Boolean lastFeature = false;
-        Map currentUserData = feature.getFeature().getUserData();
-
-        if (currentUserData != null && currentUserData.containsKey(KEY_LAST_FEATURE)) {
-            lastFeature = true;
-        }
-
         /* Make sure you are using The create geometry from 
          * values Action Block. */
         Point point = null;
@@ -156,8 +149,13 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
                 vlakken = outputFs.getFeatures(doBoth);
             }
 
-            if (vlakken == null || vlakken.size() < 1 && !lastFeature) {
-                return null;
+            if (vlakken == null || vlakken.size() < 1) {
+                Map userData = feature.getFeature().getUserData();
+                if (userData != null) {
+                    userData.put("SKIP", Boolean.TRUE);
+                }
+                
+                return feature;
             }
 
             if (vlakken != null && vlakken.size() > 0) {
@@ -171,20 +169,6 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
                     }
                 }
                 vlakken.close(it);
-            }
-
-            /* TODO: Currently the batched processing assumes
-             * the ActionBlock always returns a feature. This Block and
-             * the new Filter block wont always return a feature.
-             * 
-             * Still when the last input feature passes this Block the
-             * Writer still needs to write the remaining batched collection.
-             */
-            if (lastFeature && newFeature == null) {
-                return feature;
-            } else if (lastFeature && newFeature != null) {
-                Map userData = newFeature.getFeature().getUserData();
-                userData.put(KEY_LAST_FEATURE, Boolean.TRUE);
             }
         }
 

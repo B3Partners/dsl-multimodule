@@ -71,8 +71,7 @@ public class ActionDataStore_Writer extends Action {
     private static final int INCREASEFACTOR = 2;
     private static final int DECREASEFACTOR = 10;
     private ArrayList<CollectionAction> collectionActions = new ArrayList();
-    private Random generator = new Random( (new Date()).getTime() );
-
+    private Random generator = new Random((new Date()).getTime());
 
     public ActionDataStore_Writer(Map params, Map properties) {// Boolean append, Boolean dropFirst, Boolean polygonize, String polygonizeClassificationAttribute){
         this.params = params;
@@ -184,7 +183,7 @@ public class ActionDataStore_Writer extends Action {
             errors = featureErrors.get(typename);
         } else {
             if (!checked.containsKey(params.toString() + typename)) {
-                
+
                 //TODO uitzoeken of drop ook in de transactie kan
                 boolean delayRemoveUntilFirstCommit = false;
                 if (batchsize == -1) {
@@ -218,12 +217,13 @@ public class ActionDataStore_Writer extends Action {
         }
 
         // put feature in correct collection for write later
-        prepareWrite(fc, pks, feature);
+        boolean doWrite = prepareWrite(fc, pks, feature);
 
         // start writing when number of features is larger than batch size,
         // except when batch size is -1, then always wait for last feature
-        if ((fc.size() >= batchsize && batchsize !=-1 ) || 
-                feature.getFeature().getUserData().containsKey("lastFeature")) {
+        Integer collectionSize = fc.size();
+
+        if ((collectionSize >= batchsize && batchsize != -1) || doWrite) {
 
             try {
                 batchsize = writeCollection(fc, store, batchsize);
@@ -231,14 +231,14 @@ public class ActionDataStore_Writer extends Action {
             } catch (Exception ex) {
                 throw new FeatureException("Error writing feature collection. Features not written.", ex);
             } finally {
-                 fc.retainAll(new ArrayList());
+                fc.retainAll(new ArrayList());
             }
         }
 
         return feature;
     }
 
-    private void prepareWrite(FeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {
+    private boolean prepareWrite(FeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {
         // Bepaal de primary key(s) van record in de doeltabel
         PrimaryKey usePk = pk;
         // TODO: overnemen van pk uit source en instellen voor target
@@ -277,19 +277,31 @@ public class ActionDataStore_Writer extends Action {
             newFeature.getUserData().put(Hints.USE_PROVIDED_FID, true);
         }
 
-        fc.add(newFeature);
+        // indien skip dan niet aan collectie toevoegen
+        if (newFeature.getUserData() != null) {
+            if (!newFeature.getUserData().containsKey("SKIP")) {
+                fc.add(newFeature);
+            }
+
+            // indien laatste feature dan schrijven
+            if (newFeature.getUserData().containsKey("lastFeature")) {
+                return true;
+            }
+        }
+
+        return false;
     }
-    
+
     private int writeCollection(FeatureCollection fc, FeatureStore store, int batchsize) throws FeatureException, IOException {
         // maak nieuwe subcollecties
         SimpleFeatureType type = (SimpleFeatureType) fc.getSchema();
         int orgbatchsize = batchsize;
-        int stamp = generator.nextInt( 10000 );
+        int stamp = generator.nextInt(10000);
         int orgfcsize = fc.size();
-        log.info("Starting write out for typename: " + type.getTypeName() + 
-                " with batch size: " + orgbatchsize + 
-                " and stamp: " + stamp +
-                " and size: " + orgfcsize);
+        log.info("Starting write out for typename: " + type.getTypeName()
+                + " with batch size: " + orgbatchsize
+                + " and stamp: " + stamp
+                + " and size: " + orgfcsize);
 
         FeatureCollection currentFc = null;
         if (batchsize == -1) {
@@ -313,54 +325,54 @@ public class ActionDataStore_Writer extends Action {
                 batchsize = writeCollection(fc, store, batchsize);
             }
         }
-        
+
         Transaction t = new DefaultTransaction("add");
         store.setTransaction(t);
         try {
             if (batchsize == -1) {
                 // als alles in een keer, dan ook pas oude feature weggooien
                 // als nieuwe insert ok zijn (dus in zelfde transactie)
-                log.info("Removing all features from: " + type.getTypeName() + 
-                        " within insert transaction.");
+                log.info("Removing all features from: " + type.getTypeName()
+                        + " within insert transaction.");
                 store.removeFeatures(Filter.INCLUDE);
             }
             // schrijf batch aan features
             store.addFeatures(currentFc);
             t.commit();
-            
+
             // indien succesvol dan volgende keer grotere batch
             batchsize *= INCREASEFACTOR;
-            
+
             if (batchsize > MAX_BATCHSIZE) {
                 batchsize = MAX_BATCHSIZE;
             }
-            
-            currentFc.retainAll(new ArrayList());            
+
+            currentFc.retainAll(new ArrayList());
         } catch (IOException ex) {
-            
+
             t.rollback();
-            
+
             if (batchsize == -1) {
                 // als batch size is -1 dan is de gehele collectie in een keer
                 // geschreven en moet niet geprobeerd worden in kleinere delen
                 // te committen, meteen foutmelding sturen
-                List<String> message = new ArrayList( 
-                    Arrays.asList(ExceptionUtils.getRootCauseMessage(ex), "*"));
+                List<String> message = new ArrayList(
+                        Arrays.asList(ExceptionUtils.getRootCauseMessage(ex), "*"));
                 featureErrors.get(type.getTypeName()).add(message);
-                
+
                 return batchsize;
             }
-            
+
             if (batchsize == 1) {
                 // als slechts een enkele feature niet geprocessed kan worden
                 // dan opgeven
                 SimpleFeature f = (SimpleFeature) (currentFc.toArray())[0];
-                List<String> message = new ArrayList( 
-                    Arrays.asList(ExceptionUtils.getRootCauseMessage(ex), f.getID()));
+                List<String> message = new ArrayList(
+                        Arrays.asList(ExceptionUtils.getRootCauseMessage(ex), f.getID()));
                 featureErrors.get(type.getTypeName()).add(message);
                 return batchsize;
             }
-            
+
             // probeer opnieuw met aangepast batch size
             batchsize /= DECREASEFACTOR;
             if (batchsize < 2) {
@@ -369,18 +381,18 @@ public class ActionDataStore_Writer extends Action {
             log.info("Rollback for feature type: " + type.getTypeName()
                     + ", retry with new batch size: " + batchsize);
             batchsize = writeCollection(currentFc, store, batchsize);
-            
+
         } finally {
             t.close();
         }
-        log.info("finishing write out for typename: " + type.getTypeName() + 
-                " with batch size: " + orgbatchsize + 
-                " and stamp: " + stamp +
-                " and size: " + orgfcsize);
+        log.info("finishing write out for typename: " + type.getTypeName()
+                + " with batch size: " + orgbatchsize
+                + " and stamp: " + stamp
+                + " and size: " + orgfcsize);
         return batchsize;
 
     }
-  
+
     @Override
     public void close() throws Exception {
         log.info("Closing ActionDataStore Writer");
@@ -399,9 +411,9 @@ public class ActionDataStore_Writer extends Action {
                 for (int i = 0; i < typeNames.length; i++) {
                     errors = featureErrors.get(typeNames[i]);
                     if (errors != null && !errors.isEmpty()) {
-                        for (int j=0 ; j<errors.size(); j++) {
-							List<String> message = errors.get(j);
-                           status.addWriteError(message.get(0), message.get(1));
+                        for (int j = 0; j < errors.size(); j++) {
+                            List<String> message = errors.get(j);
+                            status.addWriteError(message.get(0), message.get(1));
                         }
                     }
                 }
@@ -483,13 +495,13 @@ public class ActionDataStore_Writer extends Action {
     /**
      * Check the schema and return the name.
      */
-    private String checkSchema(SimpleFeatureType featureType, 
+    private String checkSchema(SimpleFeatureType featureType,
             boolean delayRemoveUntilFirstCommit) throws Exception {
         if (initDone) {
-             String typename2Write = featureType.getTypeName();
+            String typename2Write = featureType.getTypeName();
             boolean typeExists = Arrays.asList(dataStore2Write.getTypeNames()).contains(typename2Write);
 
-             if (dropFirst && typeExists) {
+            if (dropFirst && typeExists) {
                 /*The drop schema bestaat nog niet in geotools. Wordt nu wel gemaakt en zal binnen
                  * kort beschikbaar zijn. Tot die tijd maar verwijderen dmv sql script....
                  */
@@ -521,42 +533,42 @@ public class ActionDataStore_Writer extends Action {
 
             } else if (!append && !delayRemoveUntilFirstCommit) {
                 log.info("Removing all features from: " + typename2Write);
-				boolean deleteSuccess = false;
+                boolean deleteSuccess = false;
                 // Check if DataStore is a Database
                 if (dataStore2Write instanceof JDBCDataStore) {
                     // Empty table
                     JDBCDataStore database = (JDBCDataStore) dataStore2Write;
                     Connection con = null;
-					try {
-						con = database.getConnection(Transaction.AUTO_COMMIT);
+                    try {
+                        con = database.getConnection(Transaction.AUTO_COMMIT);
                         // try truncate: fast
                         removeAllFeaturesWithTruncate(database, con, typename2Write);
-						deleteSuccess = true;
-					} catch (Exception e) {
-						log.debug("Removing using truncate failed: ", e);
+                        deleteSuccess = true;
+                    } catch (Exception e) {
+                        log.debug("Removing using truncate failed: ", e);
                         Connection con1 = null;
- 						try {
-							con1 = database.getConnection(Transaction.AUTO_COMMIT);
+                        try {
+                            con1 = database.getConnection(Transaction.AUTO_COMMIT);
                             // try delete from table: mot so fast
                             removeAllFeaturesWithDelete(database, con, typename2Write);
-							deleteSuccess = true;
-						} catch (Exception e2) {
-							log.debug("Removing using delete from table failed: ", e2);
-						} finally {
-							if (con1!=null) {
-								con1.close();
-							}
-						}
-					} finally {
-					if (con!=null ) {
-							con.close();
-						}
-					}
-                } 
-				if	(!deleteSuccess) {
+                            deleteSuccess = true;
+                        } catch (Exception e2) {
+                            log.debug("Removing using delete from table failed: ", e2);
+                        } finally {
+                            if (con1 != null) {
+                                con1.close();
+                            }
+                        }
+                    } finally {
+                        if (con != null) {
+                            con.close();
+                        }
+                    }
+                }
+                if (!deleteSuccess) {
                     // try using geotools: slowest
                     removeAllFeatures(dataStore2Write, typename2Write);
-		            log.info("Removing using geotools");
+                    log.info("Removing using geotools");
                 }
             }
             return typename2Write;
@@ -583,14 +595,14 @@ public class ActionDataStore_Writer extends Action {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.PARAMS,
-                    ActionFactory.APPEND,
-                    ActionFactory.DROPFIRST
-                }));
+            ActionFactory.PARAMS,
+            ActionFactory.APPEND,
+            ActionFactory.DROPFIRST
+        }));
 
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.PARAMS
-                }));
+            ActionFactory.PARAMS
+        }));
 
         return constructors;
 
@@ -609,7 +621,7 @@ public class ActionDataStore_Writer extends Action {
         }
         return typeName;
     }
-    
+
     private void dropTable(JDBCDataStore database, Connection con, String typeName) throws SQLException {
 
         // TODO make this function work with all databases
@@ -625,7 +637,7 @@ public class ActionDataStore_Writer extends Action {
             ps.execute();
         }
     }
-    
+
     private void removeAllFeaturesWithTruncate(JDBCDataStore database, Connection con, String typeName) throws SQLException {
         PreparedStatement ps = null;
         if (database.getSQLDialect() instanceof PostGISDialect) {
@@ -634,8 +646,8 @@ public class ActionDataStore_Writer extends Action {
             ps = con.prepareStatement("TRUNCATE TABLE \"" + typeName + "\"");
         }
         ps.execute();
-		log.info("Removing using truncate");
-   }
+        log.info("Removing using truncate");
+    }
 
     private void removeAllFeaturesWithDelete(JDBCDataStore database, Connection con, String typeName) throws SQLException {
         PreparedStatement ps = con.prepareStatement("DELETE FROM \"" + typeName + "\"");

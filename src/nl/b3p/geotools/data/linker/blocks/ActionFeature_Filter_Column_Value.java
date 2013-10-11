@@ -1,14 +1,16 @@
 package nl.b3p.geotools.data.linker.blocks;
 
-import bsh.Interpreter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.opengis.feature.simple.SimpleFeature;
+import org.geotools.filter.text.cql2.CQL;
+import org.opengis.feature.Feature;
+import org.opengis.filter.Filter;
 
 /**
  *
@@ -32,32 +34,12 @@ public class ActionFeature_Filter_Column_Value extends Action {
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
+        Filter filter = CQL.toFilter(columnName + operator + "'" + filterValue + "'");
+        boolean result = filter.evaluate(feature.getFeature());
 
-        Boolean passes = false;
-        
-        String sourceValue = null;
-        if (columnName != null) {
-            SimpleFeature sourceF = feature.getFeature();
-
-            if (sourceF.getAttribute(columnName) instanceof String) {
-                sourceValue = (String) sourceF.getAttribute(columnName);
-            }
-        }
-
-        if (sourceValue != null && operator != null && filterValue != null) {
-            Interpreter i = new Interpreter();
-            
-            i.set("a", sourceValue);
-            i.set("b", operator);
-            i.set("c", filterValue);            
-                    
-            String cond = "abc";
-
-            Boolean result = (Boolean) i.eval(cond);
-            
-            if (result) {
-                passes = true;
-            }
+        Map userData = feature.getFeature().getUserData();
+        if (!result && userData != null) {            
+            userData.put("SKIP", Boolean.TRUE);
         }
 
         return feature;

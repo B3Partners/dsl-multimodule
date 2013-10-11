@@ -181,34 +181,34 @@ public class DataStoreLinker implements Runnable {
         if (dataStore2Read != null && (dataStore2Read instanceof JDBCDataStore)) {
             FeatureSource fs = ((JDBCDataStore) dataStore2Read).getFeatureSource(typeName2Read);
             if (fs instanceof JDBCFeatureStore) {
-                pk = ((JDBCFeatureStore)fs).getPrimaryKey();
-             }
+                pk = ((JDBCFeatureStore) fs).getPrimaryKey();
+            }
         }
 
         try {
-
             while (iterator.hasNext()) {
                 feature = (SimpleFeature) iterator.next();
+
+                Map userData = feature.getUserData();
+                if (pk != null && userData != null) {
+                    userData.put("sourcePks", pk);
+                }
+                if (iterator.hasNext()) {
+                    userData.put("lastFeature", Boolean.TRUE);
+                }
+
+                processFeature(feature);
 
                 if (status.getVisitedFeatures() % 10000 == 0) {
                     log.info("" + status.getVisitedFeatures() + "/" + status.getTotalFeatureSize() + " features processed (" + typeName2Read + ")");
                 }
-
-                Map userData = feature.getUserData();
-                if (pk != null) {
-                    userData.put("sourcePks", pk);
-                }
-                if (!iterator.hasNext()) {
-                    userData.put("lastFeature", Boolean.TRUE);
-                }
-                
-                processFeature(feature);
 
                 if (status.isInterrupted()) {
                     actionList.processPostCollectionActions(status);
                     throw new InterruptedException("User canceled the process.");
                 }
             }
+
             actionList.processPostCollectionActions(status);
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
@@ -222,26 +222,27 @@ public class DataStoreLinker implements Runnable {
             return;
         }
 
+        /*TODO: Onderscheid maken tussen fatal Exception en niet Fatal Exception. Als er een Fatal
+         wordt gethrowed dan moet er worden gestopt met features processen.*/
+
         try {
             EasyFeature ef = new EasyFeature(feature);
             if (ef.getFeature().getDefaultGeometry() != null) {
                 // repair if necessary (e.g. no geom metadata in oracle)
                 ef.repairGeometry();
             }
-             if (actionList.process(ef) != null) {
+            if (actionList.process(ef) != null) {
                 status.incrementProcessedFeatures();
             }
-        }
-        /*TODO: Onderscheid maken tussen fatal Exception en niet Fatal Exception. Als er een Fatal
-        wordt gethrowed dan moet er worden gestopt met features processen.*/
-        catch (Exception e) {
+        } catch (Exception e) {
             if (exceptionLogCount++ < MAX_EXCEPTION_LOG_COUNT) {
                 log.error("Exception tijdens processen van feature (exception nr. " + exceptionLogCount + " van max " + MAX_EXCEPTION_LOG_COUNT + " die worden gelogd)", e);
             }
 
             status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), feature.getID());
 //            status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), status.getVisitedFeatures());
-         }
+        }
+
         status.incrementVisitedFeatures();
     }
 
@@ -407,7 +408,7 @@ public class DataStoreLinker implements Runnable {
         log.debug("openDataStore with: " + params);
 
         DataStore dataStore = null;
-        
+
         // TODO: indien je bij het aanmaken van een nieuwe datastore primary
         // keys wil opgeven dan kan dat via PK_METADATA_TABLE.
         // Nu nog buggy, fix in 8.7
