@@ -101,4 +101,8 @@ public class ActionFeature_Value_Set extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeature een attribuutWaarde in een bepaalde kolom worden gewijzigd.";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

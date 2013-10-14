@@ -88,4 +88,8 @@ public class ActionFeature_Value_ReplaceText extends Action {
     public String getDescription_NL() {
         return "Vervang tekst van attribuut";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

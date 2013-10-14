@@ -111,4 +111,7 @@ public class ActionGeometry_Make_Point extends Action {
         return Double.parseDouble(value);
     }
 
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

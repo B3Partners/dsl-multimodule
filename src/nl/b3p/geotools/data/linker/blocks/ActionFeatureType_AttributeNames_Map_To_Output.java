@@ -10,7 +10,6 @@ import org.geotools.feature.AttributeTypeBuilder;
 import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.AttributeType;
-import org.opengis.feature.type.GeometryDescriptor;
 
 /* Map output columns to inputcolumns. User sees list of all output columns and can
  choose input columns per output column from a dropdown. */
@@ -30,6 +29,10 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
         if (outputColumns != null && outputColumns.size() > 0) {
             this.allOutputColumns = outputColumns;
         }
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 
      /**

@@ -53,4 +53,8 @@ public class ActionCombo_Fix_To_Oracle extends ActionCombo {
     public String getDescription_NL() {
         return "In deze ActionCombo wordt de typename zo aangepast dat deze gebruikt kan worden als Oracle tabelnaam. Dit betekend dat de typenaam omgezet wordt naar hoofdlettes en dat de lengte word aangepast aan de maximale lengte " + ORACLE_MAX_TABLE_NAME_LENGTH + " (neem laatste deel van de typenaam)";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

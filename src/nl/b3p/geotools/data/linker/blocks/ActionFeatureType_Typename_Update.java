@@ -67,4 +67,8 @@ public class ActionFeatureType_Typename_Update extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeatureType de typenaam worden aangepast. De naam kan worden vervangen of kan worden verlengd.";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

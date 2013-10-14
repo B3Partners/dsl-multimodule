@@ -50,4 +50,8 @@ public class ActionFeatureType_AttributeType_Remove extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeatureType een attribuut worden verwijderd.";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

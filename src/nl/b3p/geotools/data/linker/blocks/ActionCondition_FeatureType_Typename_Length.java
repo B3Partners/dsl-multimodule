@@ -47,4 +47,8 @@ public class ActionCondition_FeatureType_Typename_Length extends ActionCondition
     public String getDescription_NL() {
         return "Met deze ActionCondition kan gecontroleerd worden of de lenghte van de typename voldoet aan de eisen";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

@@ -94,4 +94,8 @@ public class ActionFeatureType_Typename_Substring extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeatureType de typenaam worden ingekort door middel van een substring";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

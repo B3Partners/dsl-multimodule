@@ -29,6 +29,15 @@ public class ActionList extends ArrayList<Action> {
         }
         return feature;
     }
+    
+    public void flush(String typeName2Read) throws Exception {
+        Iterator iter = iterator();
+        
+        while (iter.hasNext()) {
+            Action action = (Action) iter.next();
+            action.flush(typeName2Read);
+        }
+    }
 
     public void close() throws Exception {
         Iterator iter = iterator();

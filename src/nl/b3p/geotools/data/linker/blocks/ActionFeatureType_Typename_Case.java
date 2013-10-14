@@ -49,4 +49,8 @@ public class ActionFeatureType_Typename_Case extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeatureType de typenaam worden omgezet naar hoofdletters (uppercase) of kleine letters (lowercase).";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

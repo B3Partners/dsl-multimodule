@@ -87,6 +87,19 @@ public class ActionFeature_Add_External_Attributes extends Action {
             if (index != null && index > -1) {
                 record = reader.getRecord(attributeNameOtherFileName, index, dxfHandle);
             }
+            
+            /* Altijd extra kolommen zetten */
+            if (record != null && columns != null) {
+                for (int i = 0; i < columns.size(); i++) {
+                    /* Koppel kolom zelf niet toevoegen */
+                    if (i == index) {
+                        continue;
+                    }
+                    
+                    feature.addAttributeDescriptor(record.get(i), String.class);
+                }
+                
+            }
 
             /* Record is kolomnamen eerste regel van Excel + waardes */
             if (record != null && columns != null && record.size() > columns.size()) {
@@ -96,7 +109,6 @@ public class ActionFeature_Add_External_Attributes extends Action {
                         continue;
                     }
                     
-                    feature.addAttributeDescriptor(record.get(i), String.class);
                     feature.setAttribute(record.get(i), record.get(i + columns.size()));
                 }
             }
@@ -126,5 +138,9 @@ public class ActionFeature_Add_External_Attributes extends Action {
                 }));
 
         return constructors;
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 }

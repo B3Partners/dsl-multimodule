@@ -94,4 +94,8 @@ public class ActionCondition_Feature_Class extends ActionCondition {
     public String getDescription_NL() {
         return "Met deze ActionCondition kan gecontroleerd worden of een attribuut een bepaalde class bevat";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

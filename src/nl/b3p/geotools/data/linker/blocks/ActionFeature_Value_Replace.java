@@ -57,4 +57,8 @@ public class ActionFeature_Value_Replace extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeature een attribuutWaarde worden gewijzigd, overal waar de waarde voldoet aan de voorwaarde.";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

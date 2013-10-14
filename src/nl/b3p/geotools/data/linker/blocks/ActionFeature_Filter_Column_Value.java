@@ -9,7 +9,6 @@ import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.filter.text.cql2.CQL;
-import org.opengis.feature.Feature;
 import org.opengis.filter.Filter;
 
 /**
@@ -38,8 +37,9 @@ public class ActionFeature_Filter_Column_Value extends Action {
         boolean result = filter.evaluate(feature.getFeature());
 
         Map userData = feature.getFeature().getUserData();
-        if (!result && userData != null) {            
-            userData.put("SKIP", Boolean.TRUE);
+        if (!result && userData != null) {
+            String err = "Record kwam niet door het filter: " + filter.toString();
+            userData.put("SKIP", err);
         }
 
         return feature;
@@ -63,5 +63,9 @@ public class ActionFeature_Filter_Column_Value extends Action {
         }));
 
         return constructors;
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 }

@@ -63,5 +63,9 @@ public class ActionFeatureType_Typename_AppendAttribute extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan de waarde van een attribuut worden toegevoegd aan de typename";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }
 

@@ -25,6 +25,8 @@ public abstract class Action {
     public static final String THE_GEOM = "the_geom";
 
     abstract public EasyFeature execute(EasyFeature feature) throws Exception;
+    
+    abstract public void flush(String typeName2Read) throws Exception;
 
     @Override
     abstract public String toString();

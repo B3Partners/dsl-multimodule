@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Transform SimpleFeature into recommended settings
@@ -59,5 +60,9 @@ public class ActionCombo_Recommended_Pro extends ActionCombo {
 
     public String getDescription_NL() {
         return "Creëert veilige waardes voor uw DataStoreLinker proces: Alle waardes in een attribuut / kolom van klasse String krijgen een maximum waarde van 255 ter preventie van de PostGIS 256 bug. De typenaam / tabelnaam krijgt een nieuwe veilige waarde die u zelf mag bepalen. De EPSG wordt op 28992 gezet (Amersfoort, Nieuw) ter preventie van de Shape bug.";
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 }

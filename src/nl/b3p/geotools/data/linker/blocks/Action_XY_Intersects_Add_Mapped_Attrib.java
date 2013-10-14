@@ -24,13 +24,16 @@ import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.filter.Capabilities;
 import org.geotools.filter.Filter;
 import org.geotools.filter.text.cql2.CQL;
+import org.geotools.filter.visitor.IsSupportedFilterVisitor;
 import org.hibernate.Session;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory2;
+import org.opengis.filter.spatial.Intersects;
 
 /**
  *
@@ -48,7 +51,6 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
     private static DataStore ds = null;
     private static FeatureSource outputFs = null;
     private static final String SRS = "EPSG:28992";
-    private static final String KEY_LAST_FEATURE = "lastFeature";
 
     public Action_XY_Intersects_Add_Mapped_Attrib(
             Long outputDatabaseId, String outputGeomColumn,
@@ -124,26 +126,30 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
         /* Query op vlakken tabel */
         EasyFeature newFeature = null;
         if (outputFs != null) {
-            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
-
-            /* TODO: Check if Filters are supported by service or 
-             * database. */
-
             String geomColumn = null;
             if (outputGeomColumn == null || outputGeomColumn.equals("")) {
                 geomColumn = outputFs.getSchema().getGeometryDescriptor().getLocalName();
             } else {
                 geomColumn = outputGeomColumn;
             }
+            
+            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
             Filter doIntersects = (Filter) ff.intersects(ff.property(geomColumn), ff.literal(point));
             Filter doAttrib = (Filter) CQL.toFilter(matchPolyTableColumn + " = '" + sourceValue + "'");
             Filter doBoth = (Filter) ff.and(doIntersects, doAttrib);
-
+            
+            Capabilities capabilities = new Capabilities();
+            capabilities.addType(Intersects.class);
+            
+            boolean canDoIntersects = capabilities.supports(doIntersects);            
+            
             FeatureCollection vlakken = null;
             if (!matchGeom && matchSourceColumn == null || matchPolyTableColumn == null) {
                 vlakken = outputFs.getFeatures();
-            } else if (matchGeom && matchSourceColumn == null || matchPolyTableColumn == null) {
+            } else if (!canDoIntersects && matchGeom && matchSourceColumn == null || matchPolyTableColumn == null) {
+                vlakken = outputFs.getFeatures();
+            } else if (canDoIntersects && matchGeom && matchSourceColumn == null || matchPolyTableColumn == null) {
                 vlakken = outputFs.getFeatures(doIntersects);
             } else {
                 vlakken = outputFs.getFeatures(doBoth);
@@ -152,7 +158,11 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
             if (vlakken == null || vlakken.size() < 1) {
                 Map userData = feature.getFeature().getUserData();
                 if (userData != null) {
-                    userData.put("SKIP", Boolean.TRUE);
+                    
+                    String err = "Invoer geometrie overlapt niet of geen match"
+                            + " gevonden met de waarde in " + matchSourceColumn;
+                    
+                    userData.put("SKIP", err);
                 }
                 
                 return feature;
@@ -268,5 +278,9 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
         if (ds != null) {
             ds.dispose();
         }
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 }

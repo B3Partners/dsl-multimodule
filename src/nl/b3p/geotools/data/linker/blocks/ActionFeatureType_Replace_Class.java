@@ -127,4 +127,8 @@ public class ActionFeatureType_Replace_Class extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeatureType de class van een attribuut worden gewijzigd";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

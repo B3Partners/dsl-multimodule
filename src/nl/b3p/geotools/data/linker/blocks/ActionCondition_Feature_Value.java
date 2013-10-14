@@ -4,9 +4,7 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
-import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
-import org.opengis.feature.simple.SimpleFeature;
 
 /**
  * Check a value in a SimpleFeature on a given attribute
@@ -54,5 +52,9 @@ public class ActionCondition_Feature_Value extends ActionCondition {
 
     public String getDescription_NL() {
         return "Met deze ActionCondition kan gecontroleerd worden of de waarde van een attribuut gelijk is aan de opgegeven waarde";
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 }

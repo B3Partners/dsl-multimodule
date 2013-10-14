@@ -6,12 +6,11 @@ package nl.b3p.geotools.data.linker.blocks;
 
 import com.vividsolutions.jts.geom.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.Status;
+import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Split geometries in Point, Line, Polygon, MultiPoint, MultiLine, MultiPolygon
@@ -112,5 +111,10 @@ public class ActionCombo_GeometrySplitter_Writer extends ActionCombo implements 
     @Override
     public void close() throws Exception{
         datastore.close();
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+        datastore.flush(typeName2Read);
     }
 }

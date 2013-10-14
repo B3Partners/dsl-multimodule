@@ -72,5 +72,9 @@ public class ActionGeometry_Buffer extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeature de geometrie worden aangepast door bijvoorbeeld een lijn om te zetten in een dikkere lijn. De lijn zal worden omgezet in een vlak";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }
 

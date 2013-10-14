@@ -69,4 +69,8 @@ public class ActionFeatureType_AttributeName_Case extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan de naam van een attribuut in upper- of lowercase gezet worden";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

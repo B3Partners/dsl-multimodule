@@ -92,4 +92,8 @@ public class ActionFeatureType_Set_CRS extends Action {
 */
         return constructors;
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

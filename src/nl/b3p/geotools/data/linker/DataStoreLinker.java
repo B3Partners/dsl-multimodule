@@ -158,6 +158,8 @@ public class DataStoreLinker implements Runnable {
             for (String typeName2Read : getTypeNames()) {
                 processTypeName(typeName2Read);
             }
+            
+            
         } catch (IOException ex) {
             throw new Exception("Linking DataStores failed", ex);
         } finally {
@@ -193,9 +195,6 @@ public class DataStoreLinker implements Runnable {
                 if (pk != null && userData != null) {
                     userData.put("sourcePks", pk);
                 }
-                if (iterator.hasNext()) {
-                    userData.put("lastFeature", Boolean.TRUE);
-                }
 
                 processFeature(feature);
 
@@ -204,12 +203,16 @@ public class DataStoreLinker implements Runnable {
                 }
 
                 if (status.isInterrupted()) {
+                    actionList.flush(typeName2Read);
                     actionList.processPostCollectionActions(status);
+                    
                     throw new InterruptedException("User canceled the process.");
                 }
             }
-
+            
+            actionList.flush(typeName2Read);
             actionList.processPostCollectionActions(status);
+            
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
         } finally {
@@ -231,16 +234,22 @@ public class DataStoreLinker implements Runnable {
                 // repair if necessary (e.g. no geom metadata in oracle)
                 ef.repairGeometry();
             }
+
             if (actionList.process(ef) != null) {
                 status.incrementProcessedFeatures();
             }
+
+            if (ef.getFeature().getUserData().containsKey("SKIP")) {
+                String msg = (String)ef.getFeature().getUserData().get("SKIP");
+                status.addWriteError(msg, feature.getID());
+            }
+
         } catch (Exception e) {
             if (exceptionLogCount++ < MAX_EXCEPTION_LOG_COUNT) {
                 log.error("Exception tijdens processen van feature (exception nr. " + exceptionLogCount + " van max " + MAX_EXCEPTION_LOG_COUNT + " die worden gelogd)", e);
             }
 
             status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), feature.getID());
-//            status.addNonFatalError(ExceptionUtils.getRootCauseMessage(e), status.getVisitedFeatures());
         }
 
         status.incrementVisitedFeatures();

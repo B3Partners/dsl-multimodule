@@ -65,4 +65,8 @@ public class ActionFeature_Value_Substring_All extends Action {
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeature alle attribuutWaardes worden gewijzigd in een subString van deze waarde";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

@@ -57,4 +57,8 @@ public class ActionFeatureType_Replace_Class_All extends Action {
 
         return constructors;
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

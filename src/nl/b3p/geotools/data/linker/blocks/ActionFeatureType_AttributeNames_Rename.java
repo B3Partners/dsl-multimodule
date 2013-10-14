@@ -8,18 +8,17 @@ import org.geotools.feature.AttributeTypeBuilder;
 import org.opengis.feature.type.GeometryDescriptor;
 
 /* 
-    Map input columns to outputcolumns. User sees list of all input columns and
-    can fill in a new name in text fields. When user does not fill in a field the
-    column will be removed and not appear in the output table. The geom column
-    will not be removed.
-*/
+ Map input columns to outputcolumns. User sees list of all input columns and
+ can fill in a new name in text fields. When user does not fill in a field the
+ column will be removed and not appear in the output table. The geom column
+ will not be removed.
+ */
 public class ActionFeatureType_AttributeNames_Rename extends Action {
 
     private Integer[] attributeIds;
     private String[] currentAttributeNames;
     private String[] newAttributeNames;
     private List<String> removeColumns = null;
-    
     protected String description = "Kies per invoerkolom een eigen uitvoerkolomnaam.";
 
     public ActionFeatureType_AttributeNames_Rename(String[] currentAttributeNames, String[] newAttributeNames) {
@@ -32,11 +31,11 @@ public class ActionFeatureType_AttributeNames_Rename extends Action {
         /* TODO: Mogelijk x en y kolommen niet verwijderen. Dit gaat anders mis bij inlezen
          * csv in combinatie met het Maak Point uit waarden blok. Dit mapping blok moet dan
          * als laatste in de actielijst staan */
-        
+
         /* Create list of all columns and remove columns that are not mapped
          * by user. */
-        if (removeColumns == null && currentAttributeNames != null &&
-                currentAttributeNames.length > 0) {
+        if (removeColumns == null && currentAttributeNames != null
+                && currentAttributeNames.length > 0) {
 
             removeColumns = new ArrayList<String>();
             GeometryDescriptor gd = feature.getFeatureType().getGeometryDescriptor();
@@ -47,7 +46,7 @@ public class ActionFeatureType_AttributeNames_Rename extends Action {
 
             for (int i = 0; i < feature.getAttributeCount(); i++) {
                 String columnName = feature.getAttributeDescriptorNameByID(i);
-                
+
                 /* Do not remove the geom column */
                 if (!columnName.equals(geomColumn)) {
                     removeColumns.add(columnName);
@@ -95,5 +94,9 @@ public class ActionFeatureType_AttributeNames_Rename extends Action {
 
     public String getDescription_NL() {
         return description;
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 }

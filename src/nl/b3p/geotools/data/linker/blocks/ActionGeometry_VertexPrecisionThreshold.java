@@ -173,4 +173,7 @@ public class ActionGeometry_VertexPrecisionThreshold extends Action {
         return "Verwijder geometrie waarvan de coordinaten van alle vertices bij een bepaalde precisie niet verschillen";
     }
 
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

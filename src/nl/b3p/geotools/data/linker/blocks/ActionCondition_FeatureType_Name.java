@@ -53,4 +53,8 @@ public class ActionCondition_FeatureType_Name extends ActionCondition {
     public String getDescription_NL() {
         return "Met deze ActionCondition kan gecontroleerd worden of de attribuutNaam gelijk is aan de opgegeven tekst";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

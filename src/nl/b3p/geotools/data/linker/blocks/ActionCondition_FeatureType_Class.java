@@ -68,4 +68,8 @@ public class ActionCondition_FeatureType_Class extends ActionCondition {
     public String getDescription_NL() {
         return "Met deze ActionCondition kan gecontroleerd worden of de class van een attribuut in een SimpleFeatureType gelijk is aan de opgegeven class";
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

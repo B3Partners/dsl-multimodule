@@ -308,4 +308,8 @@ POLYGON ((5 1, 8 1, 8 4, 8 4, 5 4, 5 4, 5 1),
         return "Verwijder uit lijnen en vlakken dubbele opeenvolgende vertices";
     }
 
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
+
 }

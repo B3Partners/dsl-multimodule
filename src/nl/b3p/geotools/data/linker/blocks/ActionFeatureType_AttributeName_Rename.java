@@ -64,4 +64,8 @@ public class ActionFeatureType_AttributeName_Rename extends Action {
     public String getDescription_NL() {
         return description;
     }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+    }
 }

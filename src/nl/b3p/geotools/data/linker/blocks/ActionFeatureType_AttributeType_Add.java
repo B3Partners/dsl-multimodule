@@ -8,6 +8,7 @@ import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Add a attribute at a given position
+ *
  * @author Gertjan Al, B3Partners
  */
 public class ActionFeatureType_AttributeType_Add extends Action {
@@ -47,20 +48,24 @@ public class ActionFeatureType_AttributeType_Add extends Action {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.NEW_ATTRIBUTE_NAME,
-                    ActionFactory.ATTRIBUTE_CLASS
-                }));
-/*
-        constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.NEW_ATTRIBUTE_NAME,
-                    ActionFactory.ATTRIBUTE_CLASS,
-                    ActionFactory.ATTRIBUTE_ID
-                }));
-*/
+            ActionFactory.NEW_ATTRIBUTE_NAME,
+            ActionFactory.ATTRIBUTE_CLASS
+        }));
+        /*
+         constructors.add(Arrays.asList(new String[]{
+         ActionFactory.NEW_ATTRIBUTE_NAME,
+         ActionFactory.ATTRIBUTE_CLASS,
+         ActionFactory.ATTRIBUTE_ID
+         }));
+         */
         return constructors;
     }
 
     public String getDescription_NL() {
         return "Met deze Action kan bij een SimpleFeatureType een attribuut worden toegevoegd. Er kan een index worden opgegeven.";
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 }

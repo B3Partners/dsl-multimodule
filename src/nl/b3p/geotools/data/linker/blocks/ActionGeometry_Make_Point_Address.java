@@ -20,13 +20,10 @@ import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
-import org.geotools.factory.Hints;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
-import org.geotools.referencing.ReferencingFactoryFinder;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.opengis.referencing.crs.CRSAuthorityFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
@@ -396,5 +393,9 @@ public class ActionGeometry_Make_Point_Address extends Action {
         }
 
         return p1;
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
     }
 }

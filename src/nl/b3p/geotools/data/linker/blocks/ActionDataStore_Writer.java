@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -171,10 +172,12 @@ public class ActionDataStore_Writer extends Action {
         FeatureStore store = null;
         List<List<String>> errors = null;
         int batchsize = BATCHSIZE;
+
         //TODO aanpassen batchsize mogelijk maken
         //hiermee kan dan ook (via batch size is -1) in een transactie oude records
         //worden verwijderd en nieuwe records worden toegevoegd, zodat een volledige
         //rollback gedaan kan worden
+
         if (featureTypeNames.contains(typename)) {
             pks = featurePKs.get(typename);
             fc = featureCollectionCache.get(typename);
@@ -208,6 +211,7 @@ public class ActionDataStore_Writer extends Action {
                     store = (FeatureStore) dataStore2Write.getFeatureSource(typename);
                 }
             }
+
             featureStores.put(typename, store);
             featurePKs.put(typename, pks);
             featureBatchSizes.put(typename, batchsize);
@@ -217,13 +221,13 @@ public class ActionDataStore_Writer extends Action {
         }
 
         // put feature in correct collection for write later
-        boolean doWrite = prepareWrite(fc, pks, feature);
+        prepareWrite(fc, pks, feature);
 
         // start writing when number of features is larger than batch size,
         // except when batch size is -1, then always wait for last feature
         Integer collectionSize = fc.size();
 
-        if ((collectionSize >= batchsize && batchsize != -1) || doWrite) {
+        if ((collectionSize >= batchsize && batchsize != -1)) {
 
             try {
                 batchsize = writeCollection(fc, store, batchsize);
@@ -238,7 +242,7 @@ public class ActionDataStore_Writer extends Action {
         return feature;
     }
 
-    private boolean prepareWrite(FeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {
+    private void prepareWrite(FeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {
         // Bepaal de primary key(s) van record in de doeltabel
         PrimaryKey usePk = pk;
         // TODO: overnemen van pk uit source en instellen voor target
@@ -282,14 +286,7 @@ public class ActionDataStore_Writer extends Action {
             if (!newFeature.getUserData().containsKey("SKIP")) {
                 fc.add(newFeature);
             }
-
-            // indien laatste feature dan schrijven
-            if (newFeature.getUserData().containsKey("lastFeature")) {
-                return true;
-            }
         }
-
-        return false;
     }
 
     private int writeCollection(FeatureCollection fc, FeatureStore store, int batchsize) throws FeatureException, IOException {
@@ -668,6 +665,19 @@ public class ActionDataStore_Writer extends Action {
             throw e;
         } finally {
             transaction.close();
+        }
+    }
+
+    @Override
+    public void flush(String typeName2Read) throws Exception {
+        for (Map.Entry pairs : featureCollectionCache.entrySet()) {
+            String key = (String) pairs.getKey();            
+            FeatureCollection fc = (FeatureCollection) pairs.getValue();
+
+            if (fc != null && fc.size() > 0) {
+                FeatureStore store = featureStores.get(key);
+                writeCollection(fc, store, BATCHSIZE);
+            }
         }
     }
 }
