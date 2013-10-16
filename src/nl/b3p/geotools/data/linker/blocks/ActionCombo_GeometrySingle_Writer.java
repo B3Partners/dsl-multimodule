@@ -108,5 +108,6 @@ public class ActionCombo_GeometrySingle_Writer extends ActionCombo implements Wr
 
     @Override
     public void flush(String typeName2Read) throws Exception {
+        datastore.flush(typeName2Read);
     }
 }
