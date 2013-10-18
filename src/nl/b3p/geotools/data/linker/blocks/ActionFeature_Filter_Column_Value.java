@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
+import nl.b3p.geotools.data.linker.FeatureException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,7 +23,7 @@ public class ActionFeature_Filter_Column_Value extends Action {
     private String operator = null;
     private String filterValue = null;
 
-    public ActionFeature_Filter_Column_Value(
+    public ActionFeature_Filter_Column_Value (
             String columnName,
             String operator,
             String filterValue) {
@@ -33,6 +34,15 @@ public class ActionFeature_Filter_Column_Value extends Action {
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
+        
+        try {
+            feature.getAttributeDescriptorIDbyName(columnName);
+        } catch (FeatureException fex) {
+            String err = "Kolom " + columnName + " in filter blok bestaat niet.";
+            
+            throw new Exception(err);
+        }
+        
         Filter filter = CQL.toFilter(columnName + operator + "'" + filterValue + "'");
         boolean result = filter.evaluate(feature.getFeature());
 

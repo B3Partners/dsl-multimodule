@@ -81,8 +81,15 @@ public class ExcelReader {
                             }
 
                             switch (tempCell.getCellType()) {
-                                case HSSFCell.CELL_TYPE_FORMULA:
-                                    value = tempCell.getCellFormula();
+                                case HSSFCell.CELL_TYPE_FORMULA:                                    
+                                    try {
+                                        String temp = tempCell.getStringCellValue();
+                                        value = temp;
+                                    } catch (IllegalStateException ise) {
+                                        double num = tempCell.getNumericCellValue();
+                                        value = Double.toString(num);
+                                    }
+                                    
                                     break;
 
                                 case HSSFCell.CELL_TYPE_NUMERIC:

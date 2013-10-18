@@ -4,14 +4,20 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
  * Change a SimpleFeatureType class and try to cast the value
+ *
  * @author Gertjan Al, B3Partners
  */
 public class ActionFeatureType_Replace_Class extends Action {
@@ -60,30 +66,83 @@ public class ActionFeatureType_Replace_Class extends Action {
             }
 
             if (!isGeometry) {
-                String value = feature.getAttribute(attributeID).toString();
+                String value = null;
+
+                if (feature.getAttribute(attributeID) != null) {
+                    value = feature.getAttribute(attributeID).toString();
+                }
 
                 if (tryCast) {
                     feature.setAttributeDescriptor(attributeID, attributeName, newAttributeClass, false);
 
                     if (newAttributeClass.equals(Integer.class)) {
-                        
-                        Integer waarde = null;
+                        Integer waarde;
+
                         try {
                             waarde = Integer.parseInt(value);
                         } catch (NumberFormatException nfe) {
                             waarde = 0;
                         }
-                        
+
                         feature.setAttribute(attributeID, waarde);
 
                     } else if (newAttributeClass.equals(String.class)) {
-                        feature.setAttribute(attributeID, value);
+
+                        if (value == null || value.equals("")) {
+                            feature.setAttribute(attributeID, null);
+                        } else {
+                            feature.setAttribute(attributeID, value);
+                        }
 
                     } else if (newAttributeClass.equals(Double.class)) {
-                        feature.setAttribute(attributeID, Double.parseDouble(value));
+
+                        if (value == null) {
+                            feature.setAttribute(attributeID, null);
+                        } else {
+                            feature.setAttribute(attributeID, Double.parseDouble(value));
+                        }
+
+                    } else if (newAttributeClass.equals(Double.class)) {
+
+                        if (value == null) {
+                            feature.setAttribute(attributeID, null);
+                        } else {
+                            feature.setAttribute(attributeID, Double.parseDouble(value));
+                        }
+
+                    } else if (newAttributeClass.equals(Date.class)) {
+
+                        if (value == null || value.equals("")) {
+                            feature.setAttribute(attributeID, null);
+                        } else {
+                            /* Geldige value 2013010100000000 */
+                            if (value.length() == 16) {
+                                String day = value.substring(7, 8);
+                                String month = value.substring(5, 6);
+                                String year = value.substring(0, 4);
+
+                                value = day + "-" + month + "-" + year;
+                            }
+
+                            Locale loc = new Locale("nl", "NL");
+                            
+                            /* TODO: Loop door veel voorkomende date formats heen en kijk
+                             * of deze geparsed kan worden. */
+                            String format = "dd-MM-yyyy";
+
+                            /* Geldige value 01-01-2013 */
+                            Date date = new SimpleDateFormat(format, loc).parse(value);
+
+                            feature.setAttribute(attributeID, date);
+                        }
 
                     } else if (newAttributeClass.equals(Short.class)) {
-                        feature.setAttribute(attributeID, Short.parseShort(value));
+
+                        if (value == null) {
+                            feature.setAttribute(attributeID, null);
+                        } else {
+                            feature.setAttribute(attributeID, Short.parseShort(value));
+                        }
 
                     } else {
                         feature.setAttribute(attributeID, value);
@@ -91,36 +150,24 @@ public class ActionFeatureType_Replace_Class extends Action {
                 }
             }
         }
+
         return feature;
     }
 
     @Override
     public String toString() {
-        String findAttribute = (useGeometry ? "geometry class" : "class  at '" + (attributeID == -1 ? attributeName : attributeID) + "'");
-        return "Change " + findAttribute + " to \"" + newAttributeClass.getSimpleName() + "\"";
+        return "Verander kolomtype.";
     }
 
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.ATTRIBUTE_NAME,
-                    ActionFactory.NEW_ATTRIBUTE_CLASS,
-                    ActionFactory.TRYCAST
-                }));
-/*
-        constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.ATTRIBUTE_ID,
-                    ActionFactory.NEW_ATTRIBUTE_CLASS,
-                    ActionFactory.TRYCAST
-                }));
-*/
-        /*
-        constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.NEW_ATTRIBUTE_CLASS,
-                    ActionFactory.TRYCAST
-                }));
-*/
+            ActionFactory.ATTRIBUTE_NAME,
+            ActionFactory.NEW_ATTRIBUTE_CLASS,
+            ActionFactory.TRYCAST
+        }));
+
         return constructors;
     }
 
