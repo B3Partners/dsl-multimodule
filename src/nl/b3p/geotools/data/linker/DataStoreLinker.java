@@ -429,7 +429,7 @@ public class DataStoreLinker implements Runnable {
             params.put("max connections", 50);
             params.put("connection timeout", 60);
             params.put("validate connections", Boolean.FALSE);
-
+        
             log.debug("Created OracleNGDataStoreFactory with: " + params);
 
             /* TODO: nagaan of je Geotools naar eigen gemaakte

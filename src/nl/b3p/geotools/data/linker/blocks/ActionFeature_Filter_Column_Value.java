@@ -2,10 +2,12 @@ package nl.b3p.geotools.data.linker.blocks;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.FeatureException;
+import static nl.b3p.geotools.data.linker.blocks.Action.log;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,6 +36,7 @@ public class ActionFeature_Filter_Column_Value extends Action {
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
+        long start = new Date().getTime();
         
         try {
             feature.getAttributeDescriptorIDbyName(columnName);
@@ -51,6 +54,10 @@ public class ActionFeature_Filter_Column_Value extends Action {
             String err = "Record kwam niet door het filter: " + filter.toString();
             userData.put("SKIP", err);
         }
+        
+        long end = new Date().getTime() - start;        
+        
+        log.debug("FILTER BLOCK: " + end);
 
         return feature;
     }

@@ -18,6 +18,7 @@ import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.FeatureException;
 import nl.b3p.geotools.data.linker.Status;
+import static nl.b3p.geotools.data.linker.blocks.Action.log;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.geotools.data.DataStore;
@@ -156,10 +157,13 @@ public class ActionDataStore_Writer extends Action {
         if (!initDone) {
             throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file.\nUsed parameters:\n" + params.toString() + "\n\n" + constructorEx.getLocalizedMessage());
         }
+        
+        long start = new Date().getTime();
 
         feature = fixFeatureTypeName(feature);
+        
         String typename = feature.getFeatureType().getTypeName();
-        //get the correct typename from the datastore
+        
         String newTypeName = correctTypeName(typename, dataStore2Write);
         //if not the same (case sensitive) then change the typename
         if (!newTypeName.equals(typename)) {
@@ -196,6 +200,7 @@ public class ActionDataStore_Writer extends Action {
                 checked.put(params.toString() + typename, "");
                 processedTypes++;
             }
+            
             fc = new DefaultFeatureCollection(typename, feature.getFeatureType());
             featureCollectionCache.put(typename, fc);
             if (dataStore2Write != null) {
@@ -238,6 +243,10 @@ public class ActionDataStore_Writer extends Action {
                 fc.retainAll(new ArrayList());
             }
         }
+        
+        long end = new Date().getTime() - start;        
+        
+        log.debug("WRITER BLOCK: " + end);
 
         return feature;
     }
@@ -574,8 +583,13 @@ public class ActionDataStore_Writer extends Action {
     }
 
     private EasyFeature fixFeatureTypeName(EasyFeature feature) throws Exception {
-        String typename = fixTypename(feature.getTypeName().replaceAll(" ", "_"));
-        feature.setTypeName(typename);
+        String oldTypeName = feature.getTypeName();
+        
+        String typename = fixTypename(oldTypeName.replaceAll(" ", "_"));
+        
+        if (!typename.equals(oldTypeName)) {
+            feature.setTypeName(typename);
+        }        
 
         return feature;
     }
@@ -610,6 +624,10 @@ public class ActionDataStore_Writer extends Action {
     }
 
     private String correctTypeName(String typeName, DataStore dataStore2Write) throws IOException {
+        if (featureTypeNames.contains(typeName)) {
+            return typeName;
+        }
+        
         String[] typeNames = dataStore2Write.getTypeNames();
         for (int i = 0; i < typeNames.length; i++) {
             if (typeNames[i].equalsIgnoreCase(typeName)) {
