@@ -58,13 +58,13 @@ public class ActionDataStore_Writer extends Action {
     private final boolean polygonizeSufLki;
     private final boolean postPointWithinPolygon;
     private Exception constructorEx;
-    private HashMap<String, FeatureStore> featureStores = new HashMap();
-    private HashMap<String, PrimaryKey> featurePKs = new HashMap();
-    private HashMap<String, String> checked = new HashMap();
-    private ArrayList<String> featureTypeNames = new ArrayList();
-    private HashMap<String, FeatureCollection> featureCollectionCache = new HashMap();
-    private HashMap<String, Integer> featureBatchSizes = new HashMap();
-    private HashMap<String, List<List<String>>> featureErrors = new HashMap();
+    private List<String> datastoreTypeNames = new ArrayList();
+    private Map<String, FeatureStore> featureStores = new HashMap();
+    private Map<String, PrimaryKey> featurePKs = new HashMap();
+    private List<String> featureTypeNames = new ArrayList();
+    private Map<String, FeatureCollection> featureCollectionCache = new HashMap();
+    private Map<String, Integer> featureBatchSizes = new HashMap();
+    private Map<String, List<List<String>>> featureErrors = new HashMap();
     private static final int MAX_CONNECTIONS_NR = 50;
     private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
@@ -121,8 +121,10 @@ public class ActionDataStore_Writer extends Action {
 
         try {
             dataStore2Write = DataStoreLinker.openDataStore(params);
-            initDone = (dataStore2Write != null);
-
+            if (dataStore2Write!=null) {
+                datastoreTypeNames = Arrays.asList(dataStore2Write.getTypeNames());
+                initDone = true;
+            }
         } catch (Exception ex) {
             constructorEx = ex;
         }
@@ -161,16 +163,8 @@ public class ActionDataStore_Writer extends Action {
         long start = new Date().getTime();
 
         feature = fixFeatureTypeName(feature);
-        
         String typename = feature.getFeatureType().getTypeName();
         
-        String newTypeName = correctTypeName(typename, dataStore2Write);
-        //if not the same (case sensitive) then change the typename
-        if (!newTypeName.equals(typename)) {
-            feature.setTypeName(newTypeName);
-            typename = newTypeName;
-        }
-
         PrimaryKey pks = null;
         FeatureCollection fc = null;
         FeatureStore store = null;
@@ -189,18 +183,22 @@ public class ActionDataStore_Writer extends Action {
             batchsize = featureBatchSizes.get(typename);
             errors = featureErrors.get(typename);
         } else {
-            if (!checked.containsKey(params.toString() + typename)) {
 
-                //TODO uitzoeken of drop ook in de transactie kan
-                boolean delayRemoveUntilFirstCommit = false;
-                if (batchsize == -1) {
-                    delayRemoveUntilFirstCommit = true;
-                }
-                checkSchema(feature.getFeatureType(), delayRemoveUntilFirstCommit);
-                checked.put(params.toString() + typename, "");
-                processedTypes++;
+            //TODO uitzoeken of drop ook in de transactie kan
+            boolean delayRemoveUntilFirstCommit = false;
+            if (batchsize == -1) {
+                delayRemoveUntilFirstCommit = true;
             }
             
+            // uitzoeken of tabel al is aangemaakt
+            // mogelijk wordt de naam van de feature type hierbij nog aangepast
+            String oldTypeName = typename;
+            boolean typeExists = datastoreTypeNames.contains(oldTypeName);
+            typename = checkSchema(feature.getFeatureType(), delayRemoveUntilFirstCommit, typeExists);
+            if (!typename.equals(oldTypeName)) {
+                feature.setTypeName(typename);
+            }
+             
             fc = new DefaultFeatureCollection(typename, feature.getFeatureType());
             featureCollectionCache.put(typename, fc);
             if (dataStore2Write != null) {
@@ -501,96 +499,115 @@ public class ActionDataStore_Writer extends Action {
     /**
      * Check the schema and return the name.
      */
-    private String checkSchema(SimpleFeatureType featureType,
-            boolean delayRemoveUntilFirstCommit) throws Exception {
-        if (initDone) {
-            String typename2Write = featureType.getTypeName();
-            boolean typeExists = Arrays.asList(dataStore2Write.getTypeNames()).contains(typename2Write);
+    private String checkSchema(SimpleFeatureType featureType, boolean delayRemoveUntilFirstCommit, boolean typeExists) throws Exception {
+        
+        String typename2Write = featureType.getTypeName();
 
-            if (dropFirst && typeExists) {
-                /*The drop schema bestaat nog niet in geotools. Wordt nu wel gemaakt en zal binnen
-                 * kort beschikbaar zijn. Tot die tijd maar verwijderen dmv sql script....
-                 */
+        if (dropFirst && typeExists) {
+            /*The drop schema bestaat nog niet in geotools. Wordt nu wel gemaakt en zal binnen
+             * kort beschikbaar zijn. Tot die tijd maar verwijderen dmv sql script....
+             */
 
-                // Check if DataStore is a Database
-                if (dataStore2Write instanceof JDBCDataStore) {
-                    log.info("It's a JDBCDatastore so try to drop the table with sql");
-                    // Drop table
-                    JDBCDataStore database = null;
-                    Connection con = null;
-                    try {
-                        database = (JDBCDataStore) dataStore2Write;
-                        con = database.getDataSource().getConnection();
-                        con.setAutoCommit(true);
-                        dropTable(database, con, typename2Write);
-                    } finally {
-                        if (database != null) {
-                            database.closeSafe(con);
-                        }
+            // Check if DataStore is a Database
+            if (dataStore2Write instanceof JDBCDataStore) {
+                log.info("It's a JDBCDatastore so try to drop the table with sql");
+                // Drop table
+                JDBCDataStore database = null;
+                Connection con = null;
+                try {
+                    database = (JDBCDataStore) dataStore2Write;
+                    con = database.getDataSource().getConnection();
+                    con.setAutoCommit(true);
+                    dropTable(database, con, typename2Write);
+                } finally {
+                    if (database != null) {
+                        database.closeSafe(con);
                     }
                 }
-                typeExists = false;
             }
-
-            // If table does not exist, create new
-            if (!typeExists) {
-                log.info("Creating new table with name: " + featureType.getTypeName());
-                dataStore2Write.createSchema(featureType);
-
-            } else if (!append && !delayRemoveUntilFirstCommit) {
-                log.info("Removing all features from: " + typename2Write);
-                boolean deleteSuccess = false;
-                // Check if DataStore is a Database
-                if (dataStore2Write instanceof JDBCDataStore) {
-                    // Empty table
-                    JDBCDataStore database = (JDBCDataStore) dataStore2Write;
-                    Connection con = null;
-                    try {
-                        con = database.getConnection(Transaction.AUTO_COMMIT);
-                        // try truncate: fast
-                        removeAllFeaturesWithTruncate(database, con, typename2Write);
-                        deleteSuccess = true;
-                    } catch (Exception e) {
-                        log.debug("Removing using truncate failed: ", e);
-                        Connection con1 = null;
-                        try {
-                            con1 = database.getConnection(Transaction.AUTO_COMMIT);
-                            // try delete from table: mot so fast
-                            removeAllFeaturesWithDelete(database, con, typename2Write);
-                            deleteSuccess = true;
-                        } catch (Exception e2) {
-                            log.debug("Removing using delete from table failed: ", e2);
-                        } finally {
-                            if (con1 != null) {
-                                con1.close();
-                            }
-                        }
-                    } finally {
-                        if (con != null) {
-                            con.close();
-                        }
-                    }
-                }
-                if (!deleteSuccess) {
-                    // try using geotools: slowest
-                    removeAllFeatures(dataStore2Write, typename2Write);
-                    log.info("Removing using geotools");
-                }
-            }
-            return typename2Write;
+            typeExists = false;
         }
-        return null;
+
+        // If table does not exist, create new
+        if (!typeExists) {
+            log.info("Creating new table with name: " + featureType.getTypeName());
+            dataStore2Write.createSchema(featureType);
+
+        } else if (!append && !delayRemoveUntilFirstCommit) {
+            log.info("Removing all features from: " + typename2Write);
+            boolean deleteSuccess = false;
+            // Check if DataStore is a Database
+            if (dataStore2Write instanceof JDBCDataStore) {
+                // Empty table
+                JDBCDataStore database = (JDBCDataStore) dataStore2Write;
+                Connection con = null;
+                try {
+                    con = database.getConnection(Transaction.AUTO_COMMIT);
+                    // try truncate: fast
+                    removeAllFeaturesWithTruncate(database, con, typename2Write);
+                    deleteSuccess = true;
+                } catch (Exception e) {
+                    log.debug("Removing using truncate failed: ", e);
+                    Connection con1 = null;
+                    try {
+                        con1 = database.getConnection(Transaction.AUTO_COMMIT);
+                        // try delete from table: mot so fast
+                        removeAllFeaturesWithDelete(database, con, typename2Write);
+                        deleteSuccess = true;
+                    } catch (Exception e2) {
+                        log.debug("Removing using delete from table failed: ", e2);
+                    } finally {
+                        if (con1 != null) {
+                            con1.close();
+                        }
+                    }
+                } finally {
+                    if (con != null) {
+                        con.close();
+                    }
+                }
+            }
+            if (!deleteSuccess) {
+                // try using geotools: slowest
+                removeAllFeatures(dataStore2Write, typename2Write);
+                log.info("Removing using geotools");
+            }
+        }
+        
+        // lijst van tabellen opnieuw ophalen wanter zijn tabellen geschreven
+        // of verwijderd.
+        datastoreTypeNames = Arrays.asList(dataStore2Write.getTypeNames());
+        
+        return typename2Write;
     }
 
+    /**
+     * De feature wordt ontdaan van ongeldige waarden en spaties worden
+     * vervangen door underscrores. Verder wordt gekeken of er al een tabel
+     * bestaat in de doeldatabase, waarbij hoofdletters worden genegeerd.
+     * Als dat zo is dat wordt de tabelnaam (featuretype name) goed gezet
+     * waarbij wel de hoofdletters goed gezet worden. Hierdoor kan later direct
+     * in de lijst van tabellen worden gecheckt.
+     * 
+     * @param feature
+     * @return feature dat gefixt is
+     * @throws Exception 
+     */
     private EasyFeature fixFeatureTypeName(EasyFeature feature) throws Exception {
         String oldTypeName = feature.getTypeName();
         
         String typename = fixTypename(oldTypeName.replaceAll(" ", "_"));
-        
+        for (String tnn : datastoreTypeNames) {
+            // hoofdletters gebruik is niet relevant
+            if (tnn.equalsIgnoreCase(typename)) {
+                typename = tnn;
+                break;
+            }
+        }
+        // hoofdletter gebruik is wel relevant
         if (!typename.equals(oldTypeName)) {
             feature.setTypeName(typename);
         }        
-
         return feature;
     }
 
@@ -621,20 +638,6 @@ public class ActionDataStore_Writer extends Action {
 
     public String getDescription_NL() {
         return "Schrijf de SimpleFeature weg naar een datastore. Als de datastore een database is, kan de SimpleFeature worden toegevoegd of kan de tabel worden geleegd voor het toevoegen";
-    }
-
-    private String correctTypeName(String typeName, DataStore dataStore2Write) throws IOException {
-        if (featureTypeNames.contains(typeName)) {
-            return typeName;
-        }
-        
-        String[] typeNames = dataStore2Write.getTypeNames();
-        for (int i = 0; i < typeNames.length; i++) {
-            if (typeNames[i].equalsIgnoreCase(typeName)) {
-                return typeNames[i];
-            }
-        }
-        return typeName;
     }
 
     private void dropTable(JDBCDataStore database, Connection con, String typeName) throws SQLException {
