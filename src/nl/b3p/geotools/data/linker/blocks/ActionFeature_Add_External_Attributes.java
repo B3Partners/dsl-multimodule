@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
+import static nl.b3p.geotools.data.linker.blocks.Action.log;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import nl.b3p.geotools.data.linker.poi.ExcelReader;
 
@@ -64,9 +65,9 @@ public class ActionFeature_Add_External_Attributes extends Action {
         }
 
         /* Check if handle exists in external file */
-        if (attributeNameOtherFileName != null &&
-                dxfHandle != null && !dxfHandle.equals("")) {
-            
+        if (attributeNameOtherFileName != null
+                && dxfHandle != null && !dxfHandle.equals("")) {
+
             return addExternalData(feature, dxfHandle);
         }
 
@@ -83,11 +84,11 @@ public class ActionFeature_Add_External_Attributes extends Action {
             /* Kijken of dxfHandle waarde in de Excel kolom 
              * attributeNameOtherFileHandle voorkomt */
             Integer index = columns.indexOf(attributeNameOtherFileHandle.toLowerCase());
-            
+
             if (index != null && index > -1) {
                 record = reader.getRecord(attributeNameOtherFileName, index, dxfHandle);
             }
-            
+
             /* Altijd extra kolommen zetten */
             if (record != null && columns != null) {
                 for (int i = 0; i < columns.size(); i++) {
@@ -95,10 +96,10 @@ public class ActionFeature_Add_External_Attributes extends Action {
                     if (i == index) {
                         continue;
                     }
-                    
+
                     feature.addAttributeDescriptor(record.get(i), String.class);
                 }
-                
+
             }
 
             /* Record is kolomnamen eerste regel van Excel + waardes */
@@ -108,13 +109,17 @@ public class ActionFeature_Add_External_Attributes extends Action {
                     if (i == index) {
                         continue;
                     }
-                    
+
                     feature.setAttribute(record.get(i), record.get(i + columns.size()));
                 }
             }
 
-        } catch (FileNotFoundException ex) {
-        } catch (IOException ex) {
+        } catch (FileNotFoundException fex) {
+            log.debug("Bestand niet gevonden!", fex);
+        } catch (IOException iex) {
+            log.debug("Fout tijdens lezen!", iex);
+        } catch (Exception ex) {
+            log.debug("Fout!", ex);
         }
 
         return feature;
@@ -131,11 +136,11 @@ public class ActionFeature_Add_External_Attributes extends Action {
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
-        constructors.add(Arrays.asList(new String[] {
-                    ActionFactory.ATTRIBUTE_NAME_OTHER_FILE_NAME,
-                    ActionFactory.ATTRIBUTE_NAME_DXF_HANDLE,
-                    ActionFactory.ATTRIBUTE_NAME_OTHER_FILE_HANDLE                    
-                }));
+        constructors.add(Arrays.asList(new String[]{
+            ActionFactory.ATTRIBUTE_NAME_OTHER_FILE_NAME,
+            ActionFactory.ATTRIBUTE_NAME_DXF_HANDLE,
+            ActionFactory.ATTRIBUTE_NAME_OTHER_FILE_HANDLE
+        }));
 
         return constructors;
     }

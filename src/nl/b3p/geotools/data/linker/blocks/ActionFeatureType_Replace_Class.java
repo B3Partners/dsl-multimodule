@@ -7,13 +7,13 @@ package nl.b3p.geotools.data.linker.blocks;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 import nl.b3p.geotools.data.linker.ActionFactory;
+import nl.b3p.geotools.data.linker.FeatureException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import nl.b3p.geotools.data.linker.poi.ExcelReader;
 
 /**
  * Change a SimpleFeatureType class and try to cast the value
@@ -50,7 +50,13 @@ public class ActionFeatureType_Replace_Class extends Action {
             attributeName = feature.getFeatureType().getGeometryDescriptor().getLocalName();
         }
 
-        fixAttributeID(feature);
+        try {
+            fixAttributeID(feature);
+        } catch (FeatureException fex) {
+            log.debug("Attribuut " + attributeName + " niet gevonden voor feature.");
+            
+            return feature;
+        }        
 
         if (feature.containsAttributeDescriptor(attributeID)) {
             boolean hasGeometry = feature.getFeatureType().getGeometryDescriptor() != null;
@@ -102,12 +108,12 @@ public class ActionFeatureType_Replace_Class extends Action {
                             feature.setAttribute(attributeID, Double.parseDouble(value));
                         }
 
-                    } else if (newAttributeClass.equals(Double.class)) {
+                    } else if (newAttributeClass.equals(Float.class)) {
 
                         if (value == null) {
                             feature.setAttribute(attributeID, null);
                         } else {
-                            feature.setAttribute(attributeID, Double.parseDouble(value));
+                            feature.setAttribute(attributeID, Float.parseFloat(value));
                         }
 
                     } else if (newAttributeClass.equals(Date.class)) {
@@ -124,13 +130,9 @@ public class ActionFeatureType_Replace_Class extends Action {
                                 value = day + "-" + month + "-" + year;
                             }
 
-                            Locale loc = new Locale("nl", "NL");
+                            Locale loc = ExcelReader.LOCALE_NL;
+                            String format = ExcelReader.DATE_FORMAT;
                             
-                            /* TODO: Loop door veel voorkomende date formats heen en kijk
-                             * of deze geparsed kan worden. */
-                            String format = "dd-MM-yyyy";
-
-                            /* Geldige value 01-01-2013 */
                             Date date = new SimpleDateFormat(format, loc).parse(value);
 
                             feature.setAttribute(attributeID, date);

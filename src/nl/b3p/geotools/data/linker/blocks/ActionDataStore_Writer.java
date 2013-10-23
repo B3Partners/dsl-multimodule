@@ -68,7 +68,7 @@ public class ActionDataStore_Writer extends Action {
     private static final int MAX_CONNECTIONS_NR = 50;
     private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
-    private static final int BATCHSIZE = 50;
+    private static final int BATCHSIZE = 200;
     private static final int MAX_BATCHSIZE = 5000;
     private static final int INCREASEFACTOR = 2;
     private static final int DECREASEFACTOR = 10;

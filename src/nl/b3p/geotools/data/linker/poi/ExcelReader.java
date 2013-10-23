@@ -3,9 +3,18 @@ package nl.b3p.geotools.data.linker.poi;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -16,6 +25,10 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
  */
 public class ExcelReader {
 
+    private final DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+    public static final Locale LOCALE_NL = new Locale("nl", "NL");
+    public static final String DATE_FORMAT = "dd-MM-yyyy";
+    
     private HSSFWorkbook readFile(String fileName)
             throws FileNotFoundException, IOException {
 
@@ -57,6 +70,7 @@ public class ExcelReader {
 
                         case HSSFCell.CELL_TYPE_NUMERIC:
                             value = String.valueOf((int) cell.getNumericCellValue());
+
                             break;
 
                         case HSSFCell.CELL_TYPE_STRING:
@@ -77,11 +91,13 @@ public class ExcelReader {
                             HSSFCell tempCell = row.getCell(d);
 
                             if (tempCell == null) {
+                                record.add(null);
+                                
                                 continue;
                             }
 
                             switch (tempCell.getCellType()) {
-                                case HSSFCell.CELL_TYPE_FORMULA:                                    
+                                case HSSFCell.CELL_TYPE_FORMULA:
                                     try {
                                         String temp = tempCell.getStringCellValue();
                                         value = temp;
@@ -89,11 +105,17 @@ public class ExcelReader {
                                         double num = tempCell.getNumericCellValue();
                                         value = Double.toString(num);
                                     }
-                                    
+
                                     break;
 
                                 case HSSFCell.CELL_TYPE_NUMERIC:
-                                    value = String.valueOf((int) tempCell.getNumericCellValue());
+                                    HSSFCellStyle style = tempCell.getCellStyle();
+                                    if (HSSFDateUtil.isCellDateFormatted(tempCell)) {
+                                        value = getDateValue(tempCell);
+                                    } else {
+                                        value = getNumericValue(tempCell).toString();
+                                    }
+
                                     break;
 
                                 case HSSFCell.CELL_TYPE_STRING:
@@ -101,6 +123,7 @@ public class ExcelReader {
                                     break;
 
                                 default:
+                                    value = null;
                             }
 
                             record.add(value);
@@ -159,7 +182,7 @@ public class ExcelReader {
                         default:
                     }
 
-                    if (value != null) {                        
+                    if (value != null) {
                         columns.add(value.toLowerCase());
                     }
                 }
@@ -167,5 +190,95 @@ public class ExcelReader {
         }
 
         return columns;
+    }
+
+    protected Object getDateValueFromJavaNumber(HSSFCell cell) {
+        double numericValue = cell.getNumericCellValue();
+        BigDecimal numericValueBd = new BigDecimal(String.valueOf(numericValue));
+        numericValueBd = stripTrailingZeros(numericValueBd);
+
+        return new Long(numericValueBd.longValue());
+    }
+
+    protected String getDateValue(HSSFCell cell) {
+
+        double numericValue = cell.getNumericCellValue();
+        Date date = HSSFDateUtil.getJavaDate(numericValue);
+        
+        // Add the timezone offset again because it was subtracted 
+        // automatically by Apache-POI (we need UTC)
+        long tzOffset = TimeZone.getDefault().getOffset(date.getTime());
+        date = new Date(date.getTime() + tzOffset);
+
+        return new SimpleDateFormat(DATE_FORMAT, LOCALE_NL).format(date);
+    }
+    
+    private BigDecimal stripTrailingZeros(BigDecimal value) {
+        if (value.scale() <= 0) {
+            return value;
+        }
+
+        String valueAsString = String.valueOf(value);
+        int idx = valueAsString.indexOf(".");
+        if (idx == -1) {
+            return value;
+        }
+
+        for (int i = valueAsString.length() - 1; i > idx; i--) {
+            if (valueAsString.charAt(i) == '0') {
+                valueAsString = valueAsString.substring(0, i);
+            } else if (valueAsString.charAt(i) == '.') {
+                valueAsString = valueAsString.substring(0, i);
+                // Stop when decimal point is reached
+                break;
+            } else {
+                break;
+            }
+        }
+        BigDecimal result = new BigDecimal(valueAsString);
+        
+        return result;
+    }
+
+    protected BigDecimal getNumericValue(HSSFCell cell) {
+        String formatString = cell.getCellStyle().getDataFormatString();
+        String resultString = null;
+        double cellValue = cell.getNumericCellValue();
+
+        if ((formatString != null)) {
+            if (!formatString.equals("General") && !formatString.equals("@")) {
+
+                DecimalFormat nf = new DecimalFormat(formatString, symbols);
+                resultString = nf.format(cellValue);
+            }
+        }
+
+        BigDecimal result;
+        if (resultString != null) {
+            try {
+                result = new BigDecimal(resultString);
+            } catch (NumberFormatException e) {
+                result = toBigDecimal(cellValue);
+            }
+        } else {
+            result = toBigDecimal(cellValue);
+        }
+        
+        return result;
+    }
+    
+    private BigDecimal toBigDecimal(double cellValue) {
+        String resultString = String.valueOf(cellValue);
+        
+        // To ensure that intergral numbers do not have decimal point and trailing zero
+        // (to restore backward compatibility and provide a string representation consistent with Excel)
+        if (resultString.endsWith(".0")) {
+            resultString = resultString.substring(0, resultString.length() - 2);
+        }
+        
+        BigDecimal result = new BigDecimal(resultString);
+        
+        return result;
+
     }
 }
