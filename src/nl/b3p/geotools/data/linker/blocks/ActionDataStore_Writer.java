@@ -68,7 +68,7 @@ public class ActionDataStore_Writer extends Action {
     private static final int MAX_CONNECTIONS_NR = 50;
     private static final String MAX_CONNECTIONS = "max connections";
     private static int processedTypes = 0;
-    private static final int BATCHSIZE = 200;
+    private static final int BATCHSIZE = 50;
     private static final int MAX_BATCHSIZE = 5000;
     private static final int INCREASEFACTOR = 2;
     private static final int DECREASEFACTOR = 10;
@@ -288,12 +288,7 @@ public class ActionDataStore_Writer extends Action {
             newFeature.getUserData().put(Hints.USE_PROVIDED_FID, true);
         }
 
-        // indien skip dan niet aan collectie toevoegen
-        if (newFeature.getUserData() != null) {
-            if (!newFeature.getUserData().containsKey("SKIP")) {
-                fc.add(newFeature);
-            }
-        }
+        fc.add(newFeature);
     }
 
     private int writeCollection(FeatureCollection fc, FeatureStore store, int batchsize) throws FeatureException, IOException {

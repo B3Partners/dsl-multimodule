@@ -42,34 +42,34 @@ import org.opengis.filter.spatial.Intersects;
 public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
 
     protected static final Log logger = LogFactory.getLog(Action_XY_Intersects_Add_Mapped_Attrib.class);
-    private Long outputDatabaseId = null;
-    private String outputGeomColumn = null;
-    private String polyTableName = null;
-    private String matchSourceColumn = null;
-    private String matchPolyTableColumn = null;
+    private Long vlakkenDatabaseId = null;
+    private String vlakkenGeomColumn = null;
+    private String vlakkenTableName = null;
+    private String sourceMatchColumn = null;
+    private String vlakkenMatchColumn = null;
     private Boolean matchGeom = null;
     private static DataStore ds = null;
-    private static FeatureSource outputFs = null;
+    private static FeatureSource vlakkenFs = null;
     private static final String SRS = "EPSG:28992";
 
     public Action_XY_Intersects_Add_Mapped_Attrib(
-            Long outputDatabaseId, String outputGeomColumn,
-            String polyTableName, String matchSourceColumn,
-            String matchPolyTableColumn, Boolean matchGeom) {
+            Long vlakkenDatabaseId, String vlakkenGeomColumn,
+            String vlakkenTableName, String sourceMatchColumn,
+            String vlakkenMatchColumn, Boolean matchGeom) {
 
-        this.outputDatabaseId = outputDatabaseId;
-        this.outputGeomColumn = outputGeomColumn;
-        this.polyTableName = polyTableName;
-        this.matchSourceColumn = matchSourceColumn;
-        this.matchPolyTableColumn = matchPolyTableColumn;
+        this.vlakkenDatabaseId = vlakkenDatabaseId;
+        this.vlakkenGeomColumn = vlakkenGeomColumn;
+        this.vlakkenTableName = vlakkenTableName;
+        this.sourceMatchColumn = sourceMatchColumn;
+        this.vlakkenMatchColumn = vlakkenMatchColumn;
         this.matchGeom = matchGeom;
 
         Database db = null;
-        if (outputDatabaseId != null && outputDatabaseId > 0) {
+        if (vlakkenDatabaseId != null && vlakkenDatabaseId > 0) {
             EntityManager em = JpaUtilServlet.getThreadEntityManager();
             Session session = (Session) em.getDelegate();
 
-            db = (Database) session.get(Database.class, outputDatabaseId);
+            db = (Database) session.get(Database.class, vlakkenDatabaseId);
         }
 
         Map params = new HashMap();
@@ -93,13 +93,18 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
         FeatureSource fs = null;
         try {
             ds = DataStoreLinker.openDataStore(params);
-            outputFs = ds.getFeatureSource(polyTableName);
+            vlakkenFs = ds.getFeatureSource(vlakkenTableName);
         } catch (Exception ex) {
             logger.error("Fout tijdens openen Datastore.", ex);
         }
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
+	
+		if (vlakkenFs==null) {
+			throw new Exception("No second source to combine found");
+		}
+		
         /* Make sure you are using The create geometry from 
          * values Action Block. */
         Point point = null;
@@ -112,87 +117,100 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
 
         /* Make sure to replace all source values if you want them
          to map against the target column values */
-        String sourceValue = null;
-        String polyValue = null;
-
-        if (matchSourceColumn != null) {
-            SimpleFeature sourceF = feature.getFeature();
-
-            if (sourceF.getAttribute(matchSourceColumn) instanceof String) {
-                sourceValue = (String) sourceF.getAttribute(matchSourceColumn);
-            }
+        Object sourceMatchValue = null;
+		SimpleFeature sourceF = feature.getFeature();
+        if (sourceMatchColumn != null && !sourceMatchColumn.isEmpty()) {
+            sourceMatchValue = sourceF.getAttribute(sourceMatchColumn);
         }
 
         /* Query op vlakken tabel */
-        EasyFeature newFeature = null;
-        if (outputFs != null) {
-            String geomColumn = null;
-            if (outputGeomColumn == null || outputGeomColumn.equals("")) {
-                geomColumn = outputFs.getSchema().getGeometryDescriptor().getLocalName();
-            } else {
-                geomColumn = outputGeomColumn;
-            }
-            
-            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+ 		String geomColumn = null;
+		if (vlakkenGeomColumn == null || vlakkenGeomColumn.equals("")) {
+			geomColumn = vlakkenFs.getSchema().getGeometryDescriptor().getLocalName();
+		} else {
+			geomColumn = vlakkenGeomColumn;
+		}
+		
+		Capabilities capabilities = new Capabilities();
+		capabilities.addType(Intersects.class);
+		// is dit geen onzin, omdat deze capability net is toegevoegd?
+		boolean canDoIntersects = capabilities.supports(doIntersects);            
 
-            Filter doIntersects = (Filter) ff.intersects(ff.property(geomColumn), ff.literal(point));
-            Filter doAttrib = (Filter) CQL.toFilter(matchPolyTableColumn + " = '" + sourceValue + "'");
-            Filter doBoth = (Filter) ff.and(doIntersects, doAttrib);
-            
-            Capabilities capabilities = new Capabilities();
-            capabilities.addType(Intersects.class);
-            
-            boolean canDoIntersects = capabilities.supports(doIntersects);            
-            
-            FeatureCollection vlakken = null;
-            if (!matchGeom && matchSourceColumn == null || matchPolyTableColumn == null) {
-                vlakken = outputFs.getFeatures();
-            } else if (!canDoIntersects && matchGeom && matchSourceColumn == null || matchPolyTableColumn == null) {
-                vlakken = outputFs.getFeatures();
-            } else if (canDoIntersects && matchGeom && matchSourceColumn == null || matchPolyTableColumn == null) {
-                vlakken = outputFs.getFeatures(doIntersects);
-            } else {
-                vlakken = outputFs.getFeatures(doBoth);
-            }
+		FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
-            if (vlakken == null || vlakken.size() < 1) {
-                Map userData = feature.getFeature().getUserData();
-                if (userData != null) {
-                    
-                    String err = "Invoer geometrie overlapt niet of geen match"
-                            + " gevonden met de waarde in " + matchSourceColumn;
-                    
-                    userData.put("SKIP", err);
-                }
-                
-                return feature;
-            }
+		Filter doIntersects = null;
+		Filter doAttrib = null;
+		Filter doBoth = null;
+		if (canDoIntersects && geomColumn!=null && !geomColumn.isEmpty()) {
+			doIntersects = (Filter) ff.intersects(ff.property(geomColumn), ff.literal(point));
+		}
+		if (vlakkenMatchColumn!=null && !vlakkenMatchColumn.isEmpty() &&
+				sourceMatchValue!=null && !sourceMatchValue.isEmpty()) {
+			// temp fix voor leeg laten van invulvelden
+			if (!vlakkenMatchColumn.equals("*") && !sourceMatchColumn.equals("*") {
+				// geen filter tbv debug
+				//doAttrib = (Filter) CQL.toFilter(vlakkenMatchColumn + " = '" + sourceMatchValue + "'");
+			}
+		}
+		if (doIntersects!=null && doAttrib!=null) {
+			doBoth = (Filter) ff.and(doIntersects, doAttrib);
+		}
+		
+		FeatureCollection vlakkenBronCollectie = null;
+		if (doBoth!=null) {
+			vlakkenBronCollectie = vlakkenFs.getFeatures(doBoth);
+		} else if (doAttrib!=null ) {
+			vlakkenBronCollectie = vlakkenFs.getFeatures(doAttrib);
+		} else if (doIntersects!=null) {
+			vlakkenBronCollectie = vlakkenFs.getFeatures(doIntersects);
+		} else {
+			throw new Exception("No matching strategy found");
+		}
 
-            if (vlakken != null && vlakken.size() > 0) {
-                FeatureIterator it = vlakken.features();
-                while (it.hasNext()) {
-                    SimpleFeature polyF = (SimpleFeature) it.next();
+		if (vlakkenBronCollectie == null || vlakkenBronCollectie.isEmpty()) {
+			throw new FeatureException("Geometrie overlapt niet of geen match"
+						+ " gevonden met de waarde in " + sourceMatchColumn;
+		}
+		//if (vlakkenBronCollectie.size()>1) {
+		//	throw new Exception("Meer dan 1 geometrie met match"
+		//				+ " gevonden met de waarde in " + sourceMatchColumn;
+		//}
+		
+		EasyFeature newFeature = null;
 
-                    if (polyF != null) {
-                        newFeature = buildNewFeature(feature.getFeature(), polyF);
-                        break;
-                    }
-                }
-                vlakken.close(it);
-            }
-        }
-
+		FeatureIterator it = null;
+		try {
+			it = vlakkenBronCollectie.features();
+			if (it.hasNext() {
+				SimpleFeature vlakkenF = (SimpleFeature) it.next();
+				if (vlakkenF == null) {
+					throw new FeatureException("No suitable polygon found!");
+				}
+				newFeature = buildNewFeature(sourceF, vlakkenF);
+				
+				// voeg attribuutwaarde van vlakkenFs toe aan doel voor debug
+				if (vlakkenMatchColumn != null && !vlakkenMatchColumn.isEmpty() &&
+						!vlakkenMatchColumn.equals("*")) {
+					Object vlakkenMatchValue = vlakkenF.getAttribute(vlakkenMatchColumn);
+					newFeature.setAttribute(sourceMatchColumn, vlakkenMatchValue);
+				}
+				
+			}
+		} finally {
+			vlakkenBronCollectie.close(it);
+		}
+ 
         return newFeature;
     }
 
     private EasyFeature buildNewFeature(SimpleFeature sourceF, SimpleFeature polyF) {
-        SimpleFeatureType sourceFt = (SimpleFeatureType) sourceF.getFeatureType();
+        SimpleFeatureType vlakkenFt = (SimpleFeatureType) sourceF.getFeatureType();
         SimpleFeatureType polyFt = (SimpleFeatureType) polyF.getFeatureType();
 
-        List<AttributeDescriptor> sourceAttrDescr = new ArrayList<AttributeDescriptor>(sourceFt.getAttributeDescriptors());
+        List<AttributeDescriptor> sourceAttrDescr = new ArrayList<AttributeDescriptor>(vlakkenFt.getAttributeDescriptors());
 
         AttributeTypeBuilder attributeTypeBuilder = new AttributeTypeBuilder();
-        String currentGeomColumn = sourceFt.getGeometryDescriptor().getName().getLocalPart();
+        String currentGeomColumn = vlakkenFt.getGeometryDescriptor().getName().getLocalPart();
 
         List<AttributeDescriptor> newAttrDescr = new ArrayList();
         for (AttributeDescriptor pDescr : sourceAttrDescr) {
@@ -211,7 +229,7 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
 
         /* Create new table based on polygon and extra columns */
         SimpleFeatureType newFt = createNewFeatureType(
-                sourceFt,
+                vlakkenFt,
                 polyFt,
                 geometryColumnIndex,
                 Polygon.class,
@@ -221,7 +239,7 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
     }
 
     private SimpleFeatureType createNewFeatureType(
-            SimpleFeatureType sourceFt,
+            SimpleFeatureType vlakkenFt,
             SimpleFeatureType polyFt,
             Integer geometryColumnIndex,
             Class binding,
@@ -229,12 +247,12 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
 
         AttributeTypeBuilder attributeTypeBuilder = new AttributeTypeBuilder();
         attributeTypeBuilder.setBinding(binding);
-        attributeTypeBuilder.setName(sourceFt.getGeometryDescriptor().getName().getLocalPart());
+        attributeTypeBuilder.setName(vlakkenFt.getGeometryDescriptor().getName().getLocalPart());
 
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
         featureTypeBuilder.setAttributes(newAttrDescr);
         featureTypeBuilder.setSRS(SRS);
-        featureTypeBuilder.setName(sourceFt.getTypeName());
+        featureTypeBuilder.setName(vlakkenFt.getTypeName());
 
         return featureTypeBuilder.buildFeatureType();
     }

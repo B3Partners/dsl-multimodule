@@ -239,11 +239,6 @@ public class DataStoreLinker implements Runnable {
                 status.incrementProcessedFeatures();
             }
 
-            if (ef.getFeature().getUserData().containsKey("SKIP")) {
-                String msg = (String)ef.getFeature().getUserData().get("SKIP");
-                status.addWriteError(msg, feature.getID());
-            }
-
         } catch (Exception e) {
             if (exceptionLogCount++ < MAX_EXCEPTION_LOG_COUNT) {
                 log.error("Exception tijdens processen van feature (exception nr. " + exceptionLogCount + " van max " + MAX_EXCEPTION_LOG_COUNT + " die worden gelogd)", e);

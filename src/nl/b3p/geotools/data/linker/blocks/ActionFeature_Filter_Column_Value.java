@@ -49,10 +49,8 @@ public class ActionFeature_Filter_Column_Value extends Action {
         Filter filter = CQL.toFilter(columnName + operator + "'" + filterValue + "'");
         boolean result = filter.evaluate(feature.getFeature());
 
-        Map userData = feature.getFeature().getUserData();
-        if (!result && userData != null) {
-            String err = "Record kwam niet door het filter: " + filter.toString();
-            userData.put("SKIP", err);
+        if (!result) {
+			throw new FeatureException("Record voldoet niet aan het filter: " + filter.toString());
         }
         
         long end = new Date().getTime() - start;        
