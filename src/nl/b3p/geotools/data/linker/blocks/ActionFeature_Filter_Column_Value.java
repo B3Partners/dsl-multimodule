@@ -38,9 +38,8 @@ public class ActionFeature_Filter_Column_Value extends Action {
     public EasyFeature execute(EasyFeature feature) throws Exception {
         long start = new Date().getTime();
         
-        try {
-            feature.getAttributeDescriptorIDbyName(columnName);
-        } catch (FeatureException fex) {
+        int id = feature.getAttributeDescriptorIDbyName(columnName);
+        if (id<0) {
             String err = "Kolom " + columnName + " in filter blok bestaat niet.";
             
             throw new Exception(err);

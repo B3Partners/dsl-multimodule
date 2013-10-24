@@ -221,7 +221,7 @@ public class EasyFeature {
      */
     public void setAttributeDescriptor(int attributeID, AttributeDescriptor attributeDescriptor, boolean keepValue) {
         // save userdata
-       Map<Object, Object> ud = feature.getUserData();
+        Map<Object, Object> ud = feature.getUserData();
 
         // Add attributeType to current attributeList
         List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
@@ -267,7 +267,7 @@ public class EasyFeature {
                 return i;
             }
         }
-        throw new FeatureException("Unable to locate attributeID of '" + name + "' " + toString());
+        return -1;
     }
 
     /**
