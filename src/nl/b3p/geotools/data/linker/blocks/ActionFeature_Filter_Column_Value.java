@@ -45,7 +45,7 @@ public class ActionFeature_Filter_Column_Value extends Action {
             throw new Exception(err);
         }
         
-        Filter filter = CQL.toFilter(columnName + operator + "'" + filterValue + "'");
+        Filter filter = CQL.toFilter(columnName + " " + operator + " '" + filterValue + "'");
         boolean result = filter.evaluate(feature.getFeature());
 
         if (!result) {
