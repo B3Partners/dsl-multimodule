@@ -36,12 +36,26 @@ public class Action_Add_Properties extends Action {
         List<List<String>> constructors = new ArrayList<List<String>>();
 
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.PROPERTY_NAME,
-                    ActionFactory.PROPERTY_NAME,
-                    ActionFactory.PROPERTY_NAME,
-                    ActionFactory.PROPERTY_NAME,
-                    ActionFactory.PROPERTY_NAME,
-                    ActionFactory.PROPERTY_NAME
+                    ActionFactory.PROPERTY_NAME1,
+                    ActionFactory.PROPERTY_VALUE1,
+                    ActionFactory.PROPERTY_NAME2,
+                    ActionFactory.PROPERTY_VALUE2,
+                    ActionFactory.PROPERTY_NAME3,
+                    ActionFactory.PROPERTY_VALUE3,
+                    ActionFactory.PROPERTY_NAME4,
+                    ActionFactory.PROPERTY_VALUE4,
+                    ActionFactory.PROPERTY_NAME5,
+                    ActionFactory.PROPERTY_VALUE5,
+                    ActionFactory.PROPERTY_NAME6,
+                    ActionFactory.PROPERTY_VALUE6,
+                    ActionFactory.PROPERTY_NAME7,
+                    ActionFactory.PROPERTY_VALUE7,
+                    ActionFactory.PROPERTY_NAME8,
+                    ActionFactory.PROPERTY_VALUE8,
+                    ActionFactory.PROPERTY_NAME9,
+                    ActionFactory.PROPERTY_VALUE9,
+                    ActionFactory.PROPERTY_NAME10,
+                    ActionFactory.PROPERTY_VALUE10
                 }));
 
         return constructors;

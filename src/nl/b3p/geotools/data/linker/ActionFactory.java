@@ -67,7 +67,26 @@ public class ActionFactory {
     public static final String REPLACEMENT = "replacement";
     public static final String SCALE = "scale";
     public static final String FLOAT_PRECISION = "float_precision";
-    public static final String PROPERTY_NAME = "property_name";
+    public static final String PROPERTY_NAME1 = "property_name1";
+    public static final String PROPERTY_NAME2 = "property_name2";
+    public static final String PROPERTY_NAME3 = "property_name3";
+    public static final String PROPERTY_NAME4 = "property_name4";
+    public static final String PROPERTY_NAME5 = "property_name5";
+    public static final String PROPERTY_NAME6 = "property_name6";
+    public static final String PROPERTY_NAME7 = "property_name7";
+    public static final String PROPERTY_NAME8 = "property_name8";
+    public static final String PROPERTY_NAME9 = "property_name9";
+    public static final String PROPERTY_NAME10 = "property_name10";
+    public static final String PROPERTY_VALUE1 = "property_value1";
+    public static final String PROPERTY_VALUE2 = "property_value2";
+    public static final String PROPERTY_VALUE3 = "property_value3";
+    public static final String PROPERTY_VALUE4 = "property_value4";
+    public static final String PROPERTY_VALUE5 = "property_value5";
+    public static final String PROPERTY_VALUE6 = "property_value6";
+    public static final String PROPERTY_VALUE7 = "property_value7";
+    public static final String PROPERTY_VALUE8 = "property_value8";
+    public static final String PROPERTY_VALUE9 = "property_value9";
+    public static final String PROPERTY_VALUE10 = "property_value10";
     public static final String ATTRIBUTE_NAME_ADDRESS1 = "attribute_name_address1";
     public static final String ATTRIBUTE_NAME_ADDRESS2 = "attribute_name_address2";
     public static final String ATTRIBUTE_NAME_ADDRESS3 = "attribute_name_address3";
@@ -630,8 +649,41 @@ public class ActionFactory {
                 return new ActionFeature_Filter_Column_Value(column, operator, value);
                 
             } else if (isThisClass(actionClassName, Action_Add_Properties.class)) {
-
-                return new Action_Add_Properties(properties);
+                
+                Map<String, Object> m = new HashMap();
+                String pn, pv;
+                pn  = (String) properties.get(PROPERTY_NAME1);
+                pv  = (String) properties.get(PROPERTY_VALUE1);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME2);
+                pv  = (String) properties.get(PROPERTY_VALUE2);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME3);
+                pv  = (String) properties.get(PROPERTY_VALUE3);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME4);
+                pv  = (String) properties.get(PROPERTY_VALUE4);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME5);
+                pv  = (String) properties.get(PROPERTY_VALUE5);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME6);
+                pv  = (String) properties.get(PROPERTY_VALUE6);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME7);
+                pv  = (String) properties.get(PROPERTY_VALUE7);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME8);
+                pv  = (String) properties.get(PROPERTY_VALUE8);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME9);
+                pv  = (String) properties.get(PROPERTY_VALUE9);
+                m.put(pn, pv);
+                pn  = (String) properties.get(PROPERTY_NAME10);
+                pv  = (String) properties.get(PROPERTY_VALUE10);
+                m.put(pn, pv);
+                
+                return new Action_Add_Properties(m);
 
             } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {
                 Integer size = properties.size();
