@@ -49,6 +49,7 @@ public class ActionFactory {
     public static final String POLYGONIZEWITHATTR_LINEFEATURENAME_ATTRIBUTE = "polygonizeWithAttr_lineFeatureName";
     public static final String POLYGONIZEWITHATTR_LINECLOSETOLERANCE_ATTRIBUTE = "polygonizeWithAttr_lineCloseTolerance";
     public static final String POLYGONIZESUFLKI = "polygonizeSufLki";
+    public static final String POSTPOINTWITHINPOLYGON = "postPointWithinPolygon";
     public static final String TRYCAST = "trycast";
     public static final String OBJECT_FIND = "object_find";
     public static final String OBJECT_REPLACE = "object_replace";
@@ -66,6 +67,7 @@ public class ActionFactory {
     public static final String REPLACEMENT = "replacement";
     public static final String SCALE = "scale";
     public static final String FLOAT_PRECISION = "float_precision";
+    public static final String PROPERTY_NAME = "property_name";
     public static final String ATTRIBUTE_NAME_ADDRESS1 = "attribute_name_address1";
     public static final String ATTRIBUTE_NAME_ADDRESS2 = "attribute_name_address2";
     public static final String ATTRIBUTE_NAME_ADDRESS3 = "attribute_name_address3";
@@ -626,6 +628,10 @@ public class ActionFactory {
                 String value = (String) properties.get(ATTRIBUTE_NAME_FILTER_VALUE);
 
                 return new ActionFeature_Filter_Column_Value(column, operator, value);
+                
+            } else if (isThisClass(actionClassName, Action_Add_Properties.class)) {
+
+                return new Action_Add_Properties(properties);
 
             } else if (isThisClass(actionClassName, ActionFeatureType_AttributeNames_Rename.class)) {
                 Integer size = properties.size();
@@ -905,6 +911,7 @@ public class ActionFactory {
 
         actionBlocks.put(Action_XY_Intersects_Add_Mapped_Attrib.class.getSimpleName(), Action_XY_Intersects_Add_Mapped_Attrib.getConstructors());
         actionBlocks.put(ActionFeature_Filter_Column_Value.class.getSimpleName(), ActionFeature_Filter_Column_Value.getConstructors());
+        actionBlocks.put(Action_Add_Properties.class.getSimpleName(), Action_Add_Properties.getConstructors());
 
         return actionBlocks;
     }

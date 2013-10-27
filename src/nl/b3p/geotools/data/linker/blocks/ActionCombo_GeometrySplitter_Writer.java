@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.Status;
-import nl.b3p.geotools.data.linker.feature.EasyFeature;
+
 
 /**
  * Split geometries in Point, Line, Polygon, MultiPoint, MultiLine, MultiPolygon
@@ -100,8 +100,8 @@ public class ActionCombo_GeometrySplitter_Writer extends ActionCombo implements 
     }
 
     @Override
-    public void processPostCollectionActions(Status status){
-        datastore.processPostCollectionActions(status);
+    public void processPostCollectionActions(Status status, Map properties){
+        datastore.processPostCollectionActions(status, properties);
     }
 
     public String getDescription_NL() {
@@ -114,7 +114,7 @@ public class ActionCombo_GeometrySplitter_Writer extends ActionCombo implements 
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
-        datastore.flush(typeName2Read);
+    public void flush(Status status, Map properties) throws Exception {
+        datastore.flush(status, properties);
     }
 }

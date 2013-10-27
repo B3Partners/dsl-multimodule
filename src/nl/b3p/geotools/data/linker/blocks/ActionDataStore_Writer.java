@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.FeatureException;
@@ -52,10 +54,14 @@ public class ActionDataStore_Writer extends Action {
     private Map params;
     private final boolean append;
     private final boolean dropFirst;
-    private final boolean polygonize;
-    private final boolean polygonizeWithAttr;
-    private final boolean polygonizeSufLki;
-    private final boolean postPointWithinPolygon;
+    
+    // post collection actions
+    private boolean postCollectionActionsInitDone = false;
+    private boolean polygonize = false;
+    private boolean polygonizeWithAttr = false;
+    private boolean polygonizeSufLki = false;
+    private boolean postPointWithinPolygon = false;
+    
     private Exception constructorEx;
     private List<String> datastoreTypeNames = new ArrayList();
     private Map<String, FeatureStore> featureStores = new HashMap();
@@ -66,7 +72,6 @@ public class ActionDataStore_Writer extends Action {
     private Map<String, List<List<String>>> featureErrors = new HashMap();
     private static final int MAX_CONNECTIONS_NR = 50;
     private static final String MAX_CONNECTIONS = "max connections";
-    private static int processedTypes = 0;
     private static final int BATCHSIZE = 50;
     private static final int MAX_BATCHSIZE = 5000;
     private static final int INCREASEFACTOR = 2;
@@ -88,34 +93,8 @@ public class ActionDataStore_Writer extends Action {
         } else {
             dropFirst = false;
         }
-        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE)) {
-            polygonize = (Boolean) properties.get(ActionFactory.POLYGONIZE);
-        } else {
-            polygonize = false;
-        }
-        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR)) {
-            polygonizeWithAttr = (Boolean) properties.get(ActionFactory.POLYGONIZEWITHATTR);
-        } else {
-            polygonizeWithAttr = false;
-        }
-        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZESUFLKI)) {
-            polygonizeSufLki = (Boolean) properties.get(ActionFactory.POLYGONIZESUFLKI);
-        } else {
-            polygonizeSufLki = false;
-        }
         if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
-        }
-
-        if (ActionFactory.propertyCheck(properties, "postPointWithinPolygon")) {
-            postPointWithinPolygon = (Boolean) properties.get("postPointWithinPolygon");
-        } else {
-            postPointWithinPolygon = false;
-        }
-
-        if (this.polygonize) {
-            log.info("Polygonize is configured as post action");
-            collectionActions.add(new CollectionAction_Polygonize(new HashMap(properties)));
         }
 
         try {
@@ -128,30 +107,7 @@ public class ActionDataStore_Writer extends Action {
             constructorEx = ex;
         }
 
-        if (this.postPointWithinPolygon) {
-            log.info("Point_Within_Polygon with attribute is configured as post action");
-            try {
-                collectionActions.add(new CollectionAction_Point_Within_Polygon(dataStore2Write, new HashMap(properties)));
-            } catch (Exception e) {
-                log.error("Cannot create Point_Within_Polygon post action", e);
-            }
-        }
-
-        if (this.polygonizeWithAttr) {
-            log.info("Polygonize with attribute is configured as post action");
-            try {
-                collectionActions.add(new CollectionAction_PolygonizeWithAttr(dataStore2Write, new HashMap(properties)));
-            } catch (Exception e) {
-                log.error("Can not create PolygonizeWithAttr post action", e);
-            }
-        } else if (this.polygonizeSufLki) {
-            log.info("Polygonize with attribute is configured as post action");
-            try {
-                collectionActions.add(new CollectionAction_PolygonizeSufLki(dataStore2Write, new HashMap(properties)));
-            } catch (Exception e) {
-                log.error("Can not create PolygonizeWithAttr post action", e);
-            }
-        }
+        initPostCollectionActions(properties);
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
@@ -398,9 +354,86 @@ public class ActionDataStore_Writer extends Action {
             dataStore2Write.dispose();
         }
     }
+    
+    private void initPostCollectionActions(Map properties) {
+        //slecht een keer init toestaan, ofwel in constructor ofwel in block
+        //anders wordt het wel erg complex.
+        if (postCollectionActionsInitDone) {
+            return;
+        }
+        
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE)) {
+            polygonize = (Boolean) properties.get(ActionFactory.POLYGONIZE);
+            postCollectionActionsInitDone = true;
+        } else {
+            polygonize = false;
+        }
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR)) {
+            polygonizeWithAttr = (Boolean) properties.get(ActionFactory.POLYGONIZEWITHATTR);
+            postCollectionActionsInitDone = true;
+        } else {
+            polygonizeWithAttr = false;
+        }
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZESUFLKI)) {
+            polygonizeSufLki = (Boolean) properties.get(ActionFactory.POLYGONIZESUFLKI);
+            postCollectionActionsInitDone = true;
+        } else {
+            polygonizeSufLki = false;
+        }
+ 
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POSTPOINTWITHINPOLYGON)) {
+            postPointWithinPolygon = (Boolean) properties.get(ActionFactory.POSTPOINTWITHINPOLYGON);
+            postCollectionActionsInitDone = true;
+        } else {
+            postPointWithinPolygon = false;
+        }
+
+        if (this.polygonize) {
+            log.info("Polygonize is configured as post action");
+            collectionActions.add(new CollectionAction_Polygonize(new HashMap(properties)));
+        }
+
+        if (this.postPointWithinPolygon) {
+            log.info("Point_Within_Polygon with attribute is configured as post action");
+            try {
+                collectionActions.add(new CollectionAction_Point_Within_Polygon(dataStore2Write, new HashMap(properties)));
+            } catch (Exception e) {
+                log.error("Cannot create Point_Within_Polygon post action", e);
+            }
+        }
+
+        if (this.polygonizeWithAttr) {
+            log.info("Polygonize with attribute is configured as post action");
+            try {
+                collectionActions.add(new CollectionAction_PolygonizeWithAttr(dataStore2Write, new HashMap(properties)));
+            } catch (Exception e) {
+                log.error("Can not create PolygonizeWithAttr post action", e);
+            }
+        } else if (this.polygonizeSufLki) {
+            log.info("Polygonize with attribute is configured as post action");
+            try {
+                collectionActions.add(new CollectionAction_PolygonizeSufLki(dataStore2Write, new HashMap(properties)));
+            } catch (Exception e) {
+                log.error("Can not create PolygonizeWithAttr post action", e);
+            }
+        }
+        
+        if (this.postPointWithinPolygon) {
+            log.info("Find polygon with point is configured as post action");
+            try {
+                collectionActions.add(new CollectionAction_Intersects_XY_Add_Attrib(dataStore2Write, new HashMap(properties)));
+            } catch (Exception e) {
+                log.error("Can not create Find polygon with point post action", e);
+            }
+        }
+
+    }
 
     @Override
-    public void processPostCollectionActions(Status status) {
+    public void processPostCollectionActions(Status status, Map properties) {
+        //deze post actions kunnen ook door een block gezet zijn,
+        initPostCollectionActions(properties);
+
         log.info("Collect errors from ActionDataStore_Writer");
         if (dataStore2Write != null) {
             try {
@@ -684,7 +717,7 @@ public class ActionDataStore_Writer extends Action {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
         for (Map.Entry pairs : featureCollectionCache.entrySet()) {
             String key = (String) pairs.getKey();            
             FeatureCollection fc = (FeatureCollection) pairs.getValue();

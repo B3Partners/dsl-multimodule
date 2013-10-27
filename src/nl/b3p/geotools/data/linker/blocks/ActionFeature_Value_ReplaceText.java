@@ -12,6 +12,9 @@ import java.util.regex.Pattern;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.opengis.feature.simple.SimpleFeature;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
+
 
 
 /* Vervang tekst uit een attribuut waarde door andere tekst */
@@ -90,6 +93,10 @@ public class ActionFeature_Value_ReplaceText extends Action {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
+    }
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
     }
 }

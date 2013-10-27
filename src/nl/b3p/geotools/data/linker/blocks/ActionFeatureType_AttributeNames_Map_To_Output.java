@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.feature.type.AttributeType;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
 
 /* Map output columns to inputcolumns. User sees list of all output columns and can
  choose input columns per output column from a dropdown. */
@@ -32,7 +33,11 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
+    }
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
     }
 
      /**

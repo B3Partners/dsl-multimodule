@@ -4,6 +4,8 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 
 /**
@@ -55,6 +57,10 @@ public class ActionCondition_Feature_Value extends ActionCondition {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
+    }
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
     }
 }

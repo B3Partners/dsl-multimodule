@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.Status;
-import nl.b3p.geotools.data.linker.feature.EasyFeature;
+
 
 /**
  *
@@ -93,8 +93,8 @@ public class ActionCombo_GeometrySingle_Writer extends ActionCombo implements Wr
     }
 
     @Override
-    public void processPostCollectionActions(Status status){
-        datastore.processPostCollectionActions(status);
+    public void processPostCollectionActions(Status status, Map properties){
+        datastore.processPostCollectionActions(status, properties);
     }
     
     public String getDescription_NL() {
@@ -107,7 +107,7 @@ public class ActionCombo_GeometrySingle_Writer extends ActionCombo implements Wr
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
-        datastore.flush(typeName2Read);
+    public void flush(Status status, Map properties) throws Exception {
+        datastore.flush(status, properties);
     }
 }

@@ -6,6 +6,7 @@ package nl.b3p.geotools.data.linker.blocks;
 
 
 import java.util.List;
+import java.util.Map;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import nl.b3p.geotools.data.linker.*;
 import org.apache.commons.logging.Log;
@@ -26,7 +27,7 @@ public abstract class Action {
 
     abstract public EasyFeature execute(EasyFeature feature) throws Exception;
     
-    abstract public void flush(String typeName2Read) throws Exception;
+    abstract public void flush(Status status, Map properties) throws Exception;
 
     @Override
     abstract public String toString();
@@ -98,7 +99,5 @@ public abstract class Action {
         // Used for closing iterator or reader / writer
     }
 
-    public void processPostCollectionActions(Status status){
-        
-    }
+    abstract public void processPostCollectionActions(Status status, Map properties) throws Exception;
 }

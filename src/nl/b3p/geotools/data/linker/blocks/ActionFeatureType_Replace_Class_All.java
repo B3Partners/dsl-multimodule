@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
+
 
 /**
  * Change all classes e.g. all Shorts to Doubles
@@ -59,6 +62,10 @@ public class ActionFeatureType_Replace_Class_All extends Action {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
+    }
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
     }
 }

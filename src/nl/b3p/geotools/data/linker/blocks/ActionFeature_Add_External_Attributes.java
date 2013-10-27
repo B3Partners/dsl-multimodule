@@ -9,6 +9,9 @@ import nl.b3p.geotools.data.linker.ActionFactory;
 import static nl.b3p.geotools.data.linker.blocks.Action.log;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import nl.b3p.geotools.data.linker.poi.ExcelReader;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
+
 
 /**
  *
@@ -146,6 +149,10 @@ public class ActionFeature_Add_External_Attributes extends Action {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
+    }
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
     }
 }

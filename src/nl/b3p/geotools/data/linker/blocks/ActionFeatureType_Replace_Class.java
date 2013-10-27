@@ -14,6 +14,9 @@ import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.FeatureException;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import nl.b3p.geotools.data.linker.poi.ExcelReader;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
+
 
 /**
  * Change a SimpleFeatureType class and try to cast the value
@@ -178,6 +181,10 @@ public class ActionFeatureType_Replace_Class extends Action {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
+    }
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
     }
 }

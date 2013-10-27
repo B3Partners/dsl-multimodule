@@ -30,12 +30,12 @@ public class ActionList extends ArrayList<Action> {
         return feature;
     }
     
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
         Iterator iter = iterator();
         
         while (iter.hasNext()) {
             Action action = (Action) iter.next();
-            action.flush(typeName2Read);
+            action.flush(status, properties);
         }
     }
 
@@ -109,11 +109,11 @@ public class ActionList extends ArrayList<Action> {
      * processes after all features have been read and written
      * @param status to collect messages on the way
      */
-    public void processPostCollectionActions(Status status) {
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
         Iterator iter = iterator();
         while (iter.hasNext()) {
             Action action = (Action) iter.next();
-            action.processPostCollectionActions(status);
+            action.processPostCollectionActions(status, properties);
         }
     }
 }

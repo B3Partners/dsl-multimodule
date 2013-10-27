@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
+
 
 /**
  * Deze Action verwijdert uit lijnen en polygonen dubbele opeenvolgende vertexen
@@ -309,7 +312,10 @@ POLYGON ((5 1, 8 1, 8 4, 8 4, 5 4, 5 4, 5 1),
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
     }
-
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
+    }
 }

@@ -26,6 +26,7 @@ import org.opengis.filter.FilterFactory2;
 import org.opengis.geometry.BoundingBox;
 
 /**
+ * TODO: opschonen door code van EasyFeature te gebruiken
  * @author Boy de Wit B3Partners
  *
  */
@@ -42,17 +43,17 @@ public class CollectionAction_Intersects_XY_Add_Attrib extends CollectionAction 
     public CollectionAction_Intersects_XY_Add_Attrib(DataStore dataStore2Write, Map properties) throws Exception {
         /* TODO: Add post actions to GUI with params.
          New table which links post actions to process. */
-        properties.put("pointWithinPolygonPointsTable", "gouda_sonderingen_p");
-        properties.put("pointWithinPolygonPolygonTable", "gouda_sonderingen_v");
+//        properties.put("pointWithinPolygonPointsTable", "gouda_sonderingen_p");
+//        properties.put("pointWithinPolygonPolygonTable", "gouda_sonderingen_v");
 
-        if (ActionFactory.propertyCheck(properties, "pointWithinPolygonPointsTable")) {
-            pointsTable = (String) properties.get("pointWithinPolygonPointsTable");
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POSTPOINTWITHINPOLYGON)) {
+            pointsTable = (String) properties.get(ActionFactory.POSTPOINTWITHINPOLYGON);
         } else {
             pointsTable = null;
         }
 
-        if (ActionFactory.propertyCheck(properties, "pointWithinPolygonPolygonTable")) {
-            polygonTable = (String) properties.get("pointWithinPolygonPolygonTable");
+        if (ActionFactory.propertyCheck(properties, ActionFactory.POSTPOINTWITHINPOLYGON)) {
+            polygonTable = (String) properties.get(ActionFactory.POSTPOINTWITHINPOLYGON);
         } else {
             polygonTable = null;
         }

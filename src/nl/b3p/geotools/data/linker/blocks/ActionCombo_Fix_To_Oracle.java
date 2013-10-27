@@ -5,6 +5,8 @@
 package nl.b3p.geotools.data.linker.blocks;
 
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
 
 /**
  * Transform SimpleFeature for use inside Oracle
@@ -55,6 +57,11 @@ public class ActionCombo_Fix_To_Oracle extends ActionCombo {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
     }
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
+    }
+
 }

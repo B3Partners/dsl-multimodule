@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.FeatureException;
 import static nl.b3p.geotools.data.linker.blocks.Action.log;
@@ -13,6 +12,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.filter.text.cql2.CQL;
 import org.opengis.filter.Filter;
+import java.util.Map;
+import nl.b3p.geotools.data.linker.Status;
+
 
 /**
  *
@@ -80,6 +82,10 @@ public class ActionFeature_Filter_Column_Value extends Action {
     }
 
     @Override
-    public void flush(String typeName2Read) throws Exception {
+    public void flush(Status status, Map properties) throws Exception {
+    }
+    
+    @Override
+    public void processPostCollectionActions(Status status, Map properties) throws Exception {
     }
 }

@@ -10,48 +10,45 @@ import nl.b3p.geotools.data.linker.Status;
 
 
 /**
- * Remove a attribute with a given position
- * @author Gertjan Al, B3Partners
+ * Add properties to map for configuration of post collection actions
+ * @author Chris van Lith, B3Partners
  */
-public class ActionFeatureType_AttributeType_Remove extends Action {
+public class Action_Add_Properties extends Action {
+    
+    private Map<String,Object> extraProperties = null;
 
-    public ActionFeatureType_AttributeType_Remove(int attributeID) {
-        this.attributeID = attributeID;
-    }
-
-    public ActionFeatureType_AttributeType_Remove(String attributeName) {
-        this.attributeName = attributeName;
+ 
+    public Action_Add_Properties(Map<String,Object> props) {
+        extraProperties = props;
     }
 
     @Override
     public EasyFeature execute(EasyFeature feature) throws Exception {
-        fixAttributeID(feature);
-        feature.removeAttributeDescriptor(attributeID);
-
         return feature;
     }
 
     @Override
     public String toString() {
-        return "Remove attribute '" + (attributeName.equals("") ? attributeID : attributeName) + "'";
+        return "Add properties to map for configuration: " + extraProperties.toString();
     }
 
     public static List<List<String>> getConstructors() {
         List<List<String>> constructors = new ArrayList<List<String>>();
-/*
+
         constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.ATTRIBUTE_ID
-                }));
-*/
-        constructors.add(Arrays.asList(new String[]{
-                    ActionFactory.ATTRIBUTE_NAME
+                    ActionFactory.PROPERTY_NAME,
+                    ActionFactory.PROPERTY_NAME,
+                    ActionFactory.PROPERTY_NAME,
+                    ActionFactory.PROPERTY_NAME,
+                    ActionFactory.PROPERTY_NAME,
+                    ActionFactory.PROPERTY_NAME
                 }));
 
         return constructors;
     }
-
+    
     public String getDescription_NL() {
-        return "Met deze Action kan bij een SimpleFeatureType een attribuut worden verwijderd.";
+        return "Met deze Action kunnen properties gezet worden voor het starten van post collection actions (zeer geavanceerd).";
     }
 
     @Override
@@ -60,5 +57,8 @@ public class ActionFeatureType_AttributeType_Remove extends Action {
     
     @Override
     public void processPostCollectionActions(Status status, Map properties) throws Exception {
+        if (extraProperties!=null) {
+            properties.putAll(extraProperties);
+        }
     }
 }
