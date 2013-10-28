@@ -67,7 +67,10 @@ public class ActionFeatureType_AttributeNames_Map_To_Output extends Action {
         Map<String, AttributeSummary> inputAttributes = new HashMap<String, AttributeSummary>();
         for (int i = 0; i < inputAttributeNames.length; i++) {
             // haal id van column op
-            Integer inputColumnId = getAttributeId(feature, inputAttributeNames[i]);
+            int inputColumnId = getAttributeId(feature, inputAttributeNames[i]);
+            if (inputColumnId == -1) {
+                throw new Exception ("Ongeldige kolomnaam in mapping!");
+            }
             // haal descriptor van input op
             AttributeDescriptor inputAd = feature.getFeatureType().getDescriptor(inputColumnId);
             // haal type van input op

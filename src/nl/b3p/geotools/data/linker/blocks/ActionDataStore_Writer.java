@@ -363,26 +363,26 @@ public class ActionDataStore_Writer extends Action {
         }
         
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE)) {
-            polygonize = (Boolean) properties.get(ActionFactory.POLYGONIZE);
+            polygonize =  new Boolean(properties.get(ActionFactory.POLYGONIZE).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonize = false;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR)) {
-            polygonizeWithAttr = (Boolean) properties.get(ActionFactory.POLYGONIZEWITHATTR);
+            polygonizeWithAttr =  new Boolean(properties.get(ActionFactory.POLYGONIZEWITHATTR).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonizeWithAttr = false;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZESUFLKI)) {
-            polygonizeSufLki = (Boolean) properties.get(ActionFactory.POLYGONIZESUFLKI);
+            polygonizeSufLki =  new Boolean(properties.get(ActionFactory.POLYGONIZESUFLKI).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonizeSufLki = false;
         }
  
         if (ActionFactory.propertyCheck(properties, ActionFactory.POSTPOINTWITHINPOLYGON)) {
-            postPointWithinPolygon = (Boolean) properties.get(ActionFactory.POSTPOINTWITHINPOLYGON);
+            postPointWithinPolygon =  new Boolean(properties.get(ActionFactory.POSTPOINTWITHINPOLYGON).toString());
             postCollectionActionsInitDone = true;
         } else {
             postPointWithinPolygon = false;
