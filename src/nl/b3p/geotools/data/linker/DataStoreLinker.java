@@ -187,6 +187,13 @@ public class DataStoreLinker implements Runnable {
             }
         }
 
+        Map properties = null;
+        if (batch != null) {
+            properties = new HashMap(batch);
+        } else if (process != null) {
+            properties = process.toOutputMap();
+        }
+
         try {
             while (iterator.hasNext()) {
                 feature = (SimpleFeature) iterator.next();
@@ -203,15 +210,15 @@ public class DataStoreLinker implements Runnable {
                 }
 
                 if (status.isInterrupted()) {
-                    actionList.flush(status, batch);
-                    actionList.processPostCollectionActions(status, batch);
+                    actionList.flush(status, properties);
+                    actionList.processPostCollectionActions(status, properties);
                     
                     throw new InterruptedException("User canceled the process.");
                 }
             }
             
-            actionList.flush(status, batch);
-            actionList.processPostCollectionActions(status, batch);
+            actionList.flush(status, properties);
+            actionList.processPostCollectionActions(status, properties);
             
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
