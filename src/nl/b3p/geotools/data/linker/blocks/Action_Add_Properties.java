@@ -71,7 +71,7 @@ public class Action_Add_Properties extends Action {
     
     @Override
     public void processPostCollectionActions(Status status, Map properties) throws Exception {
-        if (extraProperties!=null) {
+        if (properties!=null && extraProperties!=null) {
             properties.putAll(extraProperties);
         }
     }
