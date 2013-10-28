@@ -761,6 +761,9 @@ public class ActionFactory {
      * Check if properties map contains all properties wanted
      */
     public static boolean propertyCheck(Map properties, String... find) {
+        if (properties==null) {
+            return false;
+        }
         boolean found = true;
 
         for (String prop : find) {
