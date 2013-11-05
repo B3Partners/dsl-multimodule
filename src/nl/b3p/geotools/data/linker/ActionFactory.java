@@ -378,8 +378,8 @@ public class ActionFactory {
                  */
             } else if (isThisClass(actionClassName, ActionGeometry_Buffer.class)) {
                 if (propertyCheck(properties, BUFFERSIZE)) {
-                    int bufferSize = toInteger((String) properties.get(BUFFERSIZE));
-
+                    double bufferSize = toDouble((String) properties.get(BUFFERSIZE));                   
+                    
                     return new ActionGeometry_Buffer(bufferSize);
                 } else {
                     failedConstructor(ActionGeometry_Buffer.class, properties);
@@ -908,6 +908,10 @@ public class ActionFactory {
 
     public static Long toLong(String value) {
         return new Long(value);
+    }
+    
+    public static Double toDouble(String value) {
+        return Double.parseDouble(value);
     }
 
     public static ActionCondition.CompareType toCompareType(String value) {
