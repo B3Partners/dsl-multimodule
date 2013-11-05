@@ -23,15 +23,15 @@ import nl.b3p.geotools.data.linker.Status;
  */
 public class ActionGeometry_Buffer extends Action {
 
-    int bufferSize;
+    private double bufferSize;
 
-    public ActionGeometry_Buffer(int bufferSize) {
+    public ActionGeometry_Buffer(double bufferSize) {
         this.bufferSize = bufferSize;
     }
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
-        if (bufferSize <= 0) {
-            throw new Exception("Buffersize is " + bufferSize + "; must be above zero");
+        if (bufferSize < 0) {
+            throw new Exception("Buffersize is " + bufferSize + "; must be zero or higher");
         }
 
         GeometryDescriptor gd = feature.getFeatureType().getGeometryDescriptor();

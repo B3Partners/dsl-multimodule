@@ -1,7 +1,9 @@
 package nl.b3p.geotools.data.linker.blocks;
 
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.TopologyException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -54,14 +56,12 @@ public class ActionDataStore_Writer extends Action {
     private Map params;
     private final boolean append;
     private final boolean dropFirst;
-    
     // post collection actions
     private boolean postCollectionActionsInitDone = false;
     private boolean polygonize = false;
     private boolean polygonizeWithAttr = false;
     private boolean polygonizeSufLki = false;
     private boolean postPointWithinPolygon = false;
-    
     private Exception constructorEx;
     private List<String> datastoreTypeNames = new ArrayList();
     private Map<String, FeatureStore> featureStores = new HashMap();
@@ -99,7 +99,7 @@ public class ActionDataStore_Writer extends Action {
 
         try {
             dataStore2Write = DataStoreLinker.openDataStore(params);
-            if (dataStore2Write!=null) {
+            if (dataStore2Write != null) {
                 datastoreTypeNames = Arrays.asList(dataStore2Write.getTypeNames());
                 initDone = true;
             }
@@ -114,12 +114,12 @@ public class ActionDataStore_Writer extends Action {
         if (!initDone) {
             throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file.\nUsed parameters:\n" + params.toString() + "\n\n" + constructorEx.getLocalizedMessage());
         }
-        
+
         long start = new Date().getTime();
 
         feature = fixFeatureTypeName(feature);
         String typename = feature.getFeatureType().getTypeName();
-        
+
         PrimaryKey pks = null;
         FeatureCollection fc = null;
         FeatureStore store = null;
@@ -144,7 +144,7 @@ public class ActionDataStore_Writer extends Action {
             if (batchsize == -1) {
                 delayRemoveUntilFirstCommit = true;
             }
-            
+
             // uitzoeken of tabel al is aangemaakt
             // mogelijk wordt de naam van de feature type hierbij nog aangepast
             String oldTypeName = typename;
@@ -153,7 +153,7 @@ public class ActionDataStore_Writer extends Action {
             if (!typename.equals(oldTypeName)) {
                 feature.setTypeName(typename);
             }
-             
+
             fc = new DefaultFeatureCollection(typename, feature.getFeatureType());
             featureCollectionCache.put(typename, fc);
             if (dataStore2Write != null) {
@@ -196,9 +196,9 @@ public class ActionDataStore_Writer extends Action {
                 fc.retainAll(new ArrayList());
             }
         }
-        
-        long end = new Date().getTime() - start;        
-        
+
+        long end = new Date().getTime() - start;
+
         log.debug("WRITER BLOCK: " + end);
 
         return feature;
@@ -252,10 +252,13 @@ public class ActionDataStore_Writer extends Action {
         int orgbatchsize = batchsize;
         int stamp = generator.nextInt(10000);
         int orgfcsize = fc.size();
+
         log.info("Starting write out for typename: " + type.getTypeName()
                 + " with batch size: " + orgbatchsize
                 + " and stamp: " + stamp
                 + " and size: " + orgfcsize);
+
+        Map invalidGeoms = new HashMap();
 
         FeatureCollection currentFc = null;
         if (batchsize == -1) {
@@ -302,7 +305,7 @@ public class ActionDataStore_Writer extends Action {
             }
 
             currentFc.retainAll(new ArrayList());
-        } catch (IOException ex) {
+        } catch (Exception ex) {
 
             t.rollback();
 
@@ -336,15 +339,18 @@ public class ActionDataStore_Writer extends Action {
                     + ", retry with new batch size: " + batchsize);
             batchsize = writeCollection(currentFc, store, batchsize);
 
+        
+
         } finally {
             t.close();
         }
+
         log.info("finishing write out for typename: " + type.getTypeName()
                 + " with batch size: " + orgbatchsize
                 + " and stamp: " + stamp
                 + " and size: " + orgfcsize);
-        return batchsize;
 
+        return batchsize;
     }
 
     @Override
@@ -354,35 +360,35 @@ public class ActionDataStore_Writer extends Action {
             dataStore2Write.dispose();
         }
     }
-    
+
     private void initPostCollectionActions(Map properties) {
         //slecht een keer init toestaan, ofwel in constructor ofwel in block
         //anders wordt het wel erg complex.
         if (postCollectionActionsInitDone) {
             return;
         }
-        
+
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE)) {
-            polygonize =  new Boolean(properties.get(ActionFactory.POLYGONIZE).toString());
+            polygonize = new Boolean(properties.get(ActionFactory.POLYGONIZE).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonize = false;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR)) {
-            polygonizeWithAttr =  new Boolean(properties.get(ActionFactory.POLYGONIZEWITHATTR).toString());
+            polygonizeWithAttr = new Boolean(properties.get(ActionFactory.POLYGONIZEWITHATTR).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonizeWithAttr = false;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZESUFLKI)) {
-            polygonizeSufLki =  new Boolean(properties.get(ActionFactory.POLYGONIZESUFLKI).toString());
+            polygonizeSufLki = new Boolean(properties.get(ActionFactory.POLYGONIZESUFLKI).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonizeSufLki = false;
         }
- 
+
         if (ActionFactory.propertyCheck(properties, ActionFactory.POSTPOINTWITHINPOLYGON)) {
-            postPointWithinPolygon =  new Boolean(properties.get(ActionFactory.POSTPOINTWITHINPOLYGON).toString());
+            postPointWithinPolygon = new Boolean(properties.get(ActionFactory.POSTPOINTWITHINPOLYGON).toString());
             postCollectionActionsInitDone = true;
         } else {
             postPointWithinPolygon = false;
@@ -417,7 +423,7 @@ public class ActionDataStore_Writer extends Action {
                 log.error("Can not create PolygonizeWithAttr post action", e);
             }
         }
-        
+
         if (this.postPointWithinPolygon) {
             log.info("Find polygon with point is configured as post action");
             try {
@@ -527,7 +533,7 @@ public class ActionDataStore_Writer extends Action {
      * Check the schema and return the name.
      */
     private String checkSchema(SimpleFeatureType featureType, boolean delayRemoveUntilFirstCommit, boolean typeExists) throws Exception {
-        
+
         String typename2Write = featureType.getTypeName();
 
         if (dropFirst && typeExists) {
@@ -600,29 +606,29 @@ public class ActionDataStore_Writer extends Action {
                 log.info("Removing using geotools");
             }
         }
-        
+
         // lijst van tabellen opnieuw ophalen wanter zijn tabellen geschreven
         // of verwijderd.
         datastoreTypeNames = Arrays.asList(dataStore2Write.getTypeNames());
-        
+
         return typename2Write;
     }
 
     /**
      * De feature wordt ontdaan van ongeldige waarden en spaties worden
      * vervangen door underscrores. Verder wordt gekeken of er al een tabel
-     * bestaat in de doeldatabase, waarbij hoofdletters worden genegeerd.
-     * Als dat zo is dat wordt de tabelnaam (featuretype name) goed gezet
-     * waarbij wel de hoofdletters goed gezet worden. Hierdoor kan later direct
-     * in de lijst van tabellen worden gecheckt.
-     * 
+     * bestaat in de doeldatabase, waarbij hoofdletters worden genegeerd. Als
+     * dat zo is dat wordt de tabelnaam (featuretype name) goed gezet waarbij
+     * wel de hoofdletters goed gezet worden. Hierdoor kan later direct in de
+     * lijst van tabellen worden gecheckt.
+     *
      * @param feature
      * @return feature dat gefixt is
-     * @throws Exception 
+     * @throws Exception
      */
     private EasyFeature fixFeatureTypeName(EasyFeature feature) throws Exception {
         String oldTypeName = feature.getTypeName();
-        
+
         String typename = fixTypename(oldTypeName.replaceAll(" ", "_"));
         for (String tnn : datastoreTypeNames) {
             // hoofdletters gebruik is niet relevant
@@ -634,7 +640,7 @@ public class ActionDataStore_Writer extends Action {
         // hoofdletter gebruik is wel relevant
         if (!typename.equals(oldTypeName)) {
             feature.setTypeName(typename);
-        }        
+        }
         return feature;
     }
 
@@ -719,7 +725,7 @@ public class ActionDataStore_Writer extends Action {
     @Override
     public void flush(Status status, Map properties) throws Exception {
         for (Map.Entry pairs : featureCollectionCache.entrySet()) {
-            String key = (String) pairs.getKey();            
+            String key = (String) pairs.getKey();
             FeatureCollection fc = (FeatureCollection) pairs.getValue();
 
             if (fc != null && fc.size() > 0) {

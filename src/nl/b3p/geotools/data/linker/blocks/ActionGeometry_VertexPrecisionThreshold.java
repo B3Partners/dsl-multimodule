@@ -130,7 +130,7 @@ public class ActionGeometry_VertexPrecisionThreshold extends Action {
             }
 
             String geometryName = feature.getFeature().getDefaultGeometryProperty().getDescriptor().getLocalName();
-            feature.setAttribute(geometryName, geometry);
+            feature.setAttribute(geometryName, geometry);            
             return feature;
         }
     }
