@@ -195,8 +195,17 @@ public class DataStoreLinker implements Runnable {
         }
 
         try {
-            while (iterator.hasNext()) {
-                feature = (SimpleFeature) iterator.next();
+            while (iterator.hasNext()) {                
+                try {
+                    feature = (SimpleFeature) iterator.next();
+                } catch (Exception ex) {
+                    log.error("Fout bij inlezen feature ", ex);
+                    
+                    status.addNonFatalError(ExceptionUtils.getRootCauseMessage(ex), feature.getID());
+                    status.incrementVisitedFeatures();
+                    
+                    continue;
+                }                
 
                 Map userData = feature.getUserData();
                 if (pk != null && userData != null) {
