@@ -1,9 +1,13 @@
 package nl.b3p.geotools.data.linker.blocks;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.TopologyException;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKBReader;
+import com.vividsolutions.jts.io.WKBWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -178,7 +182,23 @@ public class ActionDataStore_Writer extends Action {
             featureTypeNames.add(typename);
         }
 
-        // put feature in correct collection for write later
+        // check geom for z coord
+        Geometry g = (Geometry) feature.getFeature().getDefaultGeometry();
+        Coordinate[] cs = g.getCoordinates();
+
+        boolean hasZ = false;
+        for (int t = 0; t < cs.length; t++) {
+            if (!(Double.isNaN(cs[t].z))) {
+                hasZ = true;
+            }
+        }
+        
+        // build 2d geom before write
+        if (hasZ) {
+            Geometry geom = convertGeomTo2D(g);
+            feature.getFeature().setDefaultGeometry(geom);
+        }
+
         prepareWrite(fc, pks, feature);
 
         // start writing when number of features is larger than batch size,
@@ -202,6 +222,21 @@ public class ActionDataStore_Writer extends Action {
         log.debug("WRITER BLOCK: " + end);
 
         return feature;
+    }
+
+    private static Geometry convertGeomTo2D(Geometry geom3D) {
+        WKBWriter writer = new WKBWriter(2);
+        WKBReader reader = new WKBReader();
+        Geometry geom2D = null;
+        
+        byte[] binary = writer.write(geom3D);        
+        try {
+            geom2D = reader.read(binary);
+        } catch (ParseException parsEx) {
+            log.error("Error reading wkb", parsEx);
+        }
+        
+        return geom2D;
     }
 
     private void prepareWrite(FeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {
@@ -339,7 +374,7 @@ public class ActionDataStore_Writer extends Action {
                     + ", retry with new batch size: " + batchsize);
             batchsize = writeCollection(currentFc, store, batchsize);
 
-        
+
 
         } finally {
             t.close();
