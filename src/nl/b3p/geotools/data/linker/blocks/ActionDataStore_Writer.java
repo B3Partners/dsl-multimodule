@@ -182,22 +182,7 @@ public class ActionDataStore_Writer extends Action {
             featureTypeNames.add(typename);
         }
 
-        // check geom for z coord
-        Geometry g = (Geometry) feature.getFeature().getDefaultGeometry();
-        Coordinate[] cs = g.getCoordinates();
-
-        boolean hasZ = false;
-        for (int t = 0; t < cs.length; t++) {
-            if (!(Double.isNaN(cs[t].z))) {
-                hasZ = true;
-            }
-        }
-        
-        // build 2d geom before write
-        if (hasZ) {
-            Geometry geom = convertGeomTo2D(g);
-            feature.getFeature().setDefaultGeometry(geom);
-        }
+        feature.convertGeomTo2D();
 
         prepareWrite(fc, pks, feature);
 
@@ -222,21 +207,6 @@ public class ActionDataStore_Writer extends Action {
         log.debug("WRITER BLOCK: " + end);
 
         return feature;
-    }
-
-    private static Geometry convertGeomTo2D(Geometry geom3D) {
-        WKBWriter writer = new WKBWriter(2);
-        WKBReader reader = new WKBReader();
-        Geometry geom2D = null;
-        
-        byte[] binary = writer.write(geom3D);        
-        try {
-            geom2D = reader.read(binary);
-        } catch (ParseException parsEx) {
-            log.error("Error reading wkb", parsEx);
-        }
-        
-        return geom2D;
     }
 
     private void prepareWrite(FeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {

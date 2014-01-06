@@ -1,6 +1,10 @@
 package nl.b3p.geotools.data.linker.feature;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKBReader;
+import com.vividsolutions.jts.io.WKBWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +27,13 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
  * @author Gertjan Al, B3Partners
  */
 public class EasyFeature {
-    private static final Log log = LogFactory.getLog(EasyFeature.class);
 
+    private static final Log log = LogFactory.getLog(EasyFeature.class);
     private SimpleFeature feature;
 
     /**
      * Constructor of this easy feature, define the SimpleFeature here
+     *
      * @param feature The SimpleFeature to use
      */
     public EasyFeature(SimpleFeature feature) {
@@ -37,6 +42,7 @@ public class EasyFeature {
 
     /**
      * Release a usable OpenGIS feature
+     *
      * @return The transformed feature
      */
     public SimpleFeature getFeature() {
@@ -45,6 +51,7 @@ public class EasyFeature {
 
     /**
      * Get attribute using attributeID as location in attribute array
+     *
      * @param attributeID
      * @return
      */
@@ -54,6 +61,7 @@ public class EasyFeature {
 
     /**
      * Get attribute with given atrributename
+     *
      * @param name
      * @return
      */
@@ -63,6 +71,7 @@ public class EasyFeature {
 
     /**
      * Insert default attribute at a given postition, with name and classtype
+     *
      * @param attributeID
      * @param name
      * @param binding
@@ -77,7 +86,9 @@ public class EasyFeature {
     }
 
     /**
-     * Used for extended AttributeType inserting. Build your own AttributeType instead of using the default method
+     * Used for extended AttributeType inserting. Build your own AttributeType
+     * instead of using the default method
+     *
      * @param attributeID
      * @param attributeDescriptor
      */
@@ -103,10 +114,12 @@ public class EasyFeature {
         // Build new feature with new values array
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
         feature.getUserData().putAll(ud);
-     }
+    }
 
     /**
-     * Used for extended AttributeType adding. Build your own AttributeType instead of using the default method
+     * Used for extended AttributeType adding. Build your own AttributeType
+     * instead of using the default method
+     *
      * @param attributeDescriptor
      */
     public void addAttributeDescriptor(AttributeDescriptor attributeDescriptor) {
@@ -119,6 +132,7 @@ public class EasyFeature {
 
     /**
      * Remove all AttributeTypes with values
+     *
      * @param boolean keepGeom do not remove geometry column
      */
     public void removeAllAttributeDescriptors(boolean keepGeom) throws Exception {
@@ -141,11 +155,11 @@ public class EasyFeature {
         featureTypeBuilder.init(feature.getFeatureType());
 
         List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
-        if (geometryID!=null) {
+        if (geometryID != null) {
             gad = attributeDescriptors.get(geometryID);
         }
         attributeDescriptors = new ArrayList<AttributeDescriptor>();
-        if (keepGeom && gad!=null) {
+        if (keepGeom && gad != null) {
             attributeDescriptors.add(gad);
         }
         featureTypeBuilder.setAttributes(attributeDescriptors);
@@ -154,27 +168,28 @@ public class EasyFeature {
         List<Object> attributes = feature.getAttributes();
         Object[] values = null;
         if (keepGeom && gad != null) {
-            Object value =  null;
+            Object value = null;
             if (geometryID != null) {
-                 value = attributes.get(geometryID);
+                value = attributes.get(geometryID);
             }
             values = new Object[]{value};
         }
-        if (values==null) {
+        if (values == null) {
             feature = simpleFeatureBuilder.buildFeature(getID());
         } else {
-            feature = simpleFeatureBuilder.buildFeature(getID(), values);            
+            feature = simpleFeatureBuilder.buildFeature(getID(), values);
         }
         feature.getUserData().putAll(ud);
-     }
-    
+    }
+
     /**
      * Remove AttributeType at attributeTypeID
+     *
      * @param attributeID
      */
     public void removeAttributeDescriptor(int attributeID) throws Exception {
         // save userdata
-       Map<Object, Object> ud = feature.getUserData();
+        Map<Object, Object> ud = feature.getUserData();
 
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
         featureTypeBuilder.init(feature.getFeatureType());
@@ -189,10 +204,11 @@ public class EasyFeature {
 
         feature = simpleFeatureBuilder.buildFeature(getID(), attributes.toArray(new Object[attributes.size()]));
         feature.getUserData().putAll(ud);
-     }
+    }
 
     /**
      * Remove AttributeType by name
+     *
      * @param name
      */
     public void removeAttributeDescriptor(String name) throws Exception {
@@ -200,7 +216,9 @@ public class EasyFeature {
     }
 
     /**
-     * Default way to set AttributeType at specified attributeID, overwrites the current AttributeType at that index
+     * Default way to set AttributeType at specified attributeID, overwrites the
+     * current AttributeType at that index
+     *
      * @param attributeID
      * @param name
      * @param binding
@@ -215,7 +233,9 @@ public class EasyFeature {
     }
 
     /**
-     * Extended way to set a AttributeType; overwrites the current AttributeType at that index
+     * Extended way to set a AttributeType; overwrites the current AttributeType
+     * at that index
+     *
      * @param attributeID
      * @param attributeDescriptor
      */
@@ -256,6 +276,7 @@ public class EasyFeature {
 
     /**
      * Lookup attributeID of AttributeType name
+     *
      * @param name
      * @return
      * @throws java.lang.Exception
@@ -272,6 +293,7 @@ public class EasyFeature {
 
     /**
      * Get name of AttributeType at given position
+     *
      * @param attributeID
      * @return
      * @throws java.lang.Exception
@@ -285,6 +307,7 @@ public class EasyFeature {
 
     /**
      * Get number of Attributes
+     *
      * @return
      */
     public int getAttributeCount() {
@@ -293,6 +316,7 @@ public class EasyFeature {
 
     /**
      * Set Attribute at a specified position
+     *
      * @param attributeID
      * @param attribute
      */
@@ -302,6 +326,7 @@ public class EasyFeature {
 
     /**
      * Set Attribute at a specified name
+     *
      * @param name
      * @param attribute
      */
@@ -343,17 +368,17 @@ public class EasyFeature {
 
     public void setTypeName(String name) {
         // save userdata
-       Map<Object, Object> ud = feature.getUserData();
+        Map<Object, Object> ud = feature.getUserData();
 
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
         featureTypeBuilder.addAll(feature.getFeatureType().getAttributeDescriptors());
         featureTypeBuilder.setName(name);
-        
+
         SimpleFeatureBuilder featureBuilder = new SimpleFeatureBuilder(featureTypeBuilder.buildFeatureType());
         feature = featureBuilder.buildFeature(feature.getID(), feature.getAttributes().toArray(new Object[feature.getAttributeCount()]));
-        
-         feature.getUserData().putAll(ud);
-   }
+
+        feature.getUserData().putAll(ud);
+    }
 
     public EasyFeature copy() {
         return copy(null, null);
@@ -373,7 +398,7 @@ public class EasyFeature {
             ID = feature.getID();
         }
         featureTypeBuilder.setName(name);
-        
+
         // Build FeatureType
         List<AttributeDescriptor> attributeDescriptors = new ArrayList<AttributeDescriptor>(feature.getFeatureType().getAttributeDescriptors());
         //featureTypeBuilder.init(feature.getFeatureType());
@@ -384,16 +409,16 @@ public class EasyFeature {
 
         // Create feature attributes list
         List<Object> attributes = feature.getAttributes();
-         
+
         // Build new feature with new values array
         SimpleFeature f = simpleFeatureBuilder.buildFeature(ID, attributes.toArray(new Object[attributes.size()]));
 
         // copy user data
         f.getUserData().putAll(feature.getUserData());
-        
+
         return new EasyFeature(f);
     }
-    
+
     public String getID() {
         return feature.getID();
     }
@@ -404,6 +429,7 @@ public class EasyFeature {
 
     /**
      * Check if attributeID is legal (above zero and above attributeCount)
+     *
      * @param attributeID
      * @return
      */
@@ -434,8 +460,8 @@ public class EasyFeature {
     }
 
     public void setCRS(CoordinateReferenceSystem crs) throws Exception {
-        GeometryAttribute ga =feature.getDefaultGeometryProperty();
-        if (ga==null) {
+        GeometryAttribute ga = feature.getDefaultGeometryProperty();
+        if (ga == null) {
             return;
         }
         String geometryName = ga.getDescriptor().getLocalName();
@@ -443,10 +469,10 @@ public class EasyFeature {
         Class binding = feature.getFeatureType().getGeometryDescriptor().getType().getBinding();
         int attributeID = getAttributeDescriptorIDbyName(geometryName);
 
-         // Create new geometryColumn with previous settings
+        // Create new geometryColumn with previous settings
         setAttributeDescriptor(attributeID, buildGeometryAttributeDescriptor(geometryName, binding, isNillable, crs), true);
-     }
-    
+    }
+
     public void repairGeometry() throws FeatureException {
         Class binding = feature.getDefaultGeometry().getClass();
         FeatureType ft = feature.getFeatureType();
@@ -454,24 +480,53 @@ public class EasyFeature {
 
         if (!binding.equals(typeBinding)) {
 
-            log.debug("feature binding: " + binding.toString() + 
-                    " for feature: " + feature.getID());
-            log.debug("feature type binding: " + typeBinding.toString() + 
-                    " for feature type: " + ft.getName().getLocalPart());
+            log.debug("feature binding: " + binding.toString()
+                    + " for feature: " + feature.getID());
+            log.debug("feature type binding: " + typeBinding.toString()
+                    + " for feature type: " + ft.getName().getLocalPart());
 
             GeometryAttribute ga = feature.getDefaultGeometryProperty();
-            CoordinateReferenceSystem crs = 
+            CoordinateReferenceSystem crs =
                     ga.getDescriptor().getCoordinateReferenceSystem();
             String geometryName = ga.getDescriptor().getLocalName();
-            boolean isNillable = 
+            boolean isNillable =
                     feature.getFeatureType().getGeometryDescriptor().isNillable();
             int attributeID = getAttributeDescriptorIDbyName(geometryName);
 
             // Create new geometryColumn with repaired binding
-            setAttributeDescriptor(attributeID, 
+            setAttributeDescriptor(attributeID,
                     buildGeometryAttributeDescriptor(geometryName, binding, isNillable, crs), true);
-            
+
         }
     }
-    
+
+    public void convertGeomTo2D() {
+        if (feature != null && feature.getDefaultGeometry() != null) {
+            Geometry g = (Geometry) feature.getDefaultGeometry();
+            Coordinate[] cs = g.getCoordinates();
+
+            boolean hasZCoord = false;
+            for (int t = 0; t < cs.length; t++) {
+                if (!(Double.isNaN(cs[t].z))) {
+                    hasZCoord = true;
+                }
+            }
+
+            if (hasZCoord) {
+                WKBWriter writer = new WKBWriter(2);
+                WKBReader reader = new WKBReader();
+                Geometry geom2D = null;
+
+                byte[] binary = writer.write(g);
+                try {
+                    geom2D = reader.read(binary);
+                } catch (ParseException parsEx) {
+                    log.error("Error reading wkb", parsEx);
+                }
+
+                feature.setDefaultGeometry(geom2D);
+            }
+        }
+
+    }
 }

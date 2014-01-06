@@ -201,7 +201,12 @@ public class DataStoreLinker implements Runnable {
                 } catch (Exception ex) {
                     log.error("Fout bij inlezen feature ", ex);
                     
-                    status.addNonFatalError(ExceptionUtils.getRootCauseMessage(ex), feature.getID());
+                    String id = null;
+                    if (feature != null ) {
+                        id = feature.getID();
+                    }
+                    
+                    status.addNonFatalError(ExceptionUtils.getRootCauseMessage(ex), id);
                     status.incrementVisitedFeatures();
                     
                     continue;
