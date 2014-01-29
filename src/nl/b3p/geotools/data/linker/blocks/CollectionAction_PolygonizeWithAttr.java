@@ -34,6 +34,7 @@ import org.opengis.feature.type.AttributeDescriptor;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import org.geotools.data.DataStoreFinder;
+import org.geotools.feature.DefaultFeatureCollection;
 
 /**
  * B3partners B.V. http://www.b3partners.nl
@@ -85,22 +86,21 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
             throw new Exception("Missing one of the mandatory values in the properties map");
         }
     }
-
-    @Override
-    public void execute(FeatureCollection originalCollection, Action nextAction) {
+    
+    public void execute(DefaultFeatureCollection originalCollection, Action nextAction) {
         preExecute();
         if (cqlFilterString == null) {
             log.error("CqlFilter not set!");
             return;
         }
         FeatureIterator features = null;
-        FeatureCollection collection = null;
+        DefaultFeatureCollection collection = null;
         try {
             //get all propertynames that are needed for this cql filter completion.
             ArrayList<String> propertyNames = getPropertyNamesInCql(getCqlFilterString());
             //do only the features with  the CQL values is not null;
             Filter usableFilter = createFilterWithOnlyUsableFeatures(propertyNames);
-            collection = originalCollection.subCollection(usableFilter);
+            collection = (DefaultFeatureCollection) originalCollection.subCollection(usableFilter);
             features = collection.features();
             SimpleFeatureType originalFt = (SimpleFeatureType) collection.getSchema();
 
@@ -133,7 +133,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     Filter filter = createLineFilter(feature, propertyNames);
                     //get lines
                     FeatureSource fs = dataStore2Write.getFeatureSource(getLineFeatureName());
-                    FeatureCollection fc = fs.getFeatures(filter);
+                    DefaultFeatureCollection fc = (DefaultFeatureCollection)fs.getFeatures(filter);
                     ArrayList<SimpleFeature> correctLineFeatures=null;
                     FeatureIterator lineFeatures = fc.features();
                     //always close a featureCollection with a FeatureIterator
@@ -486,5 +486,10 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
         ArrayList<SimpleFeature> correctLineFeatures = polygonizer.filterInvalidLines(fc.features());
         ArrayList<Polygon> polygons=polygonizer.createPolygonWithLines(correctLineFeatures);
         System.out.println("polygons found: "+polygons.size());
+    }
+
+    @Override
+    public void execute(FeatureCollection collection, Action writer) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

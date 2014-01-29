@@ -17,7 +17,6 @@ import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
 import org.geotools.data.FeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.filter.Capabilities;
 import org.geotools.filter.Filter;
@@ -30,6 +29,7 @@ import org.opengis.filter.FilterFactory2;
 import org.opengis.filter.spatial.Intersects;
 import java.util.Map;
 import nl.b3p.geotools.data.linker.Status;
+import org.geotools.feature.DefaultFeatureCollection;
 
 
 /**
@@ -147,13 +147,13 @@ public class Action_XY_Intersects_Add_Mapped_Attrib extends Action {
             doBoth = (Filter) ff.and(doIntersects, doAttrib);
         }
 
-        FeatureCollection vlakkenBronCollectie = null;
+        DefaultFeatureCollection vlakkenBronCollectie = null;
         if (doBoth != null) {
-            vlakkenBronCollectie = vlakkenFs.getFeatures(doBoth);
+            vlakkenBronCollectie = (DefaultFeatureCollection)vlakkenFs.getFeatures(doBoth);
         } else if (doAttrib != null) {
-            vlakkenBronCollectie = vlakkenFs.getFeatures(doAttrib);
+            vlakkenBronCollectie = (DefaultFeatureCollection)vlakkenFs.getFeatures(doAttrib);
         } else if (doIntersects != null) {
-            vlakkenBronCollectie = vlakkenFs.getFeatures(doIntersects);
+            vlakkenBronCollectie = (DefaultFeatureCollection)vlakkenFs.getFeatures(doIntersects);
         } else {
             throw new Exception("No matching strategy found");
         }

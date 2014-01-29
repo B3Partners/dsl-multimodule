@@ -17,6 +17,7 @@ import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -24,7 +25,6 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.FeatureType;
-import org.opengis.filter.Filter;
 
 /**
  * B3partners B.V. http://www.b3partners.nl
@@ -74,8 +74,8 @@ public class CollectionAction_Polygonize extends CollectionAction {
 
 
     }
-    @Override
-    public void execute(FeatureCollection collection, Action nextAction){
+    
+    public void execute(DefaultFeatureCollection collection, Action nextAction){
         if (oneClassInMemory){
             executeOneClassInMemory(collection, nextAction);
         }else{
@@ -85,7 +85,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
     /**
      * alle classificaties worden meteen in het geheugen geladen.
      */
-    public void executeAllInMemory (FeatureCollection collection, Action nextAction){
+    public void executeAllInMemory (DefaultFeatureCollection collection, Action nextAction){
         log.info("execute Polygonize with all classifications at once");
         SimpleFeatureType newFt = createFeatureType(collection.getSchema());
         HashMap<Object, PolygonizerWithoutInvalidLists> polygonizers = new HashMap();
@@ -124,7 +124,7 @@ public class CollectionAction_Polygonize extends CollectionAction {
      * Per classificatie wordt er een keer doorheen gelopen. Dit om te voorkomen dat alle objecten te gelijk in het
      * geheugen worden geladen. Dit is dus wel minder snel, maar heeft meer kans om te slagen.
      */    
-    public void executeOneClassInMemory(FeatureCollection collection, Action nextAction) {
+    public void executeOneClassInMemory(DefaultFeatureCollection collection, Action nextAction) {
         log.info("execute Polygonize with one classification in the memory at once");
         HashMap<Object, String> classificationStatuses = null;
         SimpleFeatureType newFt = createFeatureType(collection.getSchema());
@@ -255,5 +255,10 @@ public class CollectionAction_Polygonize extends CollectionAction {
             }
         }
         return classification;
+    }
+
+    @Override
+    public void execute(FeatureCollection collection, Action writer) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.AttributeTypeBuilder;
+import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -68,8 +69,8 @@ public class CollectionAction_Intersects_XY_Add_Attrib extends CollectionAction 
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void execute(FeatureCollection pointCollection,
-            FeatureCollection polygonCollection, Action nextAction) {
+    public void execute(DefaultFeatureCollection pointCollection,
+            DefaultFeatureCollection polygonCollection, Action nextAction) {
 
         /* Loop trough points */
         SimpleFeature feature = null;
@@ -81,7 +82,7 @@ public class CollectionAction_Intersects_XY_Add_Attrib extends CollectionAction 
         Filter polyCheck;
         Filter andFil;
 
-        FeatureCollection newFc = null;
+        DefaultFeatureCollection newFc = null;
 
         Map<SimpleFeature, SimpleFeature> resultMap = new HashMap();
 
@@ -101,7 +102,7 @@ public class CollectionAction_Intersects_XY_Add_Attrib extends CollectionAction 
                 polyCheck = (Filter) ff.intersects(ff.property("the_geom"), ff.literal(geom));
                 andFil = (Filter) ff.and(boundsCheck, polyCheck);
 
-                newFc = polygonCollection.subCollection(andFil);
+                newFc = (DefaultFeatureCollection) polygonCollection.subCollection(andFil);
                 
                 if (newFc != null && newFc.size() > 0) {
                     SimpleFeature sf = (SimpleFeature) newFc.features().next();

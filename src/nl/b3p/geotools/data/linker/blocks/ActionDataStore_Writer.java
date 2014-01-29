@@ -1,13 +1,7 @@
 package nl.b3p.geotools.data.linker.blocks;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
-import com.vividsolutions.jts.geom.TopologyException;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKBReader;
-import com.vividsolutions.jts.io.WKBWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,8 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.FeatureException;
@@ -71,7 +63,7 @@ public class ActionDataStore_Writer extends Action {
     private Map<String, FeatureStore> featureStores = new HashMap();
     private Map<String, PrimaryKey> featurePKs = new HashMap();
     private List<String> featureTypeNames = new ArrayList();
-    private Map<String, FeatureCollection> featureCollectionCache = new HashMap();
+    private Map<String, DefaultFeatureCollection> featureCollectionCache = new HashMap();
     private Map<String, Integer> featureBatchSizes = new HashMap();
     private Map<String, List<List<String>>> featureErrors = new HashMap();
     private static final int MAX_CONNECTIONS_NR = 50;
@@ -125,7 +117,7 @@ public class ActionDataStore_Writer extends Action {
         String typename = feature.getFeatureType().getTypeName();
 
         PrimaryKey pks = null;
-        FeatureCollection fc = null;
+        DefaultFeatureCollection fc = null;
         FeatureStore store = null;
         List<List<String>> errors = null;
         int batchsize = BATCHSIZE;
@@ -209,7 +201,7 @@ public class ActionDataStore_Writer extends Action {
         return feature;
     }
 
-    private void prepareWrite(FeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {
+    private void prepareWrite(DefaultFeatureCollection fc, PrimaryKey pk, EasyFeature feature) throws IOException {
         // Bepaal de primary key(s) van record in de doeltabel
         PrimaryKey usePk = pk;
         // TODO: overnemen van pk uit source en instellen voor target
@@ -251,7 +243,7 @@ public class ActionDataStore_Writer extends Action {
         fc.add(newFeature);
     }
 
-    private int writeCollection(FeatureCollection fc, FeatureStore store, int batchsize) throws FeatureException, IOException {
+    private int writeCollection(DefaultFeatureCollection fc, FeatureStore store, int batchsize) throws FeatureException, IOException {
         // maak nieuwe subcollecties
         SimpleFeatureType type = (SimpleFeatureType) fc.getSchema();
         int orgbatchsize = batchsize;
@@ -265,7 +257,7 @@ public class ActionDataStore_Writer extends Action {
 
         Map invalidGeoms = new HashMap();
 
-        FeatureCollection currentFc = null;
+        DefaultFeatureCollection currentFc = null;
         if (batchsize == -1) {
             // alles in een keer
             currentFc = fc;
@@ -494,10 +486,10 @@ public class ActionDataStore_Writer extends Action {
                     CollectionAction_Point_Within_Polygon cap = (CollectionAction_Point_Within_Polygon) ca;
 
                     FeatureSource fs = dataStore2Write.getFeatureSource(cap.getPointsTable());
-                    FeatureCollection fc = fs.getFeatures();
+                    DefaultFeatureCollection fc = (DefaultFeatureCollection)fs.getFeatures();
 
                     FeatureSource fs2 = dataStore2Write.getFeatureSource(cap.getPolygonTable());
-                    FeatureCollection fc2 = fs2.getFeatures();
+                    DefaultFeatureCollection fc2 = (DefaultFeatureCollection)fs2.getFeatures();
 
                     ds = DataStoreLinker.openDataStore(this.params);
                     cap.setDataStore2Write(ds);
@@ -731,7 +723,7 @@ public class ActionDataStore_Writer extends Action {
     public void flush(Status status, Map properties) throws Exception {
         for (Map.Entry pairs : featureCollectionCache.entrySet()) {
             String key = (String) pairs.getKey();
-            FeatureCollection fc = (FeatureCollection) pairs.getValue();
+            DefaultFeatureCollection fc = (DefaultFeatureCollection) pairs.getValue();
 
             if (fc != null && fc.size() > 0) {
                 FeatureStore store = featureStores.get(key);

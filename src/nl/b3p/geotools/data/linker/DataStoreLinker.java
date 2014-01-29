@@ -237,7 +237,7 @@ public class DataStoreLinker implements Runnable {
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
         } finally {
-            fc.close(iterator);
+            iterator.close();
         }
     }
 
