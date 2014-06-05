@@ -216,6 +216,7 @@ public class Process implements Serializable, Nameable {
             Document doc = new DOMOutputter().output(jdoc);
 
             /*DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(new InputSource(new StringReader(actions)));*/
             return doc.getDocumentElement();
