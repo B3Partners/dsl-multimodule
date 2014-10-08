@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package nl.b3p.datastorelinker.entity;
 
 import java.io.Serializable;
@@ -14,6 +9,7 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -33,6 +29,7 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import net.sf.json.JSONObject;
 import net.sourceforge.stripes.util.Log;
 import nl.b3p.datastorelinker.util.Nameable;
 import nl.b3p.datastorelinker.util.Namespaces;
@@ -93,6 +90,7 @@ public class Process implements Serializable, Nameable {
     @Basic(optional = false)
     @Column(name = "actions")
     @Lob
+    @org.hibernate.annotations.Type(type="org.hibernate.type.StringClobType")
     @XmlTransient
     private String actions;
 
@@ -156,6 +154,10 @@ public class Process implements Serializable, Nameable {
     @Basic(optional = true)
     @Column(name = "remarks")
     private String remarks;
+    
+    @Basic(optional=true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private nl.b3p.datastorelinker.entity.Process linkedProcess;
 
     public Process() {
     }
@@ -177,6 +179,27 @@ public class Process implements Serializable, Nameable {
         outputMap.put("params", getOutput().getDatabase().toGeotoolsDataStoreParametersMap());
 
         return outputMap;
+    }
+    
+    public JSONObject toJSONObject(){
+        JSONObject obj = new JSONObject();
+        obj.put("id", id);
+        obj.put("name", name);
+        Integer numAncestors = 0;
+        Process ancestor = linkedProcess;
+        
+        if(ancestor != null){
+            obj.put("ancestor", linkedProcess.getId());
+            while(ancestor != null){
+                numAncestors++;
+                ancestor = ancestor.getLinkedProcess();
+            }
+        }else{
+            obj.put("ancestor", null);
+        }
+        obj.put("numAncestors", numAncestors);
+        
+        return obj;
     }
 
     public Long getId() {
@@ -383,5 +406,13 @@ public class Process implements Serializable, Nameable {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public Process getLinkedProcess() {
+        return linkedProcess;
+    }
+
+    public void setLinkedProcess(Process linkedProcess) {
+        this.linkedProcess = linkedProcess;
     }
 }
