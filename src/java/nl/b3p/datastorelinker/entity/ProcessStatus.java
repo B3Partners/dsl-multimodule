@@ -50,6 +50,7 @@ public class ProcessStatus implements Serializable {
     private String executingJobUUID;
 
     @Lob
+    @org.hibernate.annotations.Type(type="org.hibernate.type.StringClobType")
     private String message;
 
     @Basic(optional = false)
@@ -60,7 +61,6 @@ public class ProcessStatus implements Serializable {
     @OneToMany(mappedBy = "processStatus")
     private List<Process> processList;
 
-    
     public static ProcessStatus getDefault() {
         return new ProcessStatus(ProcessStatus.Type.HAS_NEVER_RUN);
     }
