@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package nl.b3p.geotools.data.linker;
 
 import java.io.File;
@@ -11,9 +7,12 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import javax.persistence.EntityManager;
+import nl.b3p.commons.jpa.JpaUtilServlet;
 import nl.b3p.datastorelinker.entity.Database;
 import nl.b3p.datastorelinker.util.Namespaces;
 import nl.b3p.datastorelinker.util.Util;
@@ -233,11 +232,18 @@ public class DataStoreLinker implements Runnable {
             
             actionList.flush(status, properties);
             actionList.processPostCollectionActions(status, properties);
-            
+            EntityManager em = JpaUtilServlet.getThreadEntityManager();
+            List<nl.b3p.datastorelinker.entity.Process> linkedProcesses = em.createQuery("FROM Process WHERE linked_process = :id").setParameter("id", this.process.getId()).getResultList();
+            for (nl.b3p.datastorelinker.entity.Process linked : linkedProcesses) {
+                DataStoreLinker linkedDsl = new DataStoreLinker(linked);
+                Thread nieuwThread = new Thread(linkedDsl);
+                nieuwThread.start();
+            }                
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
             log.info("Try to do the Post actions");
         } finally {
             iterator.close();
+            JpaUtilServlet.closeThreadEntityManager();
         }
     }
 

@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package nl.b3p.geotools.data.linker;
 
 import java.text.MessageFormat;
@@ -43,6 +39,8 @@ public class Status {
 
     private static final String DEFAULT_NEW_LINE = "\n";
     private static final int DEFAULT_MAX_FEATURE_NUMBER_PER_EXCEPTION = 3;
+    private static final int DEFAULT_MAX_EXCEPTIONS = 30;
+    private static final String MESSAGE_KEY_MULTIPLE_ERRORS= "Meer fouten gevonden, maar niet getoond.";
 
     protected Properties batch;
     protected nl.b3p.datastorelinker.entity.Process process;
@@ -75,10 +73,19 @@ public class Status {
     public synchronized void addNonFatalError(String errorString, String featureKey) {
         incrementNonFatalErrorCount();
         //log.warn("[" + featureNumber + "] " + errorString);
-        if (!nonFatalErrorMap.containsKey(errorString)) {
-            nonFatalErrorMap.put(errorString, new ArrayList<String>());
-        }
-        nonFatalErrorMap.get(errorString).add(featureKey);
+        if (nonFatalErrorMap.size() <= DEFAULT_MAX_EXCEPTIONS) {
+            if (!nonFatalErrorMap.containsKey(errorString)) {
+                nonFatalErrorMap.put(errorString, new ArrayList<String>());
+            }
+            nonFatalErrorMap.get(errorString).add(featureKey);
+        }/* Maybe make a small error message with all failed id's
+        else{
+            if (!nonFatalErrorMap.containsKey(MESSAGE_KEY_MULTIPLE_ERRORS)) {
+                List dummy = new ArrayList();
+                dummy.add("1");
+                nonFatalErrorMap.put(MESSAGE_KEY_MULTIPLE_ERRORS, dummy);
+            }
+        }*/
     }
 
     public synchronized Map<String, List<String>> getNonFatalErrors() {
@@ -88,10 +95,19 @@ public class Status {
     public synchronized void addWriteError(String errorString, String featureKey) {
         incrementWriteErrorCount();
         //log.warn("[" + featureNumber + "] " + errorString);
-        if (!writeErrorMap.containsKey(errorString)) {
-            writeErrorMap.put(errorString, new ArrayList<String>());
-        }
-        writeErrorMap.get(errorString).add(featureKey);
+        if(writeErrorMap.size() <= DEFAULT_MAX_EXCEPTIONS){
+            if (!writeErrorMap.containsKey(errorString)) {
+                writeErrorMap.put(errorString, new ArrayList<String>());
+            }
+            writeErrorMap.get(errorString).add(featureKey);
+        }/* Maybe make a small error message with all failed id's
+        else{
+            if (!writeErrorMap.containsKey(MESSAGE_KEY_MULTIPLE_ERRORS)) {
+                List dummy = new ArrayList();
+                dummy.add("1");
+                writeErrorMap.put(MESSAGE_KEY_MULTIPLE_ERRORS, dummy);
+            }
+        }*/
     }
 
     public synchronized Map<String, List<String>> getWriteErrorMap() {

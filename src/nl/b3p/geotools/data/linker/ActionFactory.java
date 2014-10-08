@@ -103,6 +103,7 @@ public class ActionFactory {
     public static final String ATTRIBUTE_NAME_FILTER_COLUMN = "attribute_name_filter_column";
     public static final String ATTRIBUTE_NAME_FILTER_OPERATOR = "attribute_name_filter_operator";
     public static final String ATTRIBUTE_NAME_FILTER_VALUE = "attribute_name_filter_value";
+    public static final String DATE_FORMAT = "date_format";
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
     public static Action createAction(String actionClassName, Map<String, Object> properties) throws Exception {
@@ -749,6 +750,18 @@ public class ActionFactory {
 
                 return new ActionFeatureType_AttributeNames_Map_To_Output(invoer, uitvoer, allOutputColumns);
 
+            } /**
+             * Create ActionFeatureType_Parse_Date
+             */
+            else if (isThisClass(actionClassName, ActionFeatureType_Parse_Date.class)) {
+                if (propertyCheck(properties, ATTRIBUTE_NAME, DATE_FORMAT)) {
+                    String attributeName = (String) properties.get(ATTRIBUTE_NAME);
+                    String dateFormat = (String) properties.get(DATE_FORMAT);
+                    return new ActionFeatureType_Parse_Date(attributeName, dateFormat);
+
+                } else {
+                    failedConstructor(ActionFeatureType_Parse_Date.class, properties);
+                }
             } else {
                 throw new UnsupportedOperationException(actionClassName + " is not yet implemented in ActionFactory");
             }
@@ -972,6 +985,7 @@ public class ActionFactory {
         actionBlocks.put(ActionFeature_Filter_Column_Value.class.getSimpleName(), ActionFeature_Filter_Column_Value.getConstructors());
         actionBlocks.put(Action_Add_Properties.class.getSimpleName(), Action_Add_Properties.getConstructors());
 
+        actionBlocks.put(ActionFeatureType_Parse_Date.class.getSimpleName(), ActionFeatureType_Parse_Date.getConstructors());
         return actionBlocks;
     }
 
