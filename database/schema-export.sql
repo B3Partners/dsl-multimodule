@@ -1,126 +1,126 @@
 
     create table database_inout (
-        id int8 not null,
-        db_alias varchar(255),
-        col_x varchar(255),
-        col_y varchar(255),
-        database_name varchar(255),
-        host_name varchar(255),
-        name varchar(255),
-        organization_id int4,
-        password varchar(255),
-        port int4,
-        db_schema varchar(255),
-        srs varchar(255),
-        database_type varchar(255) not null,
-        inout_type varchar(255) not null,
-        url varchar(255),
-        user_id int4,
-        username varchar(255),
-        webservice_db bool not null,
+        id number(19,0) not null,
+        db_alias varchar2(255 char),
+        col_x varchar2(255 char),
+        col_y varchar2(255 char),
+        database_name varchar2(255 char),
+        host_name varchar2(255 char),
+        name varchar2(255 char),
+        organization_id number(10,0),
+        password varchar2(255 char),
+        port number(10,0),
+        db_schema varchar2(255 char),
+        srs varchar2(255 char),
+        database_type varchar2(255 char) not null,
+        inout_type varchar2(255 char) not null,
+        url varchar2(255 char),
+        user_id number(10,0),
+        username varchar2(255 char),
+        webservice_db number(1,0) not null,
         primary key (id)
     );
 
     create table input_output (
-        id int8 not null,
-        input_output_datatype varchar(255) not null,
-        file_name varchar(255),
-        name varchar(255),
-        organization_id int4,
-        srs varchar(255),
-        table_name varchar(255),
-        template_output varchar(255),
-        input_output_type varchar(255) not null,
-        user_id int4,
-        database_id int8,
+        id number(19,0) not null,
+        input_output_datatype varchar2(255 char) not null,
+        file_name varchar2(255 char),
+        name varchar2(255 char),
+        organization_id number(10,0),
+        srs varchar2(255 char),
+        table_name varchar2(255 char),
+        template_output varchar2(255 char),
+        input_output_type varchar2(255 char) not null,
+        user_id number(10,0),
+        database_id number(19,0),
         primary key (id)
     );
 
     create table mail (
-        id int8 not null,
-        from_email_address varchar(255),
-        smtp_host varchar(255) not null,
-        subject varchar(255),
-        to_email_address varchar(255) not null,
+        id number(19,0) not null,
+        from_email_address varchar2(255 char),
+        smtp_host varchar2(255 char) not null,
+        subject varchar2(255 char),
+        to_email_address varchar2(255 char) not null,
         primary key (id)
     );
 
     create table organization (
-        id int4 not null,
-        name varchar(255) not null,
-        upload_path varchar(255) not null,
+        id number(10,0) not null,
+        name varchar2(255 char) not null,
+        upload_path varchar2(255 char) not null,
         primary key (id)
     );
 
     create table organization_users (
-        organization_id int4,
-        users_id int4 not null,
+        organization_id number(10,0),
+        users_id number(10,0) not null,
         primary key (users_id),
         unique (users_id)
     );
 
     create table output_organization (
-        organization_id int4 not null,
-        output_id int8 not null
+        organization_id number(10,0) not null,
+        output_id number(19,0) not null
     );
 
     create table post_action (
-        id int4 not null,
-        class_name varchar(255) not null,
-        label varchar(255) not null,
+        id number(10,0) not null,
+        class_name varchar2(255 char) not null,
+        label varchar2(255 char) not null,
         primary key (id)
     );
 
     create table post_action_param (
-        id int4 not null,
-        param varchar(255) not null,
-        value varchar(255) not null,
+        id number(10,0) not null,
+        param varchar2(255 char) not null,
+        value varchar2(255 char) not null,
         primary key (id)
     );
 
     create table process (
-        id int8 not null,
-        actions text not null,
-        append_table bool not null,
-        drop_table bool not null,
-        features_end int4,
-        features_start int4,
-        name varchar(255),
-        organization_id int4,
-        remarks varchar(255),
-        user_id int4,
-        user_name varchar(255),
-        writer_type varchar(255) not null,
-        input_id int8 not null,
-        mail_id int8 not null,
-        output_id int8 not null,
-        process_status_id int8 not null,
-        schedule int8,
+        id number(19,0) not null,
+        actions clob not null,
+        append_table number(1,0) not null,
+        drop_table number(1,0) not null,
+        features_end number(10,0),
+        features_start number(10,0),
+        name varchar2(255 char),
+        organization_id number(10,0),
+        remarks varchar2(255 char),
+        user_id number(10,0),
+        user_name varchar2(255 char),
+        writer_type varchar2(255 char) not null,
+        input_id number(19,0) not null,
+        mail_id number(19,0) not null,
+        output_id number(19,0) not null,
+        process_status_id number(19,0) not null,
+        schedule number(19,0),
         primary key (id)
     );
 
     create table process_status (
-        id int8 not null,
-        executing_job_uuid varchar(255),
-        message text,
-        process_status_type varchar(255) not null,
+        id number(19,0) not null,
+        executing_job_uuid varchar2(255 char),
+        message clob,
+        process_status_type varchar2(255 char) not null,
         primary key (id)
     );
 
     create table schedule (
-        id int8 not null,
-        cron_expression varchar(120) not null,
+        id number(19,0) not null,
+        cron_expression varchar2(120 char) not null,
         from_date date,
-        job_name varchar(120) not null,
-        schedule_type varchar(255) not null,
+        job_name varchar2(120 char) not null,
+        schedule_type varchar2(255 char) not null,
         primary key (id)
     );
 
     create table users (
-        id int4 not null,
-        is_admin bool not null,
-        name varchar(255) not null,
-        password varchar(255) not null,
+        id number(10,0) not null,
+        is_admin number(1,0) not null,
+        name varchar2(255 char) not null,
+        password varchar2(255 char) not null,
         primary key (id)
     );
 

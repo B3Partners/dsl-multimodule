@@ -218,6 +218,7 @@ public class Database implements Serializable, Nameable {
         Util.addToMapIfNotNull(map, JDBCDataStoreFactory.DATABASE.key, databaseName, keyPrefix);
         Util.addToMapIfNotNull(map, JDBCDataStoreFactory.USER.key, username, keyPrefix);
         Util.addToMapIfNotNull(map, JDBCDataStoreFactory.PASSWD.key, password, keyPrefix);
+        Util.addToMapIfNotNull(map, JDBCDataStoreFactory.FETCHSIZE.key, 50, keyPrefix);
         Util.addToMapIfNotNull(map, JDBCDataStoreFactory.SCHEMA.key, schema, keyPrefix);
         // MS Access specific:
         Util.addToMapIfNotNull(map, MsAccessDataStoreFactory.PARAM_URL.key, url, keyPrefix);
