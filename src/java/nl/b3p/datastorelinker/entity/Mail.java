@@ -1,8 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package nl.b3p.datastorelinker.entity;
 
 import java.io.Serializable;
@@ -27,9 +22,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * @author Erik van de Pol
  */
 @XmlType(name="mail", propOrder={
-    "smtpHost",
     "toEmailAddress",
     "subject",
+    "smtpHost",
     "fromEmailAddress"
 })
 @XmlAccessorType(XmlAccessType.PROPERTY)
@@ -44,7 +39,6 @@ public class Mail implements Serializable {
     @GeneratedValue
     private Long id;
 
-    @Basic(optional = false)
     @Column(name = "smtp_host")
     private String smtpHost;
 
@@ -69,9 +63,8 @@ public class Mail implements Serializable {
         this.id = id;
     }
 
-    public Mail(Long id, String smtpHost, String toEmailAddress) {
+    public Mail(Long id, String toEmailAddress) {
         this.id = id;
-        this.smtpHost = smtpHost;
         this.toEmailAddress = toEmailAddress;
     }
 
@@ -84,7 +77,6 @@ public class Mail implements Serializable {
         this.id = id;
     }
 
-    @XmlElement(required=true)
     @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
     public String getSmtpHost() {
         return smtpHost;
