@@ -18,15 +18,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
 import javax.activation.UnsupportedDataTypeException;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
 import nl.b3p.datastorelinker.util.MarshalUtils;
-import nl.b3p.datastorelinker.util.Util;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.util.logging.Logging;
-import org.xml.sax.SAXException;
 
 /**
  * Start process for one or more .properties of .xml files
@@ -127,6 +123,8 @@ public class Client {
                                     process = (nl.b3p.datastorelinker.entity.Process)
                                         MarshalUtils.unmarshalProcess(input, MarshalUtils.getDslSchema());
                                 //}
+                                //DataStoreLinker.DEFAULT_SMTPHOST = "?";
+                                //DataStoreLinker.DEFAULT_FROM = "?";
                             } else if (args[i].toLowerCase().endsWith(".properties")) {
                                 batch.load(input);
                             } else {
@@ -134,10 +132,11 @@ public class Client {
                             }
 
                             DataStoreLinker dsl = null;
-                            if (process != null)
+                            if (process != null) {
                                 dsl = new DataStoreLinker(process);
-                            else
+                            } else {
                                 dsl = new DataStoreLinker(batch);
+                            }
                             
                             dsl.process();
                             info = dsl.getStatus().getNonFatalErrorReport("\n", 3);//.getFinishedMessage();
@@ -153,17 +152,14 @@ public class Client {
                             }
 
                             if (!getProjectProperty(NO_MAIL)) {
-                                try {
-                                    if (process != null) {
-                                        DataStoreLinkerMail.mail(batch, reportMessage,
+                                if (process != null) {
+                                    DataStoreLinkerMail.mail(process, reportMessage,
                                             "Batchreport for '" + file.getAbsoluteFile().getName() + "' - finished at " + sdf.format(endTime)
-                                        );
-                                    } else {
-                                        DataStoreLinkerMail.mail(batch,
-                                                "Batchreport for '" + file.getAbsoluteFile().getName() + "' - finished at " + sdf.format(endTime),
-                                                reportMessage);
-                                    }
-                                } catch (Exception ex) {
+                                    );
+                                } else {
+                                    DataStoreLinkerMail.mail(batch,
+                                            "Batchreport for '" + file.getAbsoluteFile().getName() + "' - finished at " + sdf.format(endTime),
+                                            reportMessage);
                                 }
                             }
 

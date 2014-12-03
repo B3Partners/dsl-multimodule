@@ -55,6 +55,10 @@ public class DataStoreLinker implements Runnable {
     public static final String DATASTORE2READ_PREFIX = "read.datastore.";
     public static final String READ_TYPENAME = "read.typename";
     protected static final String DEFAULT_WRITER = "ActionCombo_GeometrySingle_Writer";
+    
+    public static String DEFAULT_SMTPHOST = "kmail.b3partners.nl";
+    public static String DEFAULT_FROM = "noreply@b3partners.nl";
+    
     protected Status status;
     protected DataStore dataStore2Read;
     protected ActionList actionList;
@@ -231,7 +235,9 @@ public class DataStoreLinker implements Runnable {
             }
             
             actionList.flush(status, properties);
+            log.info("Try to do the Post actions");
             actionList.processPostCollectionActions(status, properties);
+            log.info("Start linked processes");
             EntityManager em = JpaUtilServlet.getThreadEntityManager();
             List<nl.b3p.datastorelinker.entity.Process> linkedProcesses = em.createQuery("FROM Process WHERE linked_process = :id").setParameter("id", this.process.getId()).getResultList();
             for (nl.b3p.datastorelinker.entity.Process linked : linkedProcesses) {
@@ -240,7 +246,6 @@ public class DataStoreLinker implements Runnable {
                 nieuwThread.start();
             }                
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
-            log.info("Try to do the Post actions");
         } finally {
             iterator.close();
             JpaUtilServlet.closeThreadEntityManager();
