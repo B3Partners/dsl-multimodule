@@ -50,12 +50,12 @@ public class DataStoreLinkerMail {
     private static void mail(String smtpServer, String to, String from, String subject, String body) throws Exception {
         log.debug("Sending process complete mail.");
         
-        if (from.isEmpty() 
+        if ( (from == null || from.isEmpty() )
                 && DataStoreLinker.DEFAULT_FROM!=null 
                 && !DataStoreLinker.DEFAULT_FROM.isEmpty()) {
             from = DataStoreLinker.DEFAULT_FROM;
         }
-        if (smtpServer.isEmpty() 
+        if ( (smtpServer == null || smtpServer.isEmpty()  )
                 && DataStoreLinker.DEFAULT_SMTPHOST!=null 
                 && !DataStoreLinker.DEFAULT_SMTPHOST.isEmpty()) {
             smtpServer = DataStoreLinker.DEFAULT_SMTPHOST;
