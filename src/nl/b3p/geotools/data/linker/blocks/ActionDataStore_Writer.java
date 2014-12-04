@@ -66,6 +66,7 @@ public class ActionDataStore_Writer extends Action {
     private Map<String, DefaultFeatureCollection> featureCollectionCache = new HashMap();
     private Map<String, Integer> featureBatchSizes = new HashMap();
     private Map<String, List<List<String>>> featureErrors = new HashMap();
+    private Map<String, List<List<String>>> featureNonFatals = new HashMap();
     private static final int MAX_CONNECTIONS_NR = 50;
     private static final String MAX_CONNECTIONS = "max connections";
     private static final int BATCHSIZE = 50;
@@ -120,6 +121,7 @@ public class ActionDataStore_Writer extends Action {
         DefaultFeatureCollection fc = null;
         FeatureStore store = null;
         List<List<String>> errors = null;
+        List<List<String>> nonFatals = null;
         int batchsize = BATCHSIZE;
 
         //TODO aanpassen batchsize mogelijk maken
@@ -133,6 +135,7 @@ public class ActionDataStore_Writer extends Action {
             store = featureStores.get(typename);
             batchsize = featureBatchSizes.get(typename);
             errors = featureErrors.get(typename);
+            nonFatals = featureNonFatals.get(typename);
         } else {
 
             //TODO uitzoeken of drop ook in de transactie kan
@@ -170,6 +173,7 @@ public class ActionDataStore_Writer extends Action {
             featurePKs.put(typename, pks);
             featureBatchSizes.put(typename, batchsize);
             featureErrors.put(typename, new ArrayList<List<String>>());
+            featureNonFatals.put(typename, new ArrayList<List<String>>());
             // remember that typename is processed
             featureTypeNames.add(typename);
         }
@@ -239,8 +243,16 @@ public class ActionDataStore_Writer extends Action {
             newFeature = feature.copy(oldfid.toString()).getFeature();
             newFeature.getUserData().put(Hints.USE_PROVIDED_FID, true);
         }
-
-        fc.add(newFeature);
+        
+        // Check of feature geskipped moet worden
+        SimpleFeatureType type = (SimpleFeatureType) fc.getSchema();
+        if (feature.isSkipped()) {
+             List<String> message = new ArrayList(
+                Arrays.asList("Feature uitgefilterd", feature.getID()));
+            featureNonFatals.get(type.getTypeName()).add(message);
+        } else {
+            fc.add(newFeature);
+        }
     }
 
     private int writeCollection(DefaultFeatureCollection fc, FeatureStore store, int batchsize) throws FeatureException, IOException {
@@ -441,6 +453,16 @@ public class ActionDataStore_Writer extends Action {
         if (dataStore2Write != null) {
             try {
                 String typeNames[] = dataStore2Write.getTypeNames();
+                List<List<String>> nonFatals = null;
+                for (int i = 0; i < typeNames.length; i++) {
+                    nonFatals = featureNonFatals.get(typeNames[i]);
+                    if (nonFatals != null && !nonFatals.isEmpty()) {
+                        for (int j = 0; j < nonFatals.size(); j++) {
+                            List<String> message = nonFatals.get(j);
+                            status.addNonFatalError(message.get(0), message.get(1));
+                        }
+                    }
+                }
                 List<List<String>> errors = null;
                 for (int i = 0; i < typeNames.length; i++) {
                     errors = featureErrors.get(typeNames[i]);
@@ -452,8 +474,8 @@ public class ActionDataStore_Writer extends Action {
                     }
                 }
             } catch (IOException e) {
-                status.addWriteError("Error collecting errors from ActionDataStore_Writer", null);
-                log.error("Error collecting errors from ActionDataStore_Writer.", e);
+                status.addWriteError("Error collecting errors/messages from ActionDataStore_Writer", null);
+                log.error("Error collecting errors/messages from ActionDataStore_Writer.", e);
             }
         }
 
@@ -604,7 +626,7 @@ public class ActionDataStore_Writer extends Action {
             }
         }
 
-        // lijst van tabellen opnieuw ophalen wanter zijn tabellen geschreven
+        // lijst van tabellen opnieuw ophalen want er zijn tabellen geschreven
         // of verwijderd.
         datastoreTypeNames = Arrays.asList(dataStore2Write.getTypeNames());
 

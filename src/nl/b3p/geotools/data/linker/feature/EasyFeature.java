@@ -30,6 +30,7 @@ public class EasyFeature {
 
     private static final Log log = LogFactory.getLog(EasyFeature.class);
     private SimpleFeature feature;
+    private boolean skipped = false;
 
     /**
      * Constructor of this easy feature, define the SimpleFeature here
@@ -528,5 +529,19 @@ public class EasyFeature {
             }
         }
 
+    }
+
+    /**
+     * @return the skipped
+     */
+    public boolean isSkipped() {
+        return skipped;
+    }
+
+    /**
+     * @param skipped the skipped to set
+     */
+    public void setSkipped(boolean skipped) {
+        this.skipped = skipped;
     }
 }

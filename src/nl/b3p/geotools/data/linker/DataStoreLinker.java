@@ -235,8 +235,10 @@ public class DataStoreLinker implements Runnable {
             }
             
             actionList.flush(status, properties);
+            
             log.info("Try to do the Post actions");
             actionList.processPostCollectionActions(status, properties);
+            
             log.info("Start linked processes");
             EntityManager em = JpaUtilServlet.getThreadEntityManager();
             List<nl.b3p.datastorelinker.entity.Process> linkedProcesses = em.createQuery("FROM Process WHERE linked_process = :id").setParameter("id", this.process.getId()).getResultList();

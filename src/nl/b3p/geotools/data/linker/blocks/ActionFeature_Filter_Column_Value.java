@@ -51,7 +51,7 @@ public class ActionFeature_Filter_Column_Value extends Action {
         boolean result = filter.evaluate(feature.getFeature());
 
         if (!result) {
-			throw new FeatureException("Record voldoet niet aan het filter: " + filter.toString());
+            feature.setSkipped(true);
         }
         
         long end = new Date().getTime() - start;        
