@@ -47,11 +47,12 @@ public class ActionFeature_Filter_Column_Value extends Action {
             throw new Exception(err);
         }
         String filterString = columnName + " " + operator + " ";
-        if ( filterValue instanceof String){
+        boolean escape = filterValue instanceof String && !filterValue.trim().equals("null");
+        if (escape){
             filterString += "'";
         }
         filterString += filterValue;
-        if ( filterValue instanceof String){
+        if (escape){
             filterString += "'";
         }
         Filter filter = CQL.toFilter(filterString);
