@@ -29,3 +29,22 @@ create table output_organization (
 	CONSTRAINT fk_output_id FOREIGN KEY (output_id) REFERENCES input_output (id), 
 	CONSTRAINT fk_organization_id FOREIGN KEY (organization_id) REFERENCES organization (id) 
 );
+
+
+
+ALTER TABLE process
+  ADD COLUMN organization_id integer;
+ALTER TABLE process
+  ADD COLUMN user_id integer;
+  
+ALTER TABLE input_output
+  ADD COLUMN organization_id integer;
+ALTER TABLE input_output
+  ADD COLUMN user_id integer;
+ALTER TABLE input_output
+  ADD COLUMN template_output character varying(255);
+  
+ALTER TABLE database_inout
+  ADD COLUMN organization_id integer;
+ALTER TABLE database_inout
+  ADD COLUMN user_id integer;
