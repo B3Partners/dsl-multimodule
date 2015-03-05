@@ -46,15 +46,32 @@ public class ActionFeature_Filter_Column_Value extends Action {
             
             throw new Exception(err);
         }
-        String filterString = columnName + " " + operator + " ";
-        boolean escape = filterValue instanceof String && !filterValue.trim().equals("null");
-        if (escape){
+        
+        //Een filter wordt opgebouwd via kolomnaam + operator + waarde
+        //
+        //Operator wordt zondermeer toegevoegd, dit kan als volgt gebruikt worden:
+        //* is null of is not null
+        //* kolomnaam = 12345 (testen op getal, werkt alleen als db-type getal is)
+        //* kolomnaam = '' (testen op lege string)
+        //
+        //Het is in de DSL niet mogelijk om quotjes te plaatsen om een waarde.
+        //Deze worden door de GUI er weer afgestript. Om dit toch zo logisch
+        //mogelijk te laten werken, worden standaard quotjes toegevoegd om de waarde.
+        //Dit werkt goed voor het veel gebruikte varchar db-type.
+        //Als waarde leeg is, dan worden geen quotes toegevoegd; daarmee kan via 
+        //de operator een geldig statement worden gemaakt.
+        //Als je "kolomnaam = ''" wil doen, dan kun je geen '' in waarde plaatsen
+        //(wordt weggehaald), maar je kunt wel waarde leeglaten en bij
+        //operator = '' neerzetten.
+        
+        String filterString = columnName + " " + operator;
+        
+        if (filterValue!=null && !filterValue.trim().isEmpty()) {
+            filterString += " '";
+            filterString += filterValue;
             filterString += "'";
         }
-        filterString += filterValue;
-        if (escape){
-            filterString += "'";
-        }
+        
         Filter filter = CQL.toFilter(filterString);
         boolean result = filter.evaluate(feature.getFeature());
 
