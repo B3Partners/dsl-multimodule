@@ -10,25 +10,21 @@
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
             <version>1.1.1</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.stripes</groupId>
             <artifactId>stripes</artifactId>
             <version>1.5.8</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>nl.b3p</groupId>
             <artifactId>b3p-gt2-msaccess</artifactId>
             <version>4.2-SNAPSHOT</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-jdbc</artifactId>
             <version>10.4</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
