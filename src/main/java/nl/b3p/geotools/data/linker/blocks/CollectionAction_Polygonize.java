@@ -51,17 +51,35 @@ public class CollectionAction_Polygonize extends CollectionAction {
             polygonizeClassificationAttribute = null;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE_CLASSIFICATION_BEGIN)) {
-            polygonizeClassificationBegin = Integer.parseInt((String) properties.get(ActionFactory.POLYGONIZE_CLASSIFICATION_BEGIN));
+            Integer i;
+            try {
+                i = Integer.parseInt((String) properties.get(ActionFactory.POLYGONIZE_CLASSIFICATION_BEGIN));
+            } catch (NumberFormatException nfe) {
+                i = null;
+            }
+            polygonizeClassificationBegin = i;
         } else {
             polygonizeClassificationBegin = null;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE_CLASSIFICATION_END)) {
-            polygonizeClassificationEnd = Integer.parseInt((String) properties.get(ActionFactory.POLYGONIZE_CLASSIFICATION_END));
+            Integer i;
+            try {
+                i = Integer.parseInt((String) properties.get(ActionFactory.POLYGONIZE_CLASSIFICATION_END));
+            } catch (NumberFormatException nfe) {
+                i = null;
+            }
+            polygonizeClassificationEnd = i;
         } else {
             polygonizeClassificationEnd = null;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE_ONECLASSINMEMORY)){
-            oneClassInMemory = (Boolean)properties.get(ActionFactory.POLYGONIZE_ONECLASSINMEMORY);
+           Boolean b;
+            try {
+                b = (Boolean)properties.get(ActionFactory.POLYGONIZE_ONECLASSINMEMORY);
+            } catch (NumberFormatException nfe) {
+                b = null;
+            }
+            oneClassInMemory = b;
         }else{
             oneClassInMemory=true;
         }

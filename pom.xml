@@ -80,6 +80,12 @@
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-shapefile-old</artifactId>
+            <version>10.4</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     <repositories>
         <repository>
