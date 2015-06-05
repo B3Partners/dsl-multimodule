@@ -162,7 +162,7 @@ public class ActionDataStore_Writer extends Action {
                         store = (JDBCFeatureStore) fs;
                         pks = ((JDBCFeatureStore) fs).getPrimaryKey();
                     } else {
-                        throw new FeatureException("Table cannot be written: no primary key?");
+                        throw new IllegalStateException("Table cannot be written: no primary key? FeatureSource was not of type JDBCFeatureStore");
                     }
                 } else {
                     store = (FeatureStore) dataStore2Write.getFeatureSource(typename);

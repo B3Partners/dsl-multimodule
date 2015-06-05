@@ -273,6 +273,10 @@ public class DataStoreLinker implements Runnable {
                 status.incrementProcessedFeatures();
             }
 
+        }catch(IllegalStateException ex){
+            status.addWriteError(ex.getLocalizedMessage(), feature.getID());
+            log.error("Cannot write to datastore: ",ex);
+            throw ex;
         } catch (Exception e) {
             if (exceptionLogCount++ < MAX_EXCEPTION_LOG_COUNT) {
                 log.error("Exception tijdens processen van feature (exception nr. " + exceptionLogCount + " van max " + MAX_EXCEPTION_LOG_COUNT + " die worden gelogd)", e);
