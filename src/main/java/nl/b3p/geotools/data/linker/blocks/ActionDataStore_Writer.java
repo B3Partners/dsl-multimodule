@@ -65,6 +65,7 @@ public class ActionDataStore_Writer extends Action {
     private List<String> featureTypeNames = new ArrayList();
     private Map<String, DefaultFeatureCollection> featureCollectionCache = new HashMap();
     private Map<String, Integer> featureBatchSizes = new HashMap();
+    private Map<String, Integer> featuresWritten = new HashMap();
     private Map<String, List<List<String>>> featureErrors = new HashMap();
     private Map<String, List<List<String>>> featureNonFatals = new HashMap();
     private static final int MAX_CONNECTIONS_NR = 50;
@@ -109,7 +110,8 @@ public class ActionDataStore_Writer extends Action {
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
         if (!initDone) {
-            throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file.\nUsed parameters:\n" + params.toString() + "\n\n" + constructorEx.getLocalizedMessage());
+            throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file: " 
+                    + toString() + "\n\n" + constructorEx.getLocalizedMessage());
         }
 
         long start = new Date().getTime();
@@ -123,6 +125,7 @@ public class ActionDataStore_Writer extends Action {
         List<List<String>> errors = null;
         List<List<String>> nonFatals = null;
         int batchsize = BATCHSIZE;
+        int numWritten = 0;
 
         //TODO aanpassen batchsize mogelijk maken
         //hiermee kan dan ook (via batch size is -1) in een transactie oude records
@@ -134,6 +137,7 @@ public class ActionDataStore_Writer extends Action {
             fc = featureCollectionCache.get(typename);
             store = featureStores.get(typename);
             batchsize = featureBatchSizes.get(typename);
+            numWritten = featuresWritten.get(typename);
             errors = featureErrors.get(typename);
             nonFatals = featureNonFatals.get(typename);
         } else {
@@ -172,6 +176,7 @@ public class ActionDataStore_Writer extends Action {
             featureStores.put(typename, store);
             featurePKs.put(typename, pks);
             featureBatchSizes.put(typename, batchsize);
+            featuresWritten.put(typename, numWritten);
             featureErrors.put(typename, new ArrayList<List<String>>());
             featureNonFatals.put(typename, new ArrayList<List<String>>());
             // remember that typename is processed
@@ -267,8 +272,6 @@ public class ActionDataStore_Writer extends Action {
                 + " and stamp: " + stamp
                 + " and size: " + orgfcsize);
 
-        Map invalidGeoms = new HashMap();
-
         DefaultFeatureCollection currentFc = null;
         if (batchsize == -1) {
             // alles in een keer
@@ -289,6 +292,7 @@ public class ActionDataStore_Writer extends Action {
 
             if (!fc.isEmpty()) {
                 batchsize = writeCollection(fc, store, batchsize);
+                featureBatchSizes.put(type.getTypeName(), batchsize);
             }
         }
 
@@ -305,6 +309,10 @@ public class ActionDataStore_Writer extends Action {
             // schrijf batch aan features
             store.addFeatures(currentFc);
             t.commit();
+            
+            int numWritten = featuresWritten.get(type.getTypeName());
+            int numProcessed = currentFc.size();
+            featuresWritten.put(type.getTypeName(), numWritten + numProcessed);
 
             // indien succesvol dan volgende keer grotere batch
             batchsize *= INCREASEFACTOR;
@@ -316,7 +324,12 @@ public class ActionDataStore_Writer extends Action {
             currentFc.retainAll(new ArrayList());
         } catch (Exception ex) {
 
-            t.rollback();
+            try {
+                t.rollback();
+            } catch (IOException ioex) {
+                log.error("Error rolling back feature type: " + type.getTypeName() 
+                        + ", retrying after error: " + ioex.getLocalizedMessage());
+            }
 
             if (batchsize == -1) {
                 // als batch size is -1 dan is de gehele collectie in een keer
@@ -347,6 +360,7 @@ public class ActionDataStore_Writer extends Action {
             log.info("Rollback for feature type: " + type.getTypeName()
                     + ", retry with new batch size: " + batchsize);
             batchsize = writeCollection(currentFc, store, batchsize);
+            featureBatchSizes.put(type.getTypeName(), batchsize);
 
 
 
@@ -471,6 +485,13 @@ public class ActionDataStore_Writer extends Action {
                             List<String> message = errors.get(j);
                             status.addWriteError(message.get(0), message.get(1));
                         }
+                    }
+                }
+                for (int i = 0; i < typeNames.length; i++) {
+                    Integer numWritten = featuresWritten.get(typeNames[i]);
+                    if (numWritten!=null) {
+                        int numProcessed = status.getProcessedFeatures();
+                        status.setProcessedFeatures(numProcessed + numWritten.intValue());
                     }
                 }
             } catch (IOException e) {
@@ -668,7 +689,16 @@ public class ActionDataStore_Writer extends Action {
     }
 
     public String toString() {
-        return "Write to datastore: " + params.toString();
+        if (params==null) {
+            return "No datastore params";
+        }
+        Map cleanedParams = new HashMap();
+        for (Object param : params.keySet()) {
+            if (!param.toString().contains("passw")) {
+                cleanedParams.put(param, params.get(param));
+            }
+        }
+        return "Datastore params: " + cleanedParams.toString();
     }
 
     public static List<List<String>> getConstructors() {
@@ -745,12 +775,16 @@ public class ActionDataStore_Writer extends Action {
     public void flush(Status status, Map properties) throws Exception {
         for (Map.Entry pairs : featureCollectionCache.entrySet()) {
             String key = (String) pairs.getKey();
+            FeatureStore store = featureStores.get(key);
+            int batchsize = featureBatchSizes.get(key);
             DefaultFeatureCollection fc = (DefaultFeatureCollection) pairs.getValue();
-
-            if (fc != null && fc.size() > 0) {
-                FeatureStore store = featureStores.get(key);
-                writeCollection(fc, store, BATCHSIZE);
+            int fcsize = fc.size();
+            if (fc != null && fcsize > 0) {
+                batchsize = writeCollection(fc, store, batchsize);
             }
+            log.info("finished flushing cache for typename: " + key
+                    + " with batch size: " + batchsize
+                    + " and size: " + fcsize);
         }
     }
 }

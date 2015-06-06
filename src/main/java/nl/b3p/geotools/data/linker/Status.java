@@ -24,7 +24,7 @@ public class Status {
 
     private String errorReport = "";
     private int nonFatalErrorCount = 0;
-	private int writeErrorCount = 0;
+    private int writeErrorCount = 0;
     private int visitedFeatures = 0;
     private int processedFeatures = 0;
     private int featureStart = 0;
@@ -78,14 +78,7 @@ public class Status {
                 nonFatalErrorMap.put(errorString, new ArrayList<String>());
             }
             nonFatalErrorMap.get(errorString).add(featureKey);
-        }/* Maybe make a small error message with all failed id's
-        else{
-            if (!nonFatalErrorMap.containsKey(MESSAGE_KEY_MULTIPLE_ERRORS)) {
-                List dummy = new ArrayList();
-                dummy.add("1");
-                nonFatalErrorMap.put(MESSAGE_KEY_MULTIPLE_ERRORS, dummy);
-            }
-        }*/
+        }
     }
 
     public synchronized Map<String, List<String>> getNonFatalErrors() {
@@ -244,8 +237,7 @@ public class Status {
         } else if (getProcessedFeatures() == getVisitedFeatures() && getErrorCount() == 0) {
             return MessageFormat.format(resources.getString("report.allProcessed"), getProcessedFeatures());
         } else {
-            return MessageFormat.format(resources.getString("report.processedWithErrors"), getProcessedFeatures(), getVisitedFeatures(), getWriteErrorCount());
-            //+ newLineString + "Using parameters:" + newLineString + "Start:  " + getFeatureStart() + newLineString + "End:    " + getFeatureEnd() + newLineString + "Errors: " + getErrorCount();
+            return MessageFormat.format(resources.getString("report.processedWithErrors"), getProcessedFeatures(), getVisitedFeatures());
         }
     }
 

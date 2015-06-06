@@ -7,11 +7,9 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import javax.persistence.EntityManager;
 import nl.b3p.commons.jpa.JpaUtilServlet;
 import nl.b3p.datastorelinker.entity.Database;
 import nl.b3p.datastorelinker.util.Namespaces;
@@ -38,6 +36,7 @@ import org.geotools.jdbc.PrimaryKey;
 import org.jdom.Element;
 import org.jdom.input.DOMBuilder;
 import org.opengis.feature.simple.SimpleFeature;
+
 
 /**
  * Convert batch to actionList and execute it
@@ -138,6 +137,10 @@ public class DataStoreLinker implements Runnable {
         }
     }
 
+    public boolean isDisposed(){
+       return disposed; 
+    }
+    
     public synchronized void dispose() throws Exception {
         if (!disposed) {
             try {
@@ -161,17 +164,17 @@ public class DataStoreLinker implements Runnable {
             for (String typeName2Read : getTypeNames()) {
                 processTypeName(typeName2Read);
             }
-            
-            
-        } catch (IOException ex) {
-            throw new Exception("Linking DataStores failed", ex);
         } finally {
-            log.info("Error report: " + status.getNonFatalErrorReport("\n", 3));
-            if (batch != null) {
-                DataStoreLinkerMail.mail(batch, status.getNonFatalErrorReport("\n", 3));
-            } else if (process != null) {
-                DataStoreLinkerMail.mail(process, status.getNonFatalErrorReport("\n", 3));
+            try {
+                if (batch != null) {
+                    DataStoreLinkerMail.mail(batch, status.getNonFatalErrorReport("\n", 3));
+                } else if (process != null) {
+                    DataStoreLinkerMail.mail(process, status.getNonFatalErrorReport("\n", 3));
+                }
+            } catch (Exception mex) {
+                status.addNonFatalError(mex.getLocalizedMessage(), "");
             }
+            log.info("Error report: " + status.getNonFatalErrorReport("\n", 3));
             dispose();
         }
     }
@@ -239,21 +242,13 @@ public class DataStoreLinker implements Runnable {
             log.info("Try to do the Post actions");
             actionList.processPostCollectionActions(status, properties);
             
-            log.info("Start linked processes");
-            EntityManager em = JpaUtilServlet.getThreadEntityManager();
-            List<nl.b3p.datastorelinker.entity.Process> linkedProcesses = em.createQuery("FROM Process WHERE linked_process = :id").setParameter("id", this.process.getId()).getResultList();
-            for (nl.b3p.datastorelinker.entity.Process linked : linkedProcesses) {
-                DataStoreLinker linkedDsl = new DataStoreLinker(linked);
-                Thread nieuwThread = new Thread(linkedDsl);
-                nieuwThread.start();
-            }                
             log.info("Total of: " + status.getVisitedFeatures() + " features processed (" + typeName2Read + ")");
         } finally {
             iterator.close();
             JpaUtilServlet.closeThreadEntityManager();
         }
     }
-
+    
     private void processFeature(SimpleFeature feature) throws Exception {
         if (!mustProcessFeature()) {
             return;
@@ -270,10 +265,11 @@ public class DataStoreLinker implements Runnable {
             }
 
             if (actionList.process(ef) != null) {
-                status.incrementProcessedFeatures();
+                // hier niet zetten, maar bij writer action
+                //status.incrementProcessedFeatures();
             }
 
-        }catch(IllegalStateException ex){
+        } catch (IllegalStateException ex) {
             status.addWriteError(ex.getLocalizedMessage(), feature.getID());
             log.error("Cannot write to datastore: ",ex);
             throw ex;
