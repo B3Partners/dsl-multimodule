@@ -55,11 +55,6 @@
         </dependency>
     </dependencies>
     <repositories>
-        <repository>
-            <id>nl.b3p.gissuite</id>
-            <name>B3P GIS Suite Maven Repository</name>
-            <url>file://${project.basedir}/../B3pGisSuiteMvnRepo</url>
-        </repository>
        <repository>
             <id>repo.b3p.nl</id>
             <name>B3P file Repository</name>
@@ -75,7 +70,7 @@
         <connection>scm:git:git@github.com:B3Partners/datastorelinkerEntities.git</connection>
         <developerConnection>scm:git:git@github.com:B3Partners/datastorelinkerEntities.git</developerConnection>
         <url>https://github.com/B3Partners/datastorelinkerEntities</url>
-      <tag>datastorelinkerEntities-4.2.1</tag>
+      <tag>datastorelinkerEntities-${project.version}</tag>
     </scm>
     <distributionManagement>
         <repository>
