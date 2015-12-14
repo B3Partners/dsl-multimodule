@@ -27,7 +27,8 @@ import org.geotools.data.FeatureSource;
 import org.geotools.data.FileDataStoreFactorySpi;
 import org.geotools.data.oracle.OracleNGDataStoreFactory;
 import org.geotools.data.postgis.PostgisNGDataStoreFactory;
-import org.geotools.data.shapefile.indexed.IndexedShapefileDataStoreFactory;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+//import org.geotools.data.shapefile.indexed.IndexedShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.jdbc.JDBCDataStore;
@@ -487,8 +488,8 @@ public class DataStoreLinker implements Runnable {
                 if (params.containsKey("url")) {
                     String url = (String) params.get("url");
                     if (url.lastIndexOf(".shp") == (url.length() - ".shp".length())) {
-                        //ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
-                        FileDataStoreFactorySpi factory = new IndexedShapefileDataStoreFactory();
+                        ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
+//                        FileDataStoreFactorySpi factory = new IndexedShapefileDataStoreFactory();
 
                         params.put("url", new File(url).toURL());
                         dataStore = factory.createNewDataStore(params);

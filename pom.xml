@@ -8,7 +8,7 @@
     
     <properties>
         <project.build.sourceEncoding>windows-1252</project.build.sourceEncoding>
-        <geotools.version>10.4</geotools.version>
+        <geotools.version>14.1</geotools.version>
     </properties>
     
     <dependencies>
@@ -41,6 +41,12 @@
             <groupId>org.geotools.jdbc</groupId>
             <artifactId>gt-jdbc-postgis</artifactId>
             <version>${geotools.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -80,12 +86,12 @@
             <version>2.4</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-shapefile-old</artifactId>
             <version>10.4</version>
             <type>jar</type>
-        </dependency>
+        </dependency -->
     </dependencies>
     <repositories>
        <repository>
