@@ -23,11 +23,6 @@
             <version>1.5.8</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>b3p-gt2-msaccess</artifactId>
-            <version>4.2.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-jdbc</artifactId>
             <version>${geotools.version}</version>
@@ -52,6 +47,43 @@
             <artifactId>json-lib</artifactId>
             <version>2.3</version>
             <classifier>jdk15</classifier>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>b3p-gt2-csv</artifactId>
+            <version>4.2.2-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <!-- geeft een conflict met de hogere versie die hibernate nodig heeft in datastorelinker -->
+                    <groupId>javax.persistence</groupId>
+                    <artifactId>persistence-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>b3p-gt2-dxf</artifactId>
+            <version>4.2.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>b3p-gt2-msaccess</artifactId>
+            <version>4.2.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>b3p-gt2-ogr</artifactId>
+            <version>4.2.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>b3p-gt2-sdl</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>b3p-gt2-suf2</artifactId>
+            <version>4.2.1</version>
         </dependency>
     </dependencies>
     <repositories>
