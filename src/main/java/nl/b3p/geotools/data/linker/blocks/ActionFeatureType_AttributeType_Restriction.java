@@ -49,10 +49,10 @@ public class ActionFeatureType_AttributeType_Restriction extends Action {
             AttributeType oldType = feature.getAttributeType(attributeID);
 
             FilterFactoryImpl filterFactory = new FilterFactoryImpl();
-            filterFactory.createLiteralExpression(length);
+            filterFactory.literal(length);
 
             List<Filter> restrictions = new ArrayList<Filter>();
-            restrictions.add(filterFactory.lessOrEqual(new LengthFunction(), filterFactory.createLiteralExpression(length)));
+            restrictions.add(filterFactory.lessOrEqual(new LengthFunction(), filterFactory.literal(length)));
 
             AttributeType newType = new AttributeTypeImpl(oldType.getName(), oldType.getBinding(), oldType.isIdentified(), oldType.isAbstract(), restrictions, oldType.getSuper(), oldType.getDescription());
             AttributeDescriptor newAttributeDescriptor = new AttributeDescriptorImpl(newType, oldDescriptor.getName(), oldDescriptor.getMinOccurs(), oldDescriptor.getMaxOccurs(), oldDescriptor.isNillable(), oldDescriptor.getDefaultValue());

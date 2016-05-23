@@ -19,7 +19,7 @@ import org.geotools.data.FeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.filter.Capabilities;
-import org.geotools.filter.Filter;
+import org.opengis.filter.Filter;
 import org.geotools.filter.text.cql2.CQL;
 import org.hibernate.Session;
 import org.opengis.feature.simple.SimpleFeature;
