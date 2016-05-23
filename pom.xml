@@ -78,7 +78,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-sdl</artifactId>
-            <version>4.2.1</version>
+            <version>4.2.2</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -110,6 +110,11 @@
             <name>B3P file Repository</name>
             <url>http://repo.b3p.nl/nexus/content/repositories/releases/</url>
         </repository>
+        <snapshotRepository>
+            <id>repo.b3p.nl</id>
+            <name>B3Partners snapshots repository</name>
+            <url>http://repo.b3p.nl/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
     <build>        
         <plugins>            
