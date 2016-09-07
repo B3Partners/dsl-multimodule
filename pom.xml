@@ -51,7 +51,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-csv</artifactId>
-            <version>4.2.2</version>
+            <version>4.2.3</version>
             <exclusions>
                 <exclusion>
                     <!-- geeft een conflict met de hogere versie die hibernate nodig heeft in datastorelinker -->
