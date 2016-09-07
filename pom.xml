@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinkerEntities</artifactId>
-    <version>4.2.5-SNAPSHOT</version>
+    <version>4.2.5</version>
     <packaging>jar</packaging>
     
     <properties>
@@ -102,7 +102,7 @@
         <connection>scm:git:git@github.com:B3Partners/datastorelinkerEntities.git</connection>
         <developerConnection>scm:git:git@github.com:B3Partners/datastorelinkerEntities.git</developerConnection>
         <url>https://github.com/B3Partners/datastorelinkerEntities</url>
-      <tag>datastorelinkerEntities-${project.version}</tag>
+      <tag>datastorelinkerEntities-4.2.5</tag>
     </scm>
     <distributionManagement>
         <repository>
