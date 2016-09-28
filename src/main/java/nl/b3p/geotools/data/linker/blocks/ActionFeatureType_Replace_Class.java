@@ -88,7 +88,7 @@ public class ActionFeatureType_Replace_Class extends Action {
                         Integer waarde;
 
                         try {
-                            waarde = Integer.parseInt(value);
+                            waarde = (int) Double.parseDouble(value);
                         } catch (NumberFormatException nfe) {
                             waarde = 0;
                         }
