@@ -146,7 +146,7 @@ public class ActionFeatureType_Replace_Class extends Action {
                         if (value == null) {
                             feature.setAttribute(attributeID, null);
                         } else {
-                            feature.setAttribute(attributeID, Short.parseShort(value));
+                            feature.setAttribute(attributeID, (short) Double.parseDouble(value));
                         }
 
                     } else {
