@@ -136,18 +136,31 @@ public class ActionGeometry_Make_Point_Address extends Action {
         String address3 = "";
         String city = "";
 
-        if (attributeIDAddres1 > 0)
-            address1 = feature.getAttribute(attributeIDAddres1).toString();
+        // variable to track down NullPointerException
+        String current_attribute = "";
+        try {
+            if (attributeIDAddres1 > 0) {
+                current_attribute = "address1";
+                address1 = feature.getAttribute(attributeIDAddres1).toString();
+            }
+            if (attributeIDAddres2 > 0) {
+                current_attribute = "address2";
+                address2 = feature.getAttribute(attributeIDAddres2).toString();
+            }
+            if (attributeIDAddres3 > 0) {
+                current_attribute = "address3";
+                address3 = feature.getAttribute(attributeIDAddres3).toString();
+            }
+            if (attributeIDCity > 0) {
+                current_attribute = "city";
+                city = feature.getAttribute(attributeIDCity).toString();
+            }
+        } catch (NullPointerException e) {
+            String errorMessage = current_attribute +  " attribute for selected feature was null, can't geolocate!";
+            log.error(errorMessage);
+            throw new Exception(errorMessage);
 
-        if (attributeIDAddres2 > 0)
-            address2 = feature.getAttribute(attributeIDAddres2).toString();
-
-        if (attributeIDAddres3 > 0)
-            address3 = feature.getAttribute(attributeIDAddres3).toString();
-
-        if (attributeIDCity > 0)
-            city = feature.getAttribute(attributeIDCity).toString();
-
+        }
         Point point = null;
 
         try {
