@@ -24,7 +24,7 @@ import nl.b3p.geotools.data.linker.Status;
  * Deze Action verwijdert uit lijnen en polygonen dubbele opeenvolgende vertexen
  * die soms eens voorkomen in bronbestanden.
  *
- * Bijvoorbeeld POLYGON(A B C C C D E A) -> POLYGON(A B C D E A)
+ * Bijvoorbeeld POLYGON(A B C C C D E A) - POLYGON(A B C D E A)
  *
  * POLYGON(A B C B D A) blijft hetzelfde
  *
@@ -151,6 +151,9 @@ public class ActionGeometry_RemoveDuplicateVertices extends Action {
 
     /**
      * Returnt NULL indien geen duplicate vertexen gevonden
+     *
+     * @param vertices the set of vertices
+     * @return the vertices with the duplicates removed
      */
     private static Coordinate[] removeDuplicateVertices(Coordinate[] vertices) {
         if(vertices.length < 3) {

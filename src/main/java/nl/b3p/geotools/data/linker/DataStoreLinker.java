@@ -155,6 +155,8 @@ public class DataStoreLinker implements Runnable {
 
     /**
      * Process all features in dataStore2Read
+     *
+     * @throws Exception generic exception
      */
     public void process() throws Exception {
         if (disposed) {
@@ -434,7 +436,6 @@ public class DataStoreLinker implements Runnable {
         return openDataStore(Util.fileToMap(new File(file)));
     }
 
-    /**/
     public static DataStore openDataStore(Map params) throws Exception {
         return openDataStore(params, false);
     }
@@ -442,6 +443,11 @@ public class DataStoreLinker implements Runnable {
     /**
      * Open a dataStore (save). If create new is set to true, a datastore wil be
      * created even if the file is not there yet.
+     *
+     * @param params the datastore parameters
+     * @param createNew create new or not
+     * @return boolean indicating success
+     * @throws Exception generic exception
      */
     public static DataStore openDataStore(Map params, boolean createNew) throws Exception {
         log.debug("openDataStore with: " + params);
@@ -559,8 +565,8 @@ public class DataStoreLinker implements Runnable {
      * @param batch Original properties list
      * @param filter Specified to filter start of properties, like
      * 'actionlist.action'
-     * @return
-     * @throws java.io.IOException
+     * @return the mapped propertylist
+     * @throws IOException general IOexception
      */
     public static Map<String, Object> propertiesToMaps(Properties batch, String filter) throws IOException {
         Map<String, Object> map = new HashMap();

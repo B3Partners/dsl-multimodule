@@ -107,7 +107,10 @@ public class ActionList extends ArrayList<Action> {
 
     /**
      * processes after all features have been read and written
+     *
      * @param status to collect messages on the way
+     * @param properties the properties to inspect
+     * @throws Exception generic exception
      */
     public void processPostCollectionActions(Status status, Map properties) throws Exception {
         Iterator iter = iterator();

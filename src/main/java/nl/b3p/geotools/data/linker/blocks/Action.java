@@ -44,6 +44,9 @@ public abstract class Action {
 
     /**
      * Constructor has filled attributeID or attibuteName. With this funtion attributeID will be fixed (set / filled), using attributeName
+     *
+     * @param feature the current feature
+     * @throws Exception generic exception
      */
     protected void fixAttributeID(EasyFeature feature) throws Exception {
         if (attributeID == -1) {
@@ -78,6 +81,9 @@ public abstract class Action {
 
     /**
      * Fix a string and filter characters not allowed
+     *
+     * @param in the input String
+     * @return the clean String
      */
     public static String fixTypename(String in) {
         String allowed = "qwertyuiopasdfghjklzxcvbnm1234567890_";

@@ -53,8 +53,8 @@ public class EasyFeature {
     /**
      * Get attribute using attributeID as location in attribute array
      *
-     * @param attributeID
-     * @return
+     * @param attributeID the id of the attribute to retrieve
+     * @return the feature
      */
     public AttributeType getAttributeType(int attributeID) {
         return feature.getFeatureType().getType(attributeID);
@@ -63,8 +63,8 @@ public class EasyFeature {
     /**
      * Get attribute with given atrributename
      *
-     * @param name
-     * @return
+     * @param name the name of the attribute to retrieve
+     * @return the attributeType
      */
     public AttributeType getAttributeType(String name) {
         return feature.getFeatureType().getType(name);
@@ -73,9 +73,9 @@ public class EasyFeature {
     /**
      * Insert default attribute at a given postition, with name and classtype
      *
-     * @param attributeID
-     * @param name
-     * @param binding
+     * @param attributeID the id of the attrubute
+     * @param name the name of the attribute
+     * @param binding the binding
      */
     public void insertAttributeDescriptor(int attributeID, String name, Class binding) {
         // Create new attribute
@@ -90,8 +90,8 @@ public class EasyFeature {
      * Used for extended AttributeType inserting. Build your own AttributeType
      * instead of using the default method
      *
-     * @param attributeID
-     * @param attributeDescriptor
+     * @param attributeID the id of the attribute
+     * @param attributeDescriptor the descriptor
      */
     public void insertAttributeDescriptor(int attributeID, AttributeDescriptor attributeDescriptor) {
         // save userdata
@@ -121,7 +121,7 @@ public class EasyFeature {
      * Used for extended AttributeType adding. Build your own AttributeType
      * instead of using the default method
      *
-     * @param attributeDescriptor
+     * @param attributeDescriptor the descriptor
      */
     public void addAttributeDescriptor(AttributeDescriptor attributeDescriptor) {
         insertAttributeDescriptor(feature.getAttributeCount(), attributeDescriptor);
@@ -134,7 +134,8 @@ public class EasyFeature {
     /**
      * Remove all AttributeTypes with values
      *
-     * @param boolean keepGeom do not remove geometry column
+     * @param keepGeom boolean do not remove geometry column
+     * @throws Exception general exception
      */
     public void removeAllAttributeDescriptors(boolean keepGeom) throws Exception {
         // save userdata
@@ -186,7 +187,8 @@ public class EasyFeature {
     /**
      * Remove AttributeType at attributeTypeID
      *
-     * @param attributeID
+     * @param attributeID the id of the attribute
+     * @throws Exception general exception
      */
     public void removeAttributeDescriptor(int attributeID) throws Exception {
         // save userdata
@@ -210,7 +212,8 @@ public class EasyFeature {
     /**
      * Remove AttributeType by name
      *
-     * @param name
+     * @param name the name of the attribute
+     * @throws Exception general exception
      */
     public void removeAttributeDescriptor(String name) throws Exception {
         removeAttributeDescriptor(getAttributeDescriptorIDbyName(name));
@@ -220,9 +223,10 @@ public class EasyFeature {
      * Default way to set AttributeType at specified attributeID, overwrites the
      * current AttributeType at that index
      *
-     * @param attributeID
-     * @param name
-     * @param binding
+     * @param attributeID the id of the attribute
+     * @param name the name of the attribute type
+     * @param binding the binding
+     * @param keepValue keep the value or not
      */
     public void setAttributeDescriptor(int attributeID, String name, Class binding, boolean keepValue) {
         // Create new attribute
@@ -237,8 +241,9 @@ public class EasyFeature {
      * Extended way to set a AttributeType; overwrites the current AttributeType
      * at that index
      *
-     * @param attributeID
-     * @param attributeDescriptor
+     * @param attributeID the id of the attribute
+     * @param attributeDescriptor the descriptor
+     * @param keepValue keep the value or not
      */
     public void setAttributeDescriptor(int attributeID, AttributeDescriptor attributeDescriptor, boolean keepValue) {
         // save userdata
@@ -278,9 +283,9 @@ public class EasyFeature {
     /**
      * Lookup attributeID of AttributeType name
      *
-     * @param name
-     * @return
-     * @throws java.lang.Exception
+     * @param name the name of the descriptor
+     * @return index of the attribute descriptor
+     * @throws FeatureException general FeatureException
      */
     public int getAttributeDescriptorIDbyName(String name) throws FeatureException {
         List<AttributeDescriptor> attributeDescriptors = feature.getFeatureType().getAttributeDescriptors();
@@ -295,9 +300,9 @@ public class EasyFeature {
     /**
      * Get name of AttributeType at given position
      *
-     * @param attributeID
-     * @return
-     * @throws java.lang.Exception
+     * @param attributeID the id of the attribute
+     * @return the attribute descriptor
+     * @throws java.lang.Exception general exception
      */
     public String getAttributeDescriptorNameByID(int attributeID) throws Exception {
         if (attributeID < 0 || attributeID >= getAttributeCount()) {
@@ -309,7 +314,7 @@ public class EasyFeature {
     /**
      * Get number of Attributes
      *
-     * @return
+     * @return the number of attributes found
      */
     public int getAttributeCount() {
         return feature.getAttributeCount();
@@ -318,8 +323,8 @@ public class EasyFeature {
     /**
      * Set Attribute at a specified position
      *
-     * @param attributeID
-     * @param attribute
+     * @param attributeID id of the attribute
+     * @param attribute the attribute in question
      */
     public void setAttribute(int attributeID, Object attribute) {
         feature.setAttribute(attributeID, attribute);
@@ -328,8 +333,8 @@ public class EasyFeature {
     /**
      * Set Attribute at a specified name
      *
-     * @param name
-     * @param attribute
+     * @param name the name of the attribute
+     * @param attribute the attribute
      */
     public void setAttribute(String name, Object attribute) {
         feature.setAttribute(name, attribute);
@@ -431,8 +436,8 @@ public class EasyFeature {
     /**
      * Check if attributeID is legal (above zero and above attributeCount)
      *
-     * @param attributeID
-     * @return
+     * @param attributeID the id of the attribute
+     * @return boolean whether the descriptor is present
      */
     public boolean containsAttributeDescriptor(int attributeID) {
         return (attributeID >= 0) && (attributeID < getAttributeCount());

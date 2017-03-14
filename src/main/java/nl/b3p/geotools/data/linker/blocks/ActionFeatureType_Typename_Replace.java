@@ -24,8 +24,8 @@ public class ActionFeatureType_Typename_Replace extends Action {
 
     /**
      * Change typename by appending a extension or rename it
-     * @param newTypeName New typename of extension
-     * @param append Boolean if newTypename should be added to current typename
+     * @param regEx New typename of extension
+     * @param replace replacement
      */
     public ActionFeatureType_Typename_Replace(String regEx, String replace) {
         this.regEx = regEx;

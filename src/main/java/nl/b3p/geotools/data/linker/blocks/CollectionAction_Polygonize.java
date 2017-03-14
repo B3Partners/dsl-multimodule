@@ -102,6 +102,9 @@ public class CollectionAction_Polygonize extends CollectionAction {
     }
     /**
      * alle classificaties worden meteen in het geheugen geladen.
+     *
+     * @param collection the collection of features
+     * @param nextAction ??
      */
     public void executeAllInMemory (DefaultFeatureCollection collection, Action nextAction){
         log.info("execute Polygonize with all classifications at once");
@@ -141,7 +144,10 @@ public class CollectionAction_Polygonize extends CollectionAction {
      * Deze execute loopt meerdere malen over de de data (featureCollection) als er een classificatie is aangegeven.
      * Per classificatie wordt er een keer doorheen gelopen. Dit om te voorkomen dat alle objecten te gelijk in het
      * geheugen worden geladen. Dit is dus wel minder snel, maar heeft meer kans om te slagen.
-     */    
+     *
+     * @param collection the collection of features
+     * @param nextAction ??
+     */
     public void executeOneClassInMemory(DefaultFeatureCollection collection, Action nextAction) {
         log.info("execute Polygonize with one classification in the memory at once");
         HashMap<Object, String> classificationStatuses = null;

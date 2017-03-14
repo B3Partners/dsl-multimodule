@@ -772,6 +772,10 @@ public class ActionFactory {
 
     /**
      * Check if properties map contains all properties wanted
+     *
+     * @param properties properties to look for
+     * @param find the string containing the properties(?)
+     * @return boolean indicating if property in string
      */
     public static boolean propertyCheck(Map properties, String... find) {
         if (properties==null) {
@@ -796,6 +800,10 @@ public class ActionFactory {
 
     /**
      * Check if given class is equal to string
+     *
+     * @param actionClassName the name of the class to look for
+     * @param checkClass the class to compare against
+     * @return boolean on whether class name is equal to string
      */
     private static boolean isThisClass(String actionClassName, Class checkClass) {
         return actionClassName.equals(checkClass.getSimpleName());
@@ -804,6 +812,10 @@ public class ActionFactory {
     /**
      * Constructing the action failed. This function helps the user resolve the
      * problem (find missing parameters)
+     *
+     * @param actionClass the action class
+     * @param properties the properties
+     * @throws Exception the informative, custom exception
      */
     public static void failedConstructor(Class actionClass, Map properties) throws Exception {
         Method[] methods = actionClass.getMethods();

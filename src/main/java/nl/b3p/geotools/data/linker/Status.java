@@ -187,7 +187,7 @@ public class Status {
 
     /**
      * Use getNonFatalErrorReport instead.
-     * @return
+     * @return something...
      * @deprecated
      */
     @Deprecated
@@ -264,7 +264,6 @@ public class Status {
      * @return Total number of features of all feature sources in this process
      * that have been succesfully processed at this moment
      * in the DataStoreLinkers execution.
-     * @see getTotalFeatureCount()
      */
     public synchronized int getProcessedFeatures() {
         return processedFeatures;
