@@ -5,8 +5,7 @@
 package nl.b3p.geotools.data.linker.blocks;
 
 import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.operation.buffer.BufferBuilder;
-import com.vividsolutions.jts.operation.buffer.BufferParameters;
+import com.vividsolutions.jts.operation.buffer.BufferOp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,8 +17,10 @@ import nl.b3p.geotools.data.linker.Status;
 
 
 /**
- * Buffer geometries (make them thicker)
+ * Buffer geometries (make them thicker).
+ *
  * @author Gertjan Al, B3Partners
+ * @mprins
  */
 public class ActionGeometry_Buffer extends Action {
 
@@ -44,9 +45,8 @@ public class ActionGeometry_Buffer extends Action {
         // Get current geometry
         Geometry geometry = (Geometry) feature.getAttribute(attributeName);
 
-        // Buffer geomerty to polygon
-        BufferBuilder bufferBuilder = new BufferBuilder(new BufferParameters());
-        geometry = bufferBuilder.buffer(geometry, bufferSize);
+        // Buffer geometry to polygon
+        geometry = BufferOp.bufferOp(geometry, bufferSize);
 
         // Change AttributeType to Polygon
         Action action = new ActionFeatureType_Replace_Class(attributeName, Polygon.class, false);
