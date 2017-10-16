@@ -32,8 +32,8 @@ import org.geotools.feature.FeatureIterator;
 import org.geotools.jdbc.JDBCDataStore;
 import org.geotools.jdbc.JDBCFeatureStore;
 import org.geotools.jdbc.PrimaryKey;
-import org.jdom.Element;
-import org.jdom.input.DOMBuilder;
+import org.jdom2.Element;
+import org.jdom2.input.DOMBuilder;
 import org.opengis.feature.simple.SimpleFeature;
 
 
