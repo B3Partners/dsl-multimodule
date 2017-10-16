@@ -5,7 +5,7 @@
 
 package nl.b3p.datastorelinker.util;
 
-import org.jdom.Namespace;
+import org.jdom2.Namespace;
 
 /**
  *

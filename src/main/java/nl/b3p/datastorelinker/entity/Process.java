@@ -33,9 +33,9 @@ import net.sf.json.JSONObject;
 import net.sourceforge.stripes.util.Log;
 import nl.b3p.datastorelinker.util.Nameable;
 import nl.b3p.datastorelinker.util.Namespaces;
-import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.DOMOutputter;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.DOMOutputter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -234,7 +234,7 @@ public class Process implements Serializable, Nameable {
     public Element getActions() {
         try {
             log.debug("getActions: " + actions);
-            org.jdom.Document jdoc = new SAXBuilder().build(new StringReader(actions));
+            org.jdom2.Document jdoc = new SAXBuilder().build(new StringReader(actions));
             assignDslNS(jdoc.getRootElement());
             Document doc = new DOMOutputter().output(jdoc);
 
@@ -249,11 +249,11 @@ public class Process implements Serializable, Nameable {
         }
     }
 
-    private void assignDslNS(org.jdom.Element elem) {
+    private void assignDslNS(org.jdom2.Element elem) {
         // This is very ugly; there has to be a better way to do this.
         elem.setNamespace(Namespace.getNamespace(Namespaces.DSL_NAMESPACE_STRING));
         for (Object childElem : elem.getChildren()) {
-            assignDslNS((org.jdom.Element)childElem);
+            assignDslNS((org.jdom2.Element) childElem);
         }
     }
 
