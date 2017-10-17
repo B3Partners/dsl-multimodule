@@ -40,9 +40,48 @@ mvn clean install deploy
 
 ```
 
-Hierna kunnen de afzonderlijke artefacten worden gebouwd (met `mvn clean install`) van de juiste branch.
+Hierna kunnen de afzonderlijke artefacten worden gebouwd (met `mvn clean install`) 
+van de juiste branch, bijvoorbeeld:
 
 ```
+cd datastorelinker-bom && mvn clean install deploy && cd ..
+cd jump-b3p && mvn clean install && cd ..
+cd securityfilter-b3p && mvn clean install && cd ..
+cd commons-mail-b3p && mvn clean install && cd ..
+cd b3p-commons-core && mvn clean install && cd ..
+cd b3p-commons-gis && mvn clean install && cd ..
+cd b3p-mapfile && mvn clean install && cd ..
+cd b3p-suf2-reader && mvn clean install && cd ..
+cd b3p-gt2-suf2 && mvn clean install && cd ..
+cd b3p-gt2-csv && mvn clean install && cd ..
+cd b3p-gt2-dxf && mvn clean install && cd ..
+cd b3p-gt2-msaccess && mvn clean install && cd ..
+cd b3p-gt2-ogr && mvn clean install && cd ..
+cd b3p-gt2-sdl && mvn clean install && cd ..
+cd datastorelinkerEntities && mvn clean install && cd ..
+cd b3p-datastorelinker && mvn clean install && cd ..
+cd datastorelinker && mvn clean install && cd ..
 
 ```
+of voor een deploy:
 
+```
+cd datastorelinker-bom && mvn clean install deploy && cd ..
+cd jump-b3p && mvn clean install deploy && cd ..
+cd securityfilter-b3p && mvn clean install deploy && cd ..
+cd commons-mail-b3p && mvn clean install deploy && cd ..
+cd b3p-commons-core && mvn clean install deploy && cd ..
+cd b3p-commons-gis && mvn clean install deploy && cd ..
+cd b3p-mapfile && mvn clean install deploy && cd ..
+cd b3p-suf2-reader && mvn clean install deploy && cd ..
+cd b3p-gt2-suf2 && mvn clean install deploy && cd ..
+cd b3p-gt2-csv && mvn clean install deploy && cd ..
+cd b3p-gt2-dxf && mvn clean install deploy && cd ..
+cd b3p-gt2-msaccess && mvn clean install deploy && cd ..
+cd b3p-gt2-ogr && mvn clean install deploy && cd ..
+cd b3p-gt2-sdl && mvn clean install deploy && cd ..
+cd datastorelinkerEntities && mvn clean install deploy && cd ..
+cd b3p-datastorelinker && mvn clean install deploy && cd ..
+cd datastorelinker && mvn clean install deploy && cd ..
+
+```
