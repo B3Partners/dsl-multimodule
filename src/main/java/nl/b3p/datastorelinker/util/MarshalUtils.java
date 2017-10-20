@@ -23,9 +23,9 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import net.sourceforge.stripes.util.Log;
-import org.jdom.Document;
-import org.jdom.JDOMException;
-import org.jdom.output.DOMOutputter;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.output.DOMOutputter;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
