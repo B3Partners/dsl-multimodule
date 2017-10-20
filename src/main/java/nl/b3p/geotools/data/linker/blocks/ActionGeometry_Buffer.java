@@ -20,7 +20,7 @@ import nl.b3p.geotools.data.linker.Status;
  * Buffer geometries (make them thicker).
  *
  * @author Gertjan Al, B3Partners
- * @mprins
+ * @author mprins
  */
 public class ActionGeometry_Buffer extends Action {
 
