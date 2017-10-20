@@ -577,25 +577,13 @@ public class ActionDataStore_Writer extends Action {
         String typename2Write = featureType.getTypeName();
 
         if (dropFirst && typeExists) {
-            /*The drop schema bestaat nog niet in geotools. Wordt nu wel gemaakt en zal binnen
-             * kort beschikbaar zijn. Tot die tijd maar verwijderen dmv sql script....
-             */
-
             // Check if DataStore is a Database
             if (dataStore2Write instanceof JDBCDataStore) {
-                log.info("It's a JDBCDatastore so try to drop the table with sql");
-                // Drop table
-                JDBCDataStore database = null;
-                Connection con = null;
+                log.info("Verwijderen van tabel: " + featureType.getTypeName());
                 try {
-                    database = (JDBCDataStore) dataStore2Write;
-                    con = database.getDataSource().getConnection();
-                    con.setAutoCommit(true);
-                    dropTable(database, con, typename2Write);
-                } finally {
-                    if (database != null) {
-                        database.closeSafe(con);
-                    }
+                    dataStore2Write.removeSchema(featureType.getTypeName());
+                } catch (IOException io) {
+                    log.warn("Verwijderen van " + featureType.getTypeName() + " is niet gelukt, melding: " + io.getLocalizedMessage());
                 }
             }
             typeExists = false;
@@ -720,22 +708,6 @@ public class ActionDataStore_Writer extends Action {
 
     public String getDescription_NL() {
         return "Schrijf de SimpleFeature weg naar een datastore. Als de datastore een database is, kan de SimpleFeature worden toegevoegd of kan de tabel worden geleegd voor het toevoegen";
-    }
-
-    private void dropTable(JDBCDataStore database, Connection con, String typeName) throws SQLException {
-
-        // TODO make this function work with all databases
-        PreparedStatement ps = null;
-        if (database.getSQLDialect() instanceof PostGISDialect) {
-            ps = con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema() + "\".\"" + typeName + "\"; "
-                    + "DELETE FROM \"geometry_columns\" WHERE f_table_name = '" + typeName + "'");
-            ps.execute();
-        } else if (database.getSQLDialect() instanceof OracleDialect) {
-            ps = con.prepareStatement("DROP TABLE \"" + database.getDatabaseSchema() + "\".\"" + typeName + "\"");
-            ps.execute();
-            ps = con.prepareStatement("DELETE FROM MDSYS.SDO_GEOM_METADATA_TABLE WHERE SDO_TABLE_NAME = '" + typeName + "'");
-            ps.execute();
-        }
     }
 
     private void removeAllFeaturesWithTruncate(JDBCDataStore database, Connection con, String typeName) throws SQLException {

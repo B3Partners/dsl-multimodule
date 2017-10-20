@@ -71,7 +71,7 @@ public class DataStoreLinkerMail {
         //Attaching to default Session, or we could start a new one
         props.put("mail.smtp.host", smtpServer);
         Session session = Session.getDefaultInstance(props, null);
-
+        session.setDebug(log.isDebugEnabled());
         //Create a new message
         Message msg = new MimeMessage(session);
 
