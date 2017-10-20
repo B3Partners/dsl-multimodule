@@ -32,7 +32,7 @@ git clone git@github.com:B3Partners/datastorelinker.git
 
 
 ```
-Doe vervolgens een build+ deploy van de `datastorelinker-bom`:
+Doe vervolgens een build+deploy van de `datastorelinker-bom`:
 
 ```
 cd datastorelinker-bom
