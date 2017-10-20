@@ -27,7 +27,7 @@
             <dependency>
                 <groupId>nl.b3p</groupId>
                 <artifactId>datastorelinker-bom</artifactId>
-                <version>5.0.0-SNAPSHOT</version>
+                <version>5.0.0-RC1</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -49,12 +49,12 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>datastorelinkerEntities</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-commons-core</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>org.geotools.jdbc</groupId>
@@ -93,7 +93,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>commons-mail-b3p</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
