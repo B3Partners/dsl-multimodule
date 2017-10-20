@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinkerEntities</artifactId>
-    <version>5.0.0-SNAPSHOT</version>
+    <version>5.0.0-RC1</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceVersion>1.8</project.build.sourceVersion>
@@ -70,7 +70,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-csv</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
             <!--            <exclusions>
                 <exclusion>
                      TODO check 
@@ -83,27 +83,27 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-dxf</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-msaccess</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-ogr</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-sdl</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-suf2</artifactId>
-            <version>${project.version}</version>
+            <version>5.0.0-RC1</version>
         </dependency>
     </dependencies>
     <repositories>
@@ -117,7 +117,8 @@
         <connection>scm:git:git@github.com:B3Partners/datastorelinkerEntities.git</connection>
         <developerConnection>scm:git:git@github.com:B3Partners/datastorelinkerEntities.git</developerConnection>
         <url>https://github.com/B3Partners/datastorelinkerEntities</url>
-    </scm>
+      <tag>v5.0.0-RC1</tag>
+  </scm>
     <distributionManagement>
         <repository>
             <id>repo.b3p.nl</id>
