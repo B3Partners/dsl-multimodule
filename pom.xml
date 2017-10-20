@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinker-bom</artifactId>
-    <version>5.0.0-SNAPSHOT</version>
+    <version>5.0.0-RC1</version>
     <packaging>pom</packaging>
     <name>Bill Of Materials module voor de datastorelinker.</name>
     <description>Hiermee kunnen alle dependencies worden gemanaged. Deze artifact met import scope opnemen in de betreffende projecten.</description>
@@ -203,7 +203,8 @@
         <connection>scm:git:git@github.com:B3Partners/datastorelinker-bom.git</connection>
         <developerConnection>scm:git:git@github.com:B3Partners/datastorelinker-bom.git</developerConnection>
         <url>https://github.com/B3Partners/datastorelinker-bom</url>
-    </scm>
+      <tag>v5.0.0-RC1</tag>
+  </scm>
     <repositories>
         <repository>
             <id>repo.b3p.nl</id>
