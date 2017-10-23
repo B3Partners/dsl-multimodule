@@ -1,4 +1,4 @@
-
+-- NB onbekende versie
     create table database_inout (
         id number(19,0) not null,
         db_alias varchar2(255 char),

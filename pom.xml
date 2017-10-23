@@ -71,14 +71,6 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-gt2-csv</artifactId>
             <version>5.0.0-SNAPSHOT</version>
-            <!--            <exclusions>
-                <exclusion>
-                     TODO check 
-                     geeft een conflict met de hogere versie die hibernate nodig heeft in datastorelinker 
-                    <groupId>javax.persistence</groupId>
-                    <artifactId>persistence-api</artifactId>
-                </exclusion>
-            </exclusions>-->
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -136,11 +128,38 @@
             <url>github:http://b3partners.github.io/${project.artifactId}/</url>
         </site>
     </distributionManagement>
-    <build>        
-        <plugins>            
-            <plugin>                
-                <groupId>org.apache.maven.plugins</groupId>                
-                <artifactId>maven-release-plugin</artifactId>                
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>hibernate3-maven-plugin</artifactId>
+                <version>3.0</version>
+                <executions>
+                    <execution>
+                        <id>schema-export</id>
+                        <phase>process-classes</phase>
+                        <configuration>
+                            <hibernatetool destdir="${project.build.outputDirectory}/../schema-export">
+                                <classpath>
+                                    <path location="../datastorelinker/src/main/resources" />
+                                </classpath>
+                                <hbm2ddl export="false" drop="false" create="true" outputfilename="schema-export-postgresql.sql" format="true">
+                                    <jpaconfiguration persistenceUnit="DataStoreLinkerGuiPU-PostgreSQL" />
+                                </hbm2ddl>
+                                <hbm2ddl export="false" drop="false" create="true" outputfilename="schema-export-oracle.sql" format="true">
+                                    <jpaconfiguration persistenceUnit="DataStoreLinkerGuiPU-Oracle" />
+                                </hbm2ddl>
+                            </hibernatetool>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.3</version>
             </plugin>
             <plugin>
