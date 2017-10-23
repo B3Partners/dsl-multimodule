@@ -1,5 +1,6 @@
 --
--- PostgreSQL database dump
+-- PostgreSQL database dump 
+-- NB onbekende versie
 --
 
 
