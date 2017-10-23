@@ -2,3 +2,5 @@
 .idea/
 b3p-datastorelinker.iml
 src/test/
+
+*.log
