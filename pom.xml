@@ -13,7 +13,7 @@
         <maven.compiler.source>${project.build.sourceVersion}</maven.compiler.source>
         <maven.compiler.target>${project.build.targetVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <geotools.version>18.0</geotools.version>
+        <geotools.version>18.1</geotools.version>
     </properties>
     <organization>
         <name>B3Partners B.V.</name>
