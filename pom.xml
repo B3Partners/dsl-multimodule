@@ -4,7 +4,7 @@
 
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinker-bom</artifactId>
-    <version>5.0.2</version>
+    <version>5.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bill Of Materials module voor de datastorelinker.</name>
@@ -19,7 +19,7 @@
         <connection>scm:git:git@github.com:B3Partners/datastorelinker-bom.git</connection>
         <developerConnection>scm:git:git@github.com:B3Partners/datastorelinker-bom.git</developerConnection>
         <url>https://github.com/B3Partners/datastorelinker-bom</url>
-        <tag>datastorelinker-bom-5.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
     <issueManagement>
         <system>Github</system>
