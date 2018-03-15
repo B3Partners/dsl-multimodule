@@ -22,19 +22,23 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.data.DataStore;
+import org.geotools.data.wfs.WFSDataStoreFactory;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.FeatureSource;
+import org.geotools.data.Query;
 import org.geotools.data.oracle.OracleNGDataStoreFactory;
 import org.geotools.data.postgis.PostgisNGDataStoreFactory;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
+import org.geotools.filter.text.ecql.ECQL;
 import org.geotools.jdbc.JDBCDataStore;
 import org.geotools.jdbc.JDBCFeatureStore;
 import org.geotools.jdbc.PrimaryKey;
 import org.jdom2.Element;
 import org.jdom2.input.DOMBuilder;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.filter.Filter;
 
 
 /**
@@ -67,6 +71,7 @@ public class DataStoreLinker implements Runnable {
     private static final int MAX_EXCEPTION_LOG_COUNT = 10;
     public static final String TYPE_ORACLE = "oracle";
     public static final String TYPE_POSTGIS = "postgis";
+    public static final String TYPE_WFS = "wfs";
 
     public synchronized Status getStatus() {
         return status;
@@ -182,8 +187,15 @@ public class DataStoreLinker implements Runnable {
 
     private void processTypeName(String typeName2Read) throws Exception, IOException {
         SimpleFeature feature = null;
-
-        FeatureCollection fc = dataStore2Read.getFeatureSource(typeName2Read).getFeatures();
+        
+        String filterName = process.getFilter();
+        Query query = new Query();
+        if(filterName!=null){
+            Filter filter = ECQL.toFilter(filterName);
+            query.setFilter(filter);
+        }
+        
+        FeatureCollection fc = dataStore2Read.getFeatureSource(typeName2Read).getFeatures(query);
         FeatureIterator iterator = fc.features();
 
         PrimaryKey pk = null;
@@ -482,8 +494,11 @@ public class DataStoreLinker implements Runnable {
             log.debug("Created PostgisNGDataStoreFactory with: " + params);
 
             return (new PostgisNGDataStoreFactory()).createDataStore(params);
+        } else if (dbType != null && dbType.equals(TYPE_WFS)){           
+            log.debug("Created WFSDataStoreFactory with: " + params);
+            return (new WFSDataStoreFactory()).createDataStore(params);
         }
-
+        
         String errormsg = "DataStore could not be found using parameters";
 
         try {
