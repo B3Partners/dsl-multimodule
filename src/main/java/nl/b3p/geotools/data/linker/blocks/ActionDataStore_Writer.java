@@ -31,6 +31,7 @@ import org.geotools.factory.Hints;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
+import org.geotools.filter.text.ecql.ECQL;
 import org.geotools.jdbc.JDBCDataStore;
 import org.geotools.jdbc.JDBCFeatureStore;
 import org.geotools.jdbc.PrimaryKey;
@@ -52,6 +53,9 @@ public class ActionDataStore_Writer extends Action {
     private Map params;
     private final boolean append;
     private final boolean dropFirst;
+    private final boolean modify;
+    private final boolean modifyGeom;
+    private final String modifyFilter;
     // post collection actions
     private boolean postCollectionActionsInitDone = false;
     private boolean polygonize = false;
@@ -91,6 +95,21 @@ public class ActionDataStore_Writer extends Action {
         } else {
             dropFirst = false;
         }
+        if (ActionFactory.propertyCheck(properties, ActionFactory.MODIFY)) {
+            modify = (Boolean) properties.get(ActionFactory.MODIFY);
+        } else {
+            modify = false;
+        }
+        if(ActionFactory.propertyCheck(properties, ActionFactory.MODIFY_GEOM)){
+            modifyGeom = (Boolean) properties.get(ActionFactory.MODIFY_GEOM);
+        } else {
+            modifyGeom = false;
+        }
+        if(ActionFactory.propertyCheck(properties, ActionFactory.ATTRIBUTE_MODIFY_FILTER)){
+            modifyFilter = (String) properties.get(ActionFactory.ATTRIBUTE_MODIFY_FILTER);
+        } else {
+            modifyFilter = null;
+        }
         if (!params.containsKey(MAX_CONNECTIONS)) {
             params.put(MAX_CONNECTIONS, MAX_CONNECTIONS_NR);
         }
@@ -110,7 +129,7 @@ public class ActionDataStore_Writer extends Action {
 
     public EasyFeature execute(EasyFeature feature) throws Exception {
         if (!initDone) {
-            throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file: " 
+            throw new Exception("\nOpening dataStore failed; datastore could not be found, missing library or no access to file: "
                     + toString() + "\n\n" + constructorEx.getLocalizedMessage());
         }
 
@@ -131,7 +150,6 @@ public class ActionDataStore_Writer extends Action {
         //hiermee kan dan ook (via batch size is -1) in een transactie oude records
         //worden verwijderd en nieuwe records worden toegevoegd, zodat een volledige
         //rollback gedaan kan worden
-
         if (featureTypeNames.contains(typename)) {
             pks = featurePKs.get(typename);
             fc = featureCollectionCache.get(typename);
@@ -248,12 +266,12 @@ public class ActionDataStore_Writer extends Action {
             newFeature = feature.copy(oldfid.toString()).getFeature();
             newFeature.getUserData().put(Hints.USE_PROVIDED_FID, true);
         }
-        
+
         // Check of feature geskipped moet worden
         SimpleFeatureType type = (SimpleFeatureType) fc.getSchema();
         if (feature.isSkipped()) {
-             List<String> message = new ArrayList(
-                Arrays.asList("Feature uitgefilterd", feature.getID()));
+            List<String> message = new ArrayList(
+                    Arrays.asList("Feature uitgefilterd", feature.getID()));
             featureNonFatals.get(type.getTypeName()).add(message);
         } else {
             fc.add(newFeature);
@@ -261,7 +279,7 @@ public class ActionDataStore_Writer extends Action {
     }
 
     private int writeCollection(DefaultFeatureCollection fc, FeatureStore store, int batchsize) throws FeatureException, IOException {
-        // maak nieuwe subcollecties
+        // maak nieuwe subcollecties 
         SimpleFeatureType type = (SimpleFeatureType) fc.getSchema();
         int orgbatchsize = batchsize;
         int stamp = generator.nextInt(10000);
@@ -295,21 +313,41 @@ public class ActionDataStore_Writer extends Action {
                 featureBatchSizes.put(type.getTypeName(), batchsize);
             }
         }
-
         Transaction t = new DefaultTransaction("add");
         store.setTransaction(t);
         try {
-            if (batchsize == -1) {
-                // als alles in een keer, dan ook pas oude feature weggooien
-                // als nieuwe insert ok zijn (dus in zelfde transactie)
-                log.info("Removing all features from: " + type.getTypeName()
-                        + " within insert transaction.");
-                store.removeFeatures(Filter.INCLUDE);
+            if (modify) {
+                FeatureIterator fi = currentFc.features();
+                while (fi.hasNext()) {
+                    SimpleFeature newFeature = (SimpleFeature) fi.next();
+                    List<org.opengis.feature.type.AttributeType> properties = newFeature.getFeatureType().getTypes();
+                    Object filterValue = newFeature.getAttribute(modifyFilter);
+                    //Filter filter = ECQL.toFilter("digis_guid='" + filterName + "'");
+                    Filter filter = ECQL.toFilter(modifyFilter+"='" + filterValue + "'");
+                    for (org.opengis.feature.type.AttributeType property : properties) {
+                        //if (!property.getName().toString().equals("fid")) {
+                        if(newFeature.getDefaultGeometryProperty().getName().equals(property.getName()) && !modifyGeom){
+                            continue;
+                        }
+                        if (newFeature.getAttribute(property.getName().toString()) != null) {
+                            store.modifyFeatures(property.getName(), newFeature.getAttribute(property.getName()), filter);
+                        }
+                        //}
+                    }
+                }
+            } else {
+                if (batchsize == -1) {
+                    // als alles in een keer, dan ook pas oude feature weggooien
+                    // als nieuwe insert ok zijn (dus in zelfde transactie)
+                    log.info("Removing all features from: " + type.getTypeName()
+                            + " within insert transaction.");
+                    store.removeFeatures(Filter.INCLUDE);
+                }
+                // schrijf batch aan features
+                store.addFeatures(currentFc);
             }
-            // schrijf batch aan features
-            store.addFeatures(currentFc);
             t.commit();
-            
+
             int numWritten = featuresWritten.get(type.getTypeName());
             int numProcessed = currentFc.size();
             featuresWritten.put(type.getTypeName(), numWritten + numProcessed);
@@ -327,7 +365,7 @@ public class ActionDataStore_Writer extends Action {
             try {
                 t.rollback();
             } catch (IOException ioex) {
-                log.error("Error rolling back feature type: " + type.getTypeName() 
+                log.error("Error rolling back feature type: " + type.getTypeName()
                         + ", retrying after error: " + ioex.getLocalizedMessage());
             }
 
@@ -592,7 +630,7 @@ public class ActionDataStore_Writer extends Action {
             log.info("Creating new table with name: " + featureType.getTypeName());
             dataStore2Write.createSchema(featureType);
 
-        } else if (!append && !delayRemoveUntilFirstCommit) {
+        } else if (!append && !modify && !delayRemoveUntilFirstCommit) {
             log.info("Removing all features from: " + typename2Write);
             boolean deleteSuccess = false;
             // Check if DataStore is a Database
@@ -675,7 +713,7 @@ public class ActionDataStore_Writer extends Action {
     }
 
     public String toString() {
-        if (params==null) {
+        if (params == null) {
             return "No datastore params";
         }
         Map cleanedParams = new HashMap();
