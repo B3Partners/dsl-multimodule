@@ -67,6 +67,10 @@ public class Process implements Serializable, Nameable {
     @XmlTransient
     private static final boolean DEFAULT_APPEND = false;
     @XmlTransient
+    private static final boolean DEFAULT_MODIFY = false;
+    @XmlTransient
+    private static final boolean DEFAULT_MODIFY_GEOM = false;
+    @XmlTransient
     private static final String DEFAULT_WRITER_TYPE = "ActionCombo_GeometrySplitter_Writer";
 
     @XmlTransient
@@ -119,7 +123,15 @@ public class Process implements Serializable, Nameable {
     @Basic(optional = false)
     @Column(name = "append_table")
     private Boolean append = DEFAULT_APPEND;
+    
+    @Basic(optional = false)
+    @Column(name = "modify_table")
+    private Boolean modify = DEFAULT_MODIFY;
 
+    @Basic(optional = false)
+    @Column(name = "modify_geom")
+    private Boolean modifyGeom = DEFAULT_MODIFY_GEOM;
+    
     @Basic(optional = false)
     @Column(name = "writer_type")
     @XmlJavaTypeAdapter(NormalizedStringAdapter.class)
@@ -155,6 +167,14 @@ public class Process implements Serializable, Nameable {
     @Column(name = "remarks")
     private String remarks;
     
+    @Basic(optional = true)
+    @Column(name = "filter")
+    private String filter;
+    
+    @Basic(optional = true)
+    @Column(name = "modify_filter")
+    private String modifyFilter;
+    
     @Basic(optional=true)
     @ManyToOne(fetch = FetchType.LAZY)
     private nl.b3p.datastorelinker.entity.Process linkedProcess;
@@ -176,6 +196,9 @@ public class Process implements Serializable, Nameable {
 
         outputMap.put("drop", getDrop());
         outputMap.put("append", getAppend());
+        outputMap.put("modify", getModify());
+        outputMap.put("modifyGeom", getModifyGeom());
+        outputMap.put("modifyFilter", getModifyFilter());
         outputMap.put("params", getOutput().getDatabase().toGeotoolsDataStoreParametersMap());
 
         return outputMap;
@@ -318,7 +341,23 @@ public class Process implements Serializable, Nameable {
     public void setAppend(Boolean append) {
         this.append = append;
     }
-
+    
+    public boolean getModify(){
+        return modify;
+    }
+    
+    public void setModify(boolean modify){
+        this.modify = modify;
+    }
+    
+    public boolean getModifyGeom(){
+        return modifyGeom;
+    }
+    
+    public void setModifyGeom(boolean modifyGeom){
+        this.modifyGeom = modifyGeom;
+    }
+    
     public String getWriterType() {
         return writerType;
     }
@@ -399,7 +438,23 @@ public class Process implements Serializable, Nameable {
     public void setRemarks(String remarks) {
         this.remarks = remarks;
     }
-
+    
+    public String getFilter(){
+        return filter;
+    }
+    
+    public void setFilter(String filter){
+        this.filter = filter;
+    }
+    
+    public String getModifyFilter(){
+        return modifyFilter;
+    }
+    
+    public void setModifyFilter(String modifyFilter){
+        this.modifyFilter = modifyFilter;
+    }
+    
     public String getUserName() {
         return userName;
     }
@@ -415,4 +470,4 @@ public class Process implements Serializable, Nameable {
     public void setLinkedProcess(Process linkedProcess) {
         this.linkedProcess = linkedProcess;
     }
-}
+    }
