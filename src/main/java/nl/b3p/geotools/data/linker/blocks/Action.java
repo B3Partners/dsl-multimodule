@@ -86,7 +86,7 @@ public abstract class Action {
      * @return the clean String
      */
     public static String fixTypename(String in) {
-        String allowed = "qwertyuiopasdfghjklzxcvbnm1234567890_";
+        String allowed = "qwertyuiopasdfghjklzxcvbnm1234567890_:";
         String out = "";
 
         for (int i = 0; i < in.length(); i++) {
