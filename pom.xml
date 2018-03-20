@@ -39,7 +39,7 @@
         <site>
             <id>gh-pages</id>
             <name>github pages site</name>
-            <url>github:http://b3partners.github.io/${project.artifactId}/</url>
+            <url>scm:git:ssh://git@github.com/b3partners/${project.artifactId}.git</url>
         </site>
     </distributionManagement>
 
@@ -49,7 +49,7 @@
         <maven.compiler.source>${project.build.sourceVersion}</maven.compiler.source>
         <maven.compiler.target>${project.build.targetVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <geotools.version>18.2</geotools.version>
+        <geotools.version>19.0</geotools.version>
         <slf4j.version>1.7.25</slf4j.version>
         <hibernate.version>3.6.10.Final</hibernate.version>
     </properties>
@@ -171,7 +171,7 @@
             <dependency>
                 <groupId>org.json</groupId>
                 <artifactId>json</artifactId>
-                <version>20171018</version>
+                <version>20180130</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
@@ -273,7 +273,6 @@
                     </execution>
                 </executions>
             </plugin>
-          
             <plugin>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>2.5.2</version>
@@ -284,27 +283,35 @@
             </plugin>
             <plugin>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.6</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>net.trajano.wagon</groupId>
-                        <artifactId>wagon-git</artifactId>
-                        <!-- 2.0.4 heeft problemen met accepteren/toevoegen van de RSA fingerprint -->
-                        <version>2.0.3</version>
-                    </dependency>
-                </dependencies>
+                <version>3.7</version>
                 <configuration>
                     <generateSitemap>true</generateSitemap>
                     <attach>false</attach>
+                    <skipDeploy>true</skipDeploy>
                     <outputEncoding>${project.build.sourceEncoding}</outputEncoding>
                     <locales>nl</locales>
                     <relativizeDecorationLinks>false</relativizeDecorationLinks>
                 </configuration>
             </plugin>
-            
+            <plugin>
+                <artifactId>maven-scm-publish-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <content>${project.reporting.outputDirectory}</content>
+                    <scmBranch>gh-pages</scmBranch>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>scm-publish</id>
+                        <phase>site-deploy</phase>
+                        <goals>
+                            <goal>publish-scm</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
-
     <reporting>
         <plugins>
             <plugin>
