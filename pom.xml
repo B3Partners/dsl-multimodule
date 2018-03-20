@@ -27,7 +27,7 @@
             <dependency>
                 <groupId>nl.b3p</groupId>
                 <artifactId>datastorelinker-bom</artifactId>
-                <version>5.0.0-RC1</version>
+                <version>5.0.4</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -49,12 +49,12 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>datastorelinkerEntities</artifactId>
-            <version>5.0.0-RC1</version>
+            <version>5.0.0-RC2</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-commons-core</artifactId>
-            <version>5.0.0-RC1</version>
+            <version>5.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.geotools.jdbc</groupId>
@@ -89,15 +89,16 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>b3p-suf2-reader</artifactId>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>commons-mail-b3p</artifactId>
-            <version>5.0.0-RC1</version>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>       
+            <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -124,8 +125,8 @@
         <connection>scm:git:git@github.com:B3Partners/b3p-datastorelinker.git</connection>
         <developerConnection>scm:git:git@github.com:B3Partners/b3p-datastorelinker.git</developerConnection>
         <url>https://github.com/B3Partners/b3p-datastorelinker</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
     <distributionManagement>
         <repository>
             <id>repo.b3p.nl</id>
