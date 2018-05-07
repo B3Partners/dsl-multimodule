@@ -103,6 +103,11 @@ public class ActionFactory {
     public static final String ATTRIBUTE_NAME_FILTER_COLUMN = "attribute_name_filter_column";
     public static final String ATTRIBUTE_NAME_FILTER_OPERATOR = "attribute_name_filter_operator";
     public static final String ATTRIBUTE_NAME_FILTER_VALUE = "attribute_name_filter_value";
+    public static final String METADATA_BBOX_MINX = "metadata_bbox_minx";
+    public static final String METADATA_BBOX_MINY = "metadata_bbox_miny";
+    public static final String METADATA_BBOX_MAXX = "metadata_bbox_maxx";
+    public static final String METADATA_BBOX_MAXY = "metadata_bbox_maxy";
+    public static final String METADATA_PRECISION = "metadata_precision";
     public static final String DATE_FORMAT = "date_format";
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
@@ -427,9 +432,14 @@ public class ActionFactory {
                  * Create ActionCombo_Fix_To_Oracle
                  */
             } else if (isThisClass(actionClassName, ActionCombo_Fix_To_Oracle.class)) {
-                return new ActionCombo_Fix_To_Oracle();
+                Integer minx = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MINX,0));
+                Integer miny = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MINY,350000));
+                Integer maxx = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MAXX,250000));
+                Integer maxy = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MAXY,600000));
 
+                String precision = (String) properties.getOrDefault(METADATA_PRECISION, 0.05);
 
+                return new ActionCombo_Fix_To_Oracle(minx, miny, maxx, maxy, precision);
 
                 /**
                  * Create ActionCombo_Fix_From_Oracle

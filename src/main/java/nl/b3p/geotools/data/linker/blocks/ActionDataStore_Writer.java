@@ -416,7 +416,6 @@ public class ActionDataStore_Writer extends Action {
         } else {
             postPointWithinPolygon = false;
         }
-
         if (this.polygonize) {
             log.info("Polygonize is configured as post action");
             collectionActions.add(new CollectionAction_Polygonize(new HashMap(properties)));
@@ -568,7 +567,6 @@ public class ActionDataStore_Writer extends Action {
             }
         }
     }
-
     /**
      * Check the schema and return the name.
      */

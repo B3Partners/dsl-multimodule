@@ -21,6 +21,7 @@ public class ActionFeatureType_Typename_Update extends Action {
 
     private boolean append;
     private String newTypeName;
+    private String completeNewTypeName = null;
 
     /**
      * Change typename by appending a extension or rename it
@@ -43,6 +44,9 @@ public class ActionFeatureType_Typename_Update extends Action {
             feature.setTypeName(feature.getTypeName() + newTypeName);
         } else {
             feature.setTypeName(newTypeName);
+        }
+        if(completeNewTypeName == null){
+            this.completeNewTypeName  = feature.getTypeName();
         }
         return feature;
     }
@@ -73,6 +77,10 @@ public class ActionFeatureType_Typename_Update extends Action {
 
     @Override
     public void flush(Status status, Map properties) throws Exception {
+        // Sorry, I know this is ugly. But execute doesn't have a referentie to the propertiesmap, and the moment processPostCollectionActions()
+        // method is called is not defined (it can be called after we need the newFeatureTypeName. .flush is called after processing the features, so
+        // that's before we need it. 
+        properties.put("newFeatureTypeName", completeNewTypeName);
     }
     
     @Override
