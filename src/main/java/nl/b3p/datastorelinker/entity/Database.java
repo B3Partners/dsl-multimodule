@@ -34,7 +34,6 @@ import net.sourceforge.stripes.util.Log;
 import nl.b3p.datastorelinker.util.Nameable;
 import nl.b3p.datastorelinker.util.Util;
 import nl.b3p.geotools.data.msaccess.MsAccessDataStoreFactory;
-import org.geotools.data.wfs.WFSDataStoreFactory;
 import org.geotools.jdbc.JDBCDataStoreFactory;
 
 /**
