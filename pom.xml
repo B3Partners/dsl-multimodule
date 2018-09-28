@@ -49,7 +49,7 @@
         <maven.compiler.source>${project.build.sourceVersion}</maven.compiler.source>
         <maven.compiler.target>${project.build.targetVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <geotools.version>19.2</geotools.version>
+        <geotools.version>20.0</geotools.version>
         <slf4j.version>1.7.25</slf4j.version>
         <hibernate.version>3.6.10.Final</hibernate.version>
     </properties>
