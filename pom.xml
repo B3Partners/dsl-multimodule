@@ -158,6 +158,11 @@
                 <version>${geotools.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-wfs-ng</artifactId>
+                <version>${geotools.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>net.sourceforge.stripes</groupId>
                 <artifactId>stripes</artifactId>
                 <version>1.6.0</version>
