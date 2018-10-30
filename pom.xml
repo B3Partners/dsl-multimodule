@@ -4,7 +4,7 @@
 
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinker-bom</artifactId>
-    <version>5.0.7-SNAPSHOT</version>
+    <version>5.0.9-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bill Of Materials module voor de datastorelinker.</name>
