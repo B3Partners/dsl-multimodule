@@ -78,7 +78,8 @@ public class ActionFeature_Value_Set extends Action {
         constructors.add(Arrays.asList(new String[]{
                     ActionFactory.ATTRIBUTE_NAME,
                     ActionFactory.OBJECT_REPLACE,
-                    ActionFactory.APPEND
+                    ActionFactory.APPEND,
+                    ActionFactory.POSTGRESBOOLEAN
                 }));
 /*
         constructors.add(Arrays.asList(new String[]{

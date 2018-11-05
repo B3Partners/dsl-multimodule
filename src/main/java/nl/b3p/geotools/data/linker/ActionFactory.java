@@ -32,6 +32,7 @@ public class ActionFactory {
     public static final String NEW_TYPENAME = "new_typename";
     public static final String PARAMS = "params";
     public static final String APPEND = "append";
+    public static final String POSTGRESBOOLEAN = "postgresboolean";
     public static final String MODIFY = "modify";
     public static final String MODIFY_GEOM = "modifyGeom";
     public static final String DROPFIRST = "drop";
@@ -335,8 +336,12 @@ public class ActionFactory {
                     Object replace = null;
                     Object obj = properties.get(OBJECT_REPLACE);
                     Map map = new HashMap();
-
-                    if (obj instanceof String) {
+                    
+                    // only for postgres, check option in datastorelinker
+                    if(toBoolean((String) properties.get(POSTGRESBOOLEAN))){
+                        replace = toBoolean((String) obj);
+                    }
+                    else if (obj instanceof String) {
                         map.put("class", "java.lang.String");
                         map.put("value", (String) obj);
                         replace = createObject(map);
