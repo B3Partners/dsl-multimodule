@@ -17,6 +17,8 @@ CREATE TABLE database_inout (
     port integer,
     db_schema character varying(255),
     srs character varying(255),
+    buffersize character varying(255),
+    timeout character varying(255),
     database_type character varying(255) NOT NULL,
     inout_type character varying(255) NOT NULL,
     url character varying(255),
@@ -112,7 +114,11 @@ CREATE TABLE process (
     mail_id bigint NOT NULL,
     output_id bigint NOT NULL,
     process_status_id bigint NOT NULL,
-    schedule bigint
+    schedule bigint,
+    filter character varying(255),
+    modify_table boolean,
+    modify_filter character varying(255),
+    modify_geom boolean
 );
 
 
