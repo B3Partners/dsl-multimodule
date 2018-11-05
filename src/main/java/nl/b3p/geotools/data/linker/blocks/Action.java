@@ -83,10 +83,17 @@ public abstract class Action {
      * Fix a string and filter characters not allowed
      *
      * @param in the input String
+     * @param isWfs datastore2write is type of wfs (allow ':' in allowed string)
      * @return the clean String
      */
-    public static String fixTypename(String in) {
-        String allowed = "qwertyuiopasdfghjklzxcvbnm1234567890_:";
+    public static String fixTypename(String in, boolean isWfs) {
+        String allowed ="";
+        if(isWfs){
+            allowed = "qwertyuiopasdfghjklzxcvbnm1234567890_:";
+        } else {
+            allowed = "qwertyuiopasdfghjklzxcvbnm1234567890_";
+        }
+         
         String out = "";
 
         for (int i = 0; i < in.length(); i++) {
