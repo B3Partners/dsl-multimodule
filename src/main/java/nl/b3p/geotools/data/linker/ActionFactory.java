@@ -32,6 +32,9 @@ public class ActionFactory {
     public static final String NEW_TYPENAME = "new_typename";
     public static final String PARAMS = "params";
     public static final String APPEND = "append";
+    public static final String POSTGRESBOOLEAN = "postgresboolean";
+    public static final String MODIFY = "modify";
+    public static final String MODIFY_GEOM = "modifyGeom";
     public static final String DROPFIRST = "drop";
     //Property may be true or false. Set to true if you want to polygonize all the lines in the RESULTING LINE TABLE
     public static final String POLYGONIZE = "polygonize";
@@ -108,6 +111,7 @@ public class ActionFactory {
     public static final String METADATA_BBOX_MAXX = "metadata_bbox_maxx";
     public static final String METADATA_BBOX_MAXY = "metadata_bbox_maxy";
     public static final String METADATA_PRECISION = "metadata_precision";
+    public static final String ATTRIBUTE_MODIFY_FILTER = "modifyFilter";
     public static final String DATE_FORMAT = "date_format";
     public static final Log log = LogFactory.getLog(DataStoreLinker.class);
 
@@ -332,8 +336,12 @@ public class ActionFactory {
                     Object replace = null;
                     Object obj = properties.get(OBJECT_REPLACE);
                     Map map = new HashMap();
-
-                    if (obj instanceof String) {
+                    
+                    // only for postgres, check option in datastorelinker
+                    if(toBoolean((String) properties.get(POSTGRESBOOLEAN))){
+                        replace = toBoolean((String) obj);
+                    }
+                    else if (obj instanceof String) {
                         map.put("class", "java.lang.String");
                         map.put("value", (String) obj);
                         replace = createObject(map);
