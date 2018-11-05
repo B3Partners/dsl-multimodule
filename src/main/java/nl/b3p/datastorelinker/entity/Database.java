@@ -53,7 +53,9 @@ import org.geotools.jdbc.JDBCDataStoreFactory;
     "url",
     "srs",
     "colX",
-    "colY"
+    "colY",
+    "timeout",
+    "buffersize"
 })
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @Entity
@@ -79,7 +81,9 @@ public class Database implements Serializable, Nameable {
         @XmlEnumValue("oracle")
         ORACLE("oracle"),
         @XmlEnumValue("msaccess")
-        MSACCESS("msaccess");
+        MSACCESS("msaccess"),
+        @XmlEnumValue("wfs")
+        WFS("wfs");
 
         private final String geotoolsType;
 
@@ -148,6 +152,12 @@ public class Database implements Serializable, Nameable {
 
     @Column(name = "col_y")
     private String colY;
+    
+    @Column(name = "timeout")
+    private String timeout;
+    
+    @Column(name = "buffersize")
+    private String buffersize;
 
     @XmlTransient
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "database")
@@ -225,7 +235,12 @@ public class Database implements Serializable, Nameable {
         Util.addToMapIfNotNull(map, MsAccessDataStoreFactory.PARAM_SRS.key, srs, keyPrefix);
         Util.addToMapIfNotNull(map, MsAccessDataStoreFactory.PARAM_XLABELS.key, colX, keyPrefix);
         Util.addToMapIfNotNull(map, MsAccessDataStoreFactory.PARAM_YLABELS.key, colY, keyPrefix);
-
+        // WFS specific:
+        Util.addToMapIfNotNull(map, "WFSDataStoreFactory:GET_CAPABILITIES_URL", url, keyPrefix);
+        Util.addToMapIfNotNull(map, "WFSDataStoreFactory:USERNAME", username, keyPrefix);
+        Util.addToMapIfNotNull(map, "WFSDataStoreFactory:PASSWORD", password, keyPrefix);
+        Util.addToMapIfNotNull(map, "WFSDataStoreFactory:BUFFER_SIZE", buffersize, keyPrefix);
+        Util.addToMapIfNotNull(map, "WFSDataStoreFactory:TIMEOUT", timeout, keyPrefix);
         log.debug(map);
 
         return map;
@@ -357,7 +372,25 @@ public class Database implements Serializable, Nameable {
     public void setColY(String colY) {
         this.colY = colY;
     }
-
+    
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+    public String getTimeout(){
+        return timeout;
+    }
+    
+    public void setTimeout(String timeout){
+        this.timeout= timeout;
+    }
+    
+    @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+    public String getBuffersize(){
+        return buffersize;
+    }
+    
+    public void setBuffersize(String buffersize){
+        this.buffersize = buffersize;
+    }
+    
     @XmlTransient
     public List<Inout> getInoutList() {
         return inoutList;

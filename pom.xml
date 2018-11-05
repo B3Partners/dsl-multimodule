@@ -98,6 +98,10 @@
             <artifactId>b3p-gt2-suf2</artifactId>
             <version>5.0.0-RC2</version>
         </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-wfs-ng</artifactId>
+        </dependency>
     </dependencies>
     <repositories>
         <repository>
