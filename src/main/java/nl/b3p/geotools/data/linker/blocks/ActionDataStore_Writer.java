@@ -27,6 +27,7 @@ import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
 import org.geotools.data.oracle.OracleDialect;
 import org.geotools.data.postgis.PostGISDialect;
+import org.geotools.data.wfs.WFSDataStore;
 import org.geotools.factory.Hints;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
@@ -322,17 +323,15 @@ public class ActionDataStore_Writer extends Action {
                     SimpleFeature newFeature = (SimpleFeature) fi.next();
                     List<org.opengis.feature.type.AttributeType> properties = newFeature.getFeatureType().getTypes();
                     Object filterValue = newFeature.getAttribute(modifyFilter);
-                    //Filter filter = ECQL.toFilter("digis_guid='" + filterName + "'");
+
                     Filter filter = ECQL.toFilter(modifyFilter+"='" + filterValue + "'");
                     for (org.opengis.feature.type.AttributeType property : properties) {
-                        //if (!property.getName().toString().equals("fid")) {
                         if(newFeature.getDefaultGeometryProperty().getName().equals(property.getName()) && !modifyGeom){
                             continue;
                         }
                         if (newFeature.getAttribute(property.getName().toString()) != null) {
                             store.modifyFeatures(property.getName(), newFeature.getAttribute(property.getName()), filter);
                         }
-                        //}
                     }
                 }
             } else {
@@ -692,8 +691,11 @@ public class ActionDataStore_Writer extends Action {
      */
     private EasyFeature fixFeatureTypeName(EasyFeature feature) throws Exception {
         String oldTypeName = feature.getTypeName();
-
-        String typename = fixTypename(oldTypeName.replaceAll(" ", "_"));
+        boolean isWFS = false;
+        if(dataStore2Write instanceof WFSDataStore){
+            isWFS = true;
+        }
+        String typename = fixTypename(oldTypeName.replaceAll(" ", "_"), isWFS);
         for (String tnn : datastoreTypeNames) {
             // hoofdletters gebruik is niet relevant
             if (tnn.equalsIgnoreCase(typename)) {
