@@ -101,8 +101,6 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-wfs-ng</artifactId>
-            <version>19.2</version>
-            <type>jar</type>
         </dependency>
     </dependencies>
     <repositories>
