@@ -323,11 +323,13 @@ public class ActionDataStore_Writer extends Action {
                     SimpleFeature newFeature = (SimpleFeature) fi.next();
                     List<org.opengis.feature.type.AttributeType> properties = newFeature.getFeatureType().getTypes();
                     Object filterValue = newFeature.getAttribute(modifyFilter);
-
                     Filter filter = ECQL.toFilter(modifyFilter+"='" + filterValue + "'");
+                    boolean hasGeom = newFeature.getDefaultGeometryProperty() != null;
                     for (org.opengis.feature.type.AttributeType property : properties) {
-                        if(newFeature.getDefaultGeometryProperty().getName().equals(property.getName()) && !modifyGeom){
-                            continue;
+                        if(hasGeom){
+                            if(newFeature.getDefaultGeometryProperty().getName().equals(property.getName()) && !modifyGeom){
+                                continue;
+                            }
                         }
                         if (newFeature.getAttribute(property.getName().toString()) != null) {
                             store.modifyFeatures(property.getName(), newFeature.getAttribute(property.getName()), filter);
