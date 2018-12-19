@@ -338,7 +338,7 @@ public class ActionFactory {
                     Map map = new HashMap();
                                         
                     // only for postgres, check option in datastorelinker
-                    if(toBoolean((String) properties.get(POSTGRESBOOLEAN))){
+                    if(toBoolean((String) properties.getOrDefault(POSTGRESBOOLEAN,"false"))){
                         replace = toBoolean((String) obj);
                     }
                     else if (obj instanceof String) {
