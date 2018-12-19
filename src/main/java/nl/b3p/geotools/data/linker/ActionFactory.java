@@ -336,7 +336,7 @@ public class ActionFactory {
                     Object replace = null;
                     Object obj = properties.get(OBJECT_REPLACE);
                     Map map = new HashMap();
-                    
+                                        
                     // only for postgres, check option in datastorelinker
                     if(toBoolean((String) properties.get(POSTGRESBOOLEAN))){
                         replace = toBoolean((String) obj);
@@ -440,12 +440,12 @@ public class ActionFactory {
                  * Create ActionCombo_Fix_To_Oracle
                  */
             } else if (isThisClass(actionClassName, ActionCombo_Fix_To_Oracle.class)) {
-                Integer minx = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MINX,0));
-                Integer miny = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MINY,350000));
-                Integer maxx = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MAXX,250000));
-                Integer maxy = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MAXY,600000));
+                Integer minx = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MINX,"0"));
+                Integer miny = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MINY,"350000"));
+                Integer maxx = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MAXX,"250000"));
+                Integer maxy = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MAXY,"600000"));
 
-                String precision = (String) properties.getOrDefault(METADATA_PRECISION, 0.05);
+                String precision = (String) properties.getOrDefault(METADATA_PRECISION, "0.05");
 
                 return new ActionCombo_Fix_To_Oracle(minx, miny, maxx, maxy, precision);
 
