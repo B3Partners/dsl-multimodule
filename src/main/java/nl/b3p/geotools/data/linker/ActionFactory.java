@@ -440,12 +440,12 @@ public class ActionFactory {
                  * Create ActionCombo_Fix_To_Oracle
                  */
             } else if (isThisClass(actionClassName, ActionCombo_Fix_To_Oracle.class)) {
-                Integer minx = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MINX,"0"));
-                Integer miny = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MINY,"350000"));
-                Integer maxx = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MAXX,"250000"));
-                Integer maxy = toInteger ((String) properties.getOrDefault(METADATA_BBOX_MAXY,"600000"));
+                Integer minx = toInteger((String) (properties.getOrDefault(METADATA_BBOX_MINX, "0") == null ? "0" : properties.getOrDefault(METADATA_BBOX_MINX, "0")));
+                Integer miny = toInteger((String) (properties.getOrDefault(METADATA_BBOX_MINY, "350000") == null ? "350000" : properties.getOrDefault(METADATA_BBOX_MINY, "350000")));
+                Integer maxx = toInteger((String) (properties.getOrDefault(METADATA_BBOX_MAXX, "250000") == null ? "250000" : properties.getOrDefault(METADATA_BBOX_MAXX, "250000")));
+                Integer maxy = toInteger((String) (properties.getOrDefault(METADATA_BBOX_MAXY, "600000") == null ? "600000" : properties.getOrDefault(METADATA_BBOX_MAXY, "600000")));
 
-                String precision = (String) properties.getOrDefault(METADATA_PRECISION, "0.05");
+                String precision = (String) (properties.getOrDefault(METADATA_PRECISION, "0.05") == null ? "0.05":properties.getOrDefault(METADATA_PRECISION, "0.05"));
 
                 return new ActionCombo_Fix_To_Oracle(minx, miny, maxx, maxy, precision);
 
