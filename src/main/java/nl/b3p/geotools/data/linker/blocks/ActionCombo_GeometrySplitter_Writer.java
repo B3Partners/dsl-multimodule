@@ -4,7 +4,7 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
-import com.vividsolutions.jts.geom.*;
+import org.locationtech.jts.geom.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

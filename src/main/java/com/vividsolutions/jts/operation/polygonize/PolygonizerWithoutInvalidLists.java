@@ -31,10 +31,10 @@
  *     (250)385-6040
  *     www.vividsolutions.com
  */
-package com.vividsolutions.jts.operation.polygonize;
+package org.locationtech.jts.operation.polygonize;
 
 import java.util.*;
-import com.vividsolutions.jts.geom.*;
+import org.locationtech.jts.geom.*;
 
 /**
  * Polygonizes a set of Geometrys which contain linework that

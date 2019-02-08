@@ -4,8 +4,8 @@
  */
 package nl.b3p.geotools.data.linker.blocks;
 
-import com.vividsolutions.jts.geom.*;
-import com.vividsolutions.jts.operation.buffer.BufferOp;
+import org.locationtech.jts.geom.*;
+import org.locationtech.jts.operation.buffer.BufferOp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
