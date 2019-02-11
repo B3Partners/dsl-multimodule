@@ -64,16 +64,16 @@ public class ExcelReader {
 
                     switch (cell.getCellType()) {
 
-                        case HSSFCell.CELL_TYPE_FORMULA:
+                        case FORMULA:
                             value = cell.getCellFormula();
                             break;
 
-                        case HSSFCell.CELL_TYPE_NUMERIC:
+                        case NUMERIC:
                             value = String.valueOf((int) cell.getNumericCellValue());
 
                             break;
 
-                        case HSSFCell.CELL_TYPE_STRING:
+                        case STRING:
                             value = cell.getStringCellValue();
                             break;
 
@@ -97,7 +97,7 @@ public class ExcelReader {
                             }
 
                             switch (tempCell.getCellType()) {
-                                case HSSFCell.CELL_TYPE_FORMULA:
+                                case FORMULA:
                                     try {
                                         String temp = tempCell.getStringCellValue();
                                         value = temp;
@@ -108,7 +108,7 @@ public class ExcelReader {
 
                                     break;
 
-                                case HSSFCell.CELL_TYPE_NUMERIC:
+                                case NUMERIC:
                                     HSSFCellStyle style = tempCell.getCellStyle();
                                     if (HSSFDateUtil.isCellDateFormatted(tempCell)) {
                                         value = getDateValue(tempCell);
@@ -118,7 +118,7 @@ public class ExcelReader {
 
                                     break;
 
-                                case HSSFCell.CELL_TYPE_STRING:
+                                case STRING:
                                     value = tempCell.getStringCellValue();
                                     break;
 
@@ -167,15 +167,15 @@ public class ExcelReader {
                     }
 
                     switch (cell.getCellType()) {
-                        case HSSFCell.CELL_TYPE_FORMULA:
+                        case FORMULA:
                             value = cell.getCellFormula();
                             break;
 
-                        case HSSFCell.CELL_TYPE_NUMERIC:
+                        case NUMERIC:
                             value = String.valueOf((int) cell.getNumericCellValue());
                             break;
 
-                        case HSSFCell.CELL_TYPE_STRING:
+                        case STRING:
                             value = cell.getStringCellValue();
                             break;
 
