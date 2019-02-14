@@ -1,0 +1,1 @@
+ALTER TABLE mail ALTER COLUMN smtp_host DROP NOT NULL;
