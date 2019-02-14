@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!DOCTYPE securityfilter-config PUBLIC
+    "-//SecurityFilter.org//DTD Security Filter Configuration 2.0//EN"
+    "http://www.securityfilter.org/dtd/securityfilter-config_2_0.dtd">
+
+<securityfilter-config>
+    
+    <!-- Publish service door iedereen aan te roepen -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Publish</web-resource-name>
+            <url-pattern>/publish/*</url-pattern>
+        </web-resource-collection>
+    </security-constraint>
+    
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>styles</web-resource-name>
+            <url-pattern>/styles/*</url-pattern>
+            <http-method>GET</http-method>
+        </web-resource-collection>
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>scripts</web-resource-name>
+            <url-pattern>/scripts/*</url-pattern>
+            <http-method>GET</http-method>
+        </web-resource-collection>
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>i18n</web-resource-name>
+            <url-pattern>/i18n.action</url-pattern>
+            <http-method>GET</http-method>
+        </web-resource-collection>
+    </security-constraint>
+
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>images</web-resource-name>
+            <url-pattern>/images/*</url-pattern>
+            <http-method>GET</http-method>
+        </web-resource-collection>
+    </security-constraint>
+    
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Home</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>beheerder</role-name>
+            <role-name>gebruiker</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Database</web-resource-name>
+            <url-pattern>/Database*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>beheerder</role-name>
+            <role-name>gebruiker</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Input</web-resource-name>
+            <url-pattern>/Input*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>beheerder</role-name>
+            <role-name>gebruiker</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>File</web-resource-name>
+            <url-pattern>/File*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>beheerder</role-name>
+            <role-name>gebruiker</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Output</web-resource-name>
+            <url-pattern>/Output*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>beheerder</role-name>
+            <role-name>gebruiker</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <!-- Alleen voor beheerders -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Authorization</web-resource-name>
+            <url-pattern>/Authorization*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>beheerder</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
+    <login-config>
+        <auth-method>FORM</auth-method>
+        <form-login-config>
+            <form-login-page>/login.jsp</form-login-page>
+            <form-logout-page>/logout.jsp</form-logout-page>
+            <form-error-page>/loginError.jsp</form-error-page>
+            <form-default-page>/</form-default-page>
+        </form-login-config>
+    </login-config>
+
+    <realm className="nl.b3p.datastorelinker.security.GisSecurityRealm"/>
+    
+</securityfilter-config>

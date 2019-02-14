@@ -1,0 +1,248 @@
+/* 
+    Document   : main
+    Created on : 15-jun-2010, 18:04:30
+    Author     : Erik van de Pol
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-size: 10px;
+    font-family: Verdana;
+    line-height:1.125em;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    margin: 0;
+    padding: 0;
+}
+
+/* nodig voor IE 7 (en lager?) */
+h1 {
+    font-size: 2em;
+    line-height: 1em;
+}
+h2 {
+    font-size: 1.6em;
+    line-height: 1em;
+}
+h3 {
+    font-size: 1.2em;
+    line-height: 1em;
+}
+
+.header {
+    background-image: url(../images/bovenbalk.gif); 
+    background-repeat: repeat-x;
+}
+
+#footer {
+    background-image: url(../images/onderbalk.gif);
+    background-repeat: repeat-x;
+    height: 50px;
+    width: 100%;
+}
+
+#footer_content {
+    background-image: url(../images/footerbar.gif);
+    background-repeat: no-repeat;
+    width: 960px;
+    height: 50px;
+    text-align: left;
+}
+
+.footer_tekst {
+    color: #7891A5;
+    font-size: 11px;
+    margin-top: 18px;
+}
+
+.footer_tekst a.gpl_link{
+    color: #7891A5;
+    font-size: 11px;
+    margin-top: 18px;
+    text-decoration: underline;
+}
+
+#footer_tekst_links {
+    float: left;
+    margin-left: 47px;
+}
+
+#footer_tekst_rechts {
+    float: right;
+    margin-right: 125px;
+}
+
+.west {
+    background-image: url(../images/leftbg.gif);
+    background-repeat: repeat-y;
+}
+
+.east {
+    background-image: url(../images/rightbg.gif);
+    background-repeat: repeat-y;
+}
+
+/*.logo {
+    background-image: url(../images/datastorelinkerlogo.png);
+    background-repeat: no-repeat;
+    margin-left: 50px;
+    height: 50px;
+}*/
+
+.footer-text {
+    color: #7891A5;
+    font-size: 11px;
+}
+
+#footer-text-left {
+    position: absolute;
+    left: 50px;
+    top: 18px;
+}
+
+.login {
+    font-size: 1.5em;
+    padding: 0.5em;
+}
+
+.login-info-block {
+    font-size: 12px;
+    line-height: 1.5em; /* IE 7 fix */
+    float: right;
+    position: absolute;
+    right: 50px;
+    top: 32px;
+}
+
+.logged-in-as {
+    display: inline;
+    color: #7891A5;
+}
+
+.logout-link {
+    text-decoration: none;
+    color: #fff;
+    margin-left: 10px;
+}
+
+.login-field {
+    width: 200px;
+}
+
+.message {
+    margin-bottom: 1em;
+    padding: 0.5em;
+}
+
+.ui-progressbar {
+    position: relative;
+}
+
+.progressbarLabel {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    line-height: 1.9em;
+    color: silver;
+    font-weight: bold;
+}
+
+/*.overview-hover {
+    cursor: hand;
+    cursor: pointer;
+}*/
+
+.process-status-image {
+    float: right;
+}
+
+.ui-dialog-content {
+    width: 100%;
+}
+
+/* jquery ui override: veranderen na (elke) theme verandering */
+.ui-state-active/*, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active*/ {
+    border: 1px solid #196299;
+    background: #f7f7f7 url(images/ui-bg_flat_100_f7f7f7_40x100.png) 50% 50% repeat-x;
+    font-weight: normal;
+    color: #196299;
+}
+
+#uploaderBody, #uploaderQueue * {
+    width: auto;
+}
+
+#uploaderQueue {
+    width: auto;
+    height: auto;
+    overflow: visible;
+    padding: 0;
+    margin-bottom: 1em;
+}
+
+#uploaderStop {
+    float: right;
+}
+
+#cronAccordion form, #cronAccordion table {
+    margin: 0;
+    padding: 0;
+}
+
+#cronAccordion .ui-accordion-content {
+    overflow: hidden;
+}
+
+#parameterForm .ui-button .ui-button-text {
+    padding: 0.07em;
+}
+
+.ui-autocomplete {
+    -moz-border-radius-topleft: 0px; -webkit-border-top-left-radius: 0px; border-top-left-radius: 0px;
+    -moz-border-radius-topright: 0px; -webkit-border-top-right-radius: 0px; border-top-right-radius: 0px;
+    max-height: 100px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+    /* add padding to account for vertical scrollbar */
+    padding-right: 20px;
+}
+/* IE 6 doesn't support max-height
+ * we use height instead, but this forces the menu to always be this tall
+ */
+* html .ui-autocomplete {
+    height: 100px;
+}
+
+
+.titleContainer {
+    font-weight: bold;
+}
+
+.colsContainer {
+    margin-top: 1em;
+}
+
+UL.jqueryFileTree A.adminPage {
+    cursor: default;
+}
+
+UL.jqueryFileTree A.adminPage:hover {
+	background: transparent;
+}
+
+.verplichteInvoer {
+    color: red;
+}
