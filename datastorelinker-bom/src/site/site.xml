@@ -1,9 +1,9 @@
-<project xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 http://maven.apache.org/xsd/decoration-1.8.0.xsd" 
-         xmlns="http://maven.apache.org/DECORATION/1.8.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<project xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 http://maven.apache.org/xsd/decoration-1.8.0.xsd"
+         xmlns="http://maven.apache.org/DECORATION/1.8.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          name="${this.name} ${this.version}">
-  <publishDate position="left" format="dd-MMMM-yyyy" />
-  <version position="left" />
+  <publishDate position="left" format="dd-MMMM-yyyy"/>
+  <version position="left"/>
   <skin>
     <groupId>org.apache.maven.skins</groupId>
     <artifactId>maven-fluido-skin</artifactId>
@@ -21,12 +21,14 @@
   <body>
     <head />
     <links>
-      <item name="Wiki" href="https://github.com/B3Partners/${this.artifactId}/wiki" />
-      <item name="Issues dashboard" href="${this.issueManagement.url}" />
+      <item name="Wiki" href="https://github.com/B3Partners/datastorelinker/wiki" />
+      <item name="Issues dashboard" href="${this.issueManagement.url}"/>
     </links>
-    <menu name="Informatie" inherit="top">
+    <menu name="Informatie">
       <item name="Home" href="/index.html" />
     </menu>
+    <menu ref="parent" />
+    <menu ref="modules" />
     <menu ref="reports" />
   </body>
   <poweredBy />

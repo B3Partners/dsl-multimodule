@@ -24,8 +24,9 @@
       <item name="Wiki" href="https://github.com/B3Partners/datastorelinker/wiki" />
       <item name="Issues dashboard" href="${this.issueManagement.url}"/>
     </links>
-    <menu name="Informatie">
-      <item name="Home" href="/index.html" />
+    <menu name="Informatie" inherit="top">
+      <item name="Home" href="/index.html"/>
+      <item name="Wiki" href="https://github.com/B3Partners/datastorelinker/wiki"/>
     </menu>
     <menu ref="parent" />
     <menu ref="modules" />
