@@ -387,6 +387,14 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
                     <version>4.0.2</version>
@@ -492,18 +500,18 @@
             <plugin>
                 <artifactId>maven-scm-publish-plugin</artifactId>
                 <configuration>
-                    <content>${project.reporting.outputDirectory}</content>
                     <scmBranch>gh-pages</scmBranch>
+                    <tryUpdate>true</tryUpdate>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>scm-publish</id>
-                        <phase>site-deploy</phase>
-                        <goals>
-                            <goal>publish-scm</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>scm-publish</id>-->
+                        <!--<phase>site-deploy</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>publish-scm</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
             </plugin>
         </plugins>
     </build>
