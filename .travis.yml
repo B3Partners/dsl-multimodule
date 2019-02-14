@@ -1,0 +1,24 @@
+language: java
+
+jdk:
+- oraclejdk8
+- openjdk8
+
+matrix:
+  fast_finish: true
+
+before_install:
+- git lfs pull
+- unset _JAVA_OPTIONS
+
+install:
+- mvn install -Dmaven.test.skip=true -B -V -fae -q
+
+script:
+- mvn -e test -fae -B
+- mvn -e verify -fae -B
+
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/downloads

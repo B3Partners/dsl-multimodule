@@ -1,0 +1,37 @@
+version: "{build}-{branch}"
+clone_folder: c:\projects\datastorelinker
+clone_depth: 5
+skip_tags: true
+max_jobs: 1
+
+build:
+  verbosity: minimal
+
+matrix:
+  fast_finish: false
+
+install:
+
+- ps: |
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    if (!(Test-Path("C:\Users\appveyor\downloads\maven-bin.zip"))) {
+        (new-object System.Net.WebClient).DownloadFile('https://archive.apache.org/dist/maven/maven-3/3.6.0/binaries/apache-maven-3.6.0-bin.zip', 'C:\Users\appveyor\downloads\maven-bin.zip')
+    }
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\Users\appveyor\downloads\maven-bin.zip", "C:\maven")
+- cmd: SET PATH=C:\maven\apache-maven-3.6.0\bin;%PATH%
+- cmd: echo %PATH%
+- cmd: java -version
+- cmd: mvn -v
+- cd C:\projects\datastorelinker
+- git lfs pull
+
+build_script:
+- mvn install -Dmaven.test.skip=true -B -V -fae -q
+
+test_script:
+- mvn -e test -fae -B
+- mvn -e verify -fae -B
+
+cache:
+- C:\Users\appveyor\.m2\repository -> pom.xml
+- C:\Users\appveyor\downloads -> appveyor.yml
