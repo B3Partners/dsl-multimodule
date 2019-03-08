@@ -1,8 +1,7 @@
-@import "compass";
-@import "mixins";
-@import "customize-design";
-@import "jquery-ui-1.8.11.custom";
-@import "main";
-@import "wizard";
-@import "actions";
-@import "extra";
+@import "../includes/mixins";
+@import "../includes/customize-design";
+@import "../includes/jquery-ui-1.8.11.custom";
+@import "../includes/main";
+@import "../includes/wizard";
+@import "../includes/actions";
+@import "../includes/extra";
