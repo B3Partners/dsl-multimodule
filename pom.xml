@@ -75,7 +75,7 @@
         <org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_deploy_2e_server>Tomcat
         </org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_deploy_2e_server>
         <geotools.version>20.2</geotools.version>
-        <slf4j.version>1.7.26</slf4j.version>
+        <slf4j.version>1.7.27</slf4j.version>
         <hibernate.version>3.6.10.Final</hibernate.version>
         <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
     </properties>
