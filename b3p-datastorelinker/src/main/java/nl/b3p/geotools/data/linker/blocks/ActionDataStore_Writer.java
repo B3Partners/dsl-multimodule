@@ -722,7 +722,7 @@ public class ActionDataStore_Writer extends Action {
         }
         Map cleanedParams = new HashMap();
         for (Object param : params.keySet()) {
-            if (!param.toString().contains("passw")) {
+            if (!param.toString().toLowerCase().contains("passw")) {
                 cleanedParams.put(param, params.get(param));
             }
         }
