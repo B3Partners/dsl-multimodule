@@ -47,11 +47,11 @@
             </tr>
             <tr>
                 <td><stripes:label name="username" for="wfsusername"/></td>
-                <td><stripes:text id="wfsusername" name="username" class="required"/></td>
+                <td><stripes:text id="wfsusername" name="username" /></td>
             </tr>
             <tr>
                 <td><stripes:label name="password" for="wfspassword"/></td>
-                <td><stripes:password id="wfspassword" name="password" class="required"/></td>
+                <td><stripes:password id="wfspassword" name="password" /></td>
             </tr>
             <tr>
                 <td><stripes:label name="timeout" for="wfstimeout"/></td>
