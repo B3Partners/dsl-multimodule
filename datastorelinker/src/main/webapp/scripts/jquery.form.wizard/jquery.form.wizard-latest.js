@@ -28,7 +28,8 @@
 					if(formOptionsSuccess){
 						formOptionsSuccess(responseText, textStatus, xhr);
 					}
-					if(wizard.options.formOptions && wizard.options.formOptions.resetForm || !wizard.options.formOptions){
+                                        $.unblockUI(unblockUIOptions);
+					if(wizard.options && wizard.options.formOptions && wizard.options.formOptions.resetForm || !wizard.options.formOptions){
 						wizard._reset();
 					}
 				},
