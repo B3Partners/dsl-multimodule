@@ -5,12 +5,12 @@
     <parent>
         <groupId>nl.b3p</groupId>
         <artifactId>datastorelinker-parent</artifactId>
-        <version>5.2.0-SNAPSHOT</version>
+        <version>5.2.0</version>
     </parent>
 
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinkerEntities</artifactId>
-    <version>5.2.0-SNAPSHOT</version>
+    <version>5.2.0</version>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -89,15 +89,13 @@
                         <configuration>
                             <hibernatetool destdir="${project.build.outputDirectory}/../schema-export">
                                 <classpath>
-                                    <path location="../datastorelinker/src/main/resources"/>
+                                    <path location="../datastorelinker/src/main/resources" />
                                 </classpath>
-                                <hbm2ddl export="false" drop="false" create="true"
-                                         outputfilename="schema-export-postgresql.sql" format="true">
-                                    <jpaconfiguration persistenceUnit="DataStoreLinkerGuiPU-PostgreSQL"/>
+                                <hbm2ddl export="false" drop="false" create="true" outputfilename="schema-export-postgresql.sql" format="true">
+                                    <jpaconfiguration persistenceUnit="DataStoreLinkerGuiPU-PostgreSQL" />
                                 </hbm2ddl>
-                                <hbm2ddl export="false" drop="false" create="true"
-                                         outputfilename="schema-export-oracle.sql" format="true">
-                                    <jpaconfiguration persistenceUnit="DataStoreLinkerGuiPU-Oracle"/>
+                                <hbm2ddl export="false" drop="false" create="true" outputfilename="schema-export-oracle.sql" format="true">
+                                    <jpaconfiguration persistenceUnit="DataStoreLinkerGuiPU-Oracle" />
                                 </hbm2ddl>
                             </hibernatetool>
                         </configuration>
