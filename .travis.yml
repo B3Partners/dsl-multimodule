@@ -9,6 +9,8 @@ matrix:
 before_install:
 - git lfs pull
 - unset _JAVA_OPTIONS
+# HACK iemand heeft dit pad hardcoded in een dependency gezet...
+- touch /var/log/b3p-gt2-msaccess.log
 
 install:
 - mvn install -Dmaven.test.skip=true -B -V -fae -q
