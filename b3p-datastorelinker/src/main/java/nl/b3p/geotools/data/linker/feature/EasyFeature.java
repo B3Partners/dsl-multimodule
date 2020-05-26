@@ -257,7 +257,7 @@ public class EasyFeature {
         SimpleFeatureTypeBuilder featureTypeBuilder = new SimpleFeatureTypeBuilder();
         featureTypeBuilder.init(feature.getFeatureType());
         featureTypeBuilder.setAttributes(attributeDescriptors);
-
+        featureTypeBuilder.setDefaultGeometry(null);
         // Create new Feature
         SimpleFeatureBuilder simpleFeatureBuilder = new SimpleFeatureBuilder(featureTypeBuilder.buildFeatureType());
 
