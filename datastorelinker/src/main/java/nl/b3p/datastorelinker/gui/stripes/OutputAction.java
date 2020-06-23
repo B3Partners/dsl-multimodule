@@ -90,7 +90,7 @@ public class OutputAction extends DatabaseAction {
             EntityManager em = JpaUtilServlet.getThreadEntityManager();
             Session session = (Session)em.getDelegate();
 
-            Inout output = (Inout)session.get(Inout.class, new Long(checkOutputId));
+            Inout output = (Inout)session.get(Inout.class, Long.valueOf(checkOutputId));
             
             if (output != null) {
                 outputType = output.getTemplateOutput();

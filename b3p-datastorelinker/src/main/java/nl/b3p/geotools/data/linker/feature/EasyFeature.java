@@ -513,7 +513,7 @@ public class EasyFeature {
 
             boolean hasZCoord = false;
             for (int t = 0; t < cs.length; t++) {
-                if (!(Double.isNaN(cs[t].z))) {
+                if (!(Double.isNaN(cs[t].getZ()))) {
                     hasZCoord = true;
                 }
             }

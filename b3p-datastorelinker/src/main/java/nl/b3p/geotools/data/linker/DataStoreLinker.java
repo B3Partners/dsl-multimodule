@@ -510,7 +510,7 @@ public class DataStoreLinker implements Runnable {
                         ShapefileDataStoreFactory factory = new ShapefileDataStoreFactory();
 //                        FileDataStoreFactorySpi factory = new IndexedShapefileDataStoreFactory();
 
-                        params.put("url", new File(url).toURL());
+                        params.put("url", new File(url).toURI());
                         dataStore = factory.createNewDataStore(params);
                     } else {
                         log.warn("Can not create a new datastore, filetype unknown.");
@@ -619,7 +619,7 @@ public class DataStoreLinker implements Runnable {
                 } else if (keypart.toLowerCase().equals("url")) {
                     File file = new File(value);
                     if (file.exists()) {
-                        stepIn.put(keypart, file.toURL());
+                        stepIn.put(keypart, file.toURI());
                     } else {
                         stepIn.put(keypart, value);
                     }

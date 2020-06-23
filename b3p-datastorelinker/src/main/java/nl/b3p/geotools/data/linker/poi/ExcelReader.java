@@ -197,7 +197,7 @@ public class ExcelReader {
         BigDecimal numericValueBd = new BigDecimal(String.valueOf(numericValue));
         numericValueBd = stripTrailingZeros(numericValueBd);
 
-        return new Long(numericValueBd.longValue());
+        return numericValueBd.longValue();
     }
 
     protected String getDateValue(HSSFCell cell) {

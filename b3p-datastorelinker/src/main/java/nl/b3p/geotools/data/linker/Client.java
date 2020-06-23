@@ -168,7 +168,7 @@ public class Client {
                         }
 
                     } else {
-                        throw new Exception("File \"" + file.toURL().toString() + " could not be found");
+                        throw new Exception("File \"" + file.toURI().toString() + " could not be found");
                     }
                 }
             }
@@ -235,7 +235,7 @@ public class Client {
             properties.storeToXML(output, "XML Generated with DataStoreLinker v" + version);
 
         } else {
-            throw new IOException("File \"" + propertiesFile.toURL().toString() + "\" is not a propertiesFile");
+            throw new IOException("File \"" + propertiesFile.toURI().toString() + "\" is not a propertiesFile");
         }
     }
 

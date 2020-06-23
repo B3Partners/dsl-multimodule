@@ -429,26 +429,26 @@ public class ActionDataStore_Writer extends Action {
         }
 
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZE)) {
-            polygonize = new Boolean(properties.get(ActionFactory.POLYGONIZE).toString());
+            polygonize = Boolean.valueOf(properties.get(ActionFactory.POLYGONIZE).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonize = false;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZEWITHATTR)) {
-            polygonizeWithAttr = new Boolean(properties.get(ActionFactory.POLYGONIZEWITHATTR).toString());
+            polygonizeWithAttr = Boolean.valueOf(properties.get(ActionFactory.POLYGONIZEWITHATTR).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonizeWithAttr = false;
         }
         if (ActionFactory.propertyCheck(properties, ActionFactory.POLYGONIZESUFLKI)) {
-            polygonizeSufLki = new Boolean(properties.get(ActionFactory.POLYGONIZESUFLKI).toString());
+            polygonizeSufLki = Boolean.valueOf(properties.get(ActionFactory.POLYGONIZESUFLKI).toString());
             postCollectionActionsInitDone = true;
         } else {
             polygonizeSufLki = false;
         }
 
         if (ActionFactory.propertyCheck(properties, ActionFactory.POSTPOINTWITHINPOLYGON)) {
-            postPointWithinPolygon = new Boolean(properties.get(ActionFactory.POSTPOINTWITHINPOLYGON).toString());
+            postPointWithinPolygon = Boolean.valueOf(properties.get(ActionFactory.POSTPOINTWITHINPOLYGON).toString());
             postCollectionActionsInitDone = true;
         } else {
             postPointWithinPolygon = false;
