@@ -1,5 +1,6 @@
 package nl.b3p.geotools.data.linker.blocks;
 
+import org.geotools.util.factory.Hints;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
 import java.io.IOException;
@@ -17,7 +18,6 @@ import nl.b3p.geotools.data.linker.ActionFactory;
 import nl.b3p.geotools.data.linker.DataStoreLinker;
 import nl.b3p.geotools.data.linker.FeatureException;
 import nl.b3p.geotools.data.linker.Status;
-import static nl.b3p.geotools.data.linker.blocks.Action.log;
 import nl.b3p.geotools.data.linker.feature.EasyFeature;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.geotools.data.DataStore;
@@ -25,10 +25,8 @@ import org.geotools.data.DefaultTransaction;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Transaction;
-import org.geotools.data.oracle.OracleDialect;
 import org.geotools.data.postgis.PostGISDialect;
 import org.geotools.data.wfs.WFSDataStore;
-import org.geotools.factory.Hints;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;

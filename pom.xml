@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinker-parent</artifactId>
-    <version>5.2.2-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>datastorelinker parent</name>
@@ -68,13 +69,9 @@
         <maven.compiler.source>${project.build.sourceVersion}</maven.compiler.source>
         <maven.compiler.target>${project.build.targetVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netbeans.hint.jdkPlatform>JDK_${project.build.targetVersion}</netbeans.hint.jdkPlatform>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_j2eeVersion>1.7-web
-        </org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_j2eeVersion>
-        <org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_deploy_2e_server>Tomcat
-        </org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_deploy_2e_server>
-        <geotools.version>20.5</geotools.version>
+        <geotools.version>23.1</geotools.version>
+        <b3p-gt-modules.version>6.0.0-SNAPSHOT</b3p-gt-modules.version>
         <slf4j.version>1.7.30</slf4j.version>
         <hibernate.version>3.6.10.Final</hibernate.version>
         <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
@@ -82,13 +79,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!--<dependency>-->
-                <!--<groupId>nl.b3p</groupId>-->
-                <!--<artifactId>datastorelinker-bom</artifactId>-->
-                <!--<version>${project.version}</version>-->
-                <!--<type>pom</type>-->
-                <!--<scope>import</scope>-->
-            <!--</dependency>-->
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>datastorelinkerEntities</artifactId>
@@ -113,37 +103,43 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-gt2-csv</artifactId>
-                <version>5.1.0</version>
+                <version>${b3p-gt-modules.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-gt2-dxf</artifactId>
-                <version>5.1.0</version>
+                <version>${b3p-gt-modules.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-gt2-msaccess</artifactId>
-                <version>5.1.0</version>
+                <version>${b3p-gt-modules.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-gt2-ogr</artifactId>
-                <version>5.1.0</version>
+                <version>${b3p-gt-modules.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-gt2-sdl</artifactId>
-                <version>5.1.0</version>
+                <version>${b3p-gt-modules.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-gt2-suf2</artifactId>
-                <version>5.1.0</version>
+                <version>${b3p-gt-modules.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>42.2.14</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.oracle.database.jdbc</groupId>
+                <artifactId>ojdbc8</artifactId>
+                <version>19.6.0.0</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -203,22 +199,12 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-api</artifactId>
-                <version>${geotools.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
                 <artifactId>gt-opengis</artifactId>
                 <version>${geotools.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-epsg-hsql</artifactId>
-                <version>${geotools.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-data</artifactId>
                 <version>${geotools.version}</version>
             </dependency>
             <dependency>
@@ -256,6 +242,12 @@
                 <groupId>org.geotools.jdbc</groupId>
                 <artifactId>gt-jdbc-oracle</artifactId>
                 <version>${geotools.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.oracle.database.jdbc</groupId>
+                        <artifactId>ojdbc8</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools.xsd</groupId>
@@ -339,7 +331,7 @@
                 <groupId>javax.servlet.jsp</groupId>
                 <artifactId>jsp-api</artifactId>
                 <!-- tomcat 7 heeft 2.2 als spec -->
-                <version>2.2</version>
+                <version>2.2.1</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -352,11 +344,12 @@
                 <artifactId>junit</artifactId>
                 <version>4.13</version>
                 <scope>test</scope>
-            </dependency> <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
-            <version>4.1.2</version>
-        </dependency>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>4.1.2</version>
+            </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-suf2-reader</artifactId>
@@ -427,7 +420,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>
+                    <version>3.0.0-M1</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-site-plugin</artifactId>
@@ -509,13 +502,13 @@
                     <tryUpdate>true</tryUpdate>
                 </configuration>
                 <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>scm-publish</id>-->
-                        <!--<phase>site-deploy</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>publish-scm</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
+                <!--<execution>-->
+                <!--<id>scm-publish</id>-->
+                <!--<phase>site-deploy</phase>-->
+                <!--<goals>-->
+                <!--<goal>publish-scm</goal>-->
+                <!--</goals>-->
+                <!--</execution>-->
                 <!--</executions>-->
             </plugin>
         </plugins>
