@@ -65,7 +65,7 @@ public class OutputRightsAction extends DefaultAction {
         Session sess = (Session)em.getDelegate();
 
         if (selectedOutputId != null) {
-            selectedOutput = (Inout)sess.get(Inout.class, new Long(selectedOutputId));
+            selectedOutput = (Inout)sess.get(Inout.class, Long.valueOf(selectedOutputId));
             selectedOrgIds = selectedOutput.getOrganizations();
         }
         
@@ -83,7 +83,7 @@ public class OutputRightsAction extends DefaultAction {
             EntityManager em = JpaUtilServlet.getThreadEntityManager();
             Session session = (Session)em.getDelegate();
 
-            Inout output = (Inout)session.get(Inout.class, new Long(selectedOutputId));
+            Inout output = (Inout)session.get(Inout.class, Long.valueOf(selectedOutputId));
             
             if (output != null) {
                 List<Organization> lijst = output.getOrganizations();
@@ -109,7 +109,7 @@ public class OutputRightsAction extends DefaultAction {
         Session sess = (Session)em.getDelegate();
         
         if (selectedOutputId != null) {
-            selectedOutput = (Inout)sess.get(Inout.class, new Long(selectedOutputId));
+            selectedOutput = (Inout)sess.get(Inout.class, Long.valueOf(selectedOutputId));
         }  
         
         /* Opslaan rechten voor gekozen organisaties */
@@ -119,7 +119,7 @@ public class OutputRightsAction extends DefaultAction {
             
             for (String id : ids) {
                 if (id != null && !id.equals("")) {
-                    Organization org = (Organization)sess.get(Organization.class, new Integer(id));
+                    Organization org = (Organization)sess.get(Organization.class, Integer.valueOf(id));
                     list.add(org);
                 }
             }

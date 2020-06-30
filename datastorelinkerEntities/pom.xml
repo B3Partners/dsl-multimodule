@@ -5,12 +5,11 @@
     <parent>
         <groupId>nl.b3p</groupId>
         <artifactId>datastorelinker-parent</artifactId>
-        <version>5.2.2-SNAPSHOT</version>
+        <version>6.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinkerEntities</artifactId>
-    <version>5.2.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -87,9 +86,9 @@
                         <id>schema-export</id>
                         <phase>process-classes</phase>
                         <configuration>
-                            <hibernatetool destdir="${project.build.outputDirectory}/../schema-export">
+                            <hibernatetool destdir="${project.basedir}/schema-export">
                                 <classpath>
-                                    <path location="../datastorelinker/src/main/resources" />
+                                    <path location="${project.parent.basedir}/datastorelinker/src/main/resources" />
                                 </classpath>
                                 <hbm2ddl export="false" drop="false" create="true" outputfilename="schema-export-postgresql.sql" format="true">
                                     <jpaconfiguration persistenceUnit="DataStoreLinkerGuiPU-PostgreSQL" />

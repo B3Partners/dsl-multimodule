@@ -950,7 +950,7 @@ public class ActionFactory {
     }
 
     public static Long toLong(String value) {
-        return new Long(value);
+        return Long.valueOf(value);
     }
     
     public static Double toDouble(String value) {

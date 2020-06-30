@@ -303,7 +303,7 @@ public class CollectionAction_PolygonizeWithAttr extends CollectionAction {
                     else if (lineGeom.buffer(0.0005).contains(featureGeom)) {
                         addLine = false;
                     } else if (featureGeom.buffer(0.0005).contains(lineGeom)) {
-                        removeIndex.add(new Integer(i));
+                        removeIndex.add(i);
                     }
                 }
             }else{
