@@ -86,7 +86,7 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-commons-core</artifactId>
-                <version>5.0.4</version>
+                <version>5.0.5</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.persistence</groupId>
@@ -144,7 +144,7 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-commons-gis</artifactId>
-                <version>5.1.0</version>
+                <version>6.0.0</version>
             </dependency>
             <dependency>
                 <groupId>it.geosolutions</groupId>
@@ -154,7 +154,7 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-mapfile</artifactId>
-                <version>5.0.0</version>
+                <version>5.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.velocity</groupId>
@@ -357,7 +357,7 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>commons-mail-b3p</artifactId>
-                <version>5.0.0</version>
+                <version>5.0.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
