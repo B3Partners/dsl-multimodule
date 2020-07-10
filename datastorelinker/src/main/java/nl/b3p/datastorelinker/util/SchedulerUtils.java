@@ -31,7 +31,7 @@ public class SchedulerUtils {
                 context.getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
         }
        if (schedulerFactory == null) {
-            throw new SchedulerException("No quartz factory available!");
+            throw new SchedulerException("No quartz factory available! Probably wrong tables -> update Quartz tables.");
         }
         
         return schedulerFactory.getScheduler();
