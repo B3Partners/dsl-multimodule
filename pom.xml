@@ -69,8 +69,9 @@
         <maven.compiler.target>${project.build.targetVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <geotools.version>23.1</geotools.version>
-        <b3p-gt-modules.version>6.0.0</b3p-gt-modules.version>
+        <geotools.version>23.2</geotools.version>
+        <jts.version>1.16.1</jts.version>
+        <b3p-gt-modules.version>6.0.1</b3p-gt-modules.version>
         <slf4j.version>1.7.30</slf4j.version>
         <hibernate.version>3.6.10.Final</hibernate.version>
         <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
@@ -189,7 +190,7 @@
             <dependency>
                 <groupId>org.locationtech.jts</groupId>
                 <artifactId>jts-core</artifactId>
-                <version>1.16.1</version>
+                <version>${jts.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
