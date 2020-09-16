@@ -476,7 +476,8 @@ public class FileAction extends DefaultAction {
                 }
 
                 if (isZipFile(filedata.getFileName())) {
-                    File tempFile = File.createTempFile(filedata.getFileName() + ".", null);
+                    File tempFile = File.createTempFile(filedata.getFileName() , null);
+                    tempFile.delete();
                     filedata.save(tempFile);
                     File zipDir = new File(getOrganizationUploadString(), getZipName(filedata.getFileName()));
 
