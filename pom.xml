@@ -4,7 +4,7 @@
 
     <groupId>nl.b3p</groupId>
     <artifactId>datastorelinker-parent</artifactId>
-    <version>6.0.0-SNAPSHOT</version>
+    <version>6.0.0-RC3</version>
     <packaging>pom</packaging>
 
     <name>datastorelinker parent</name>
@@ -33,7 +33,7 @@
         <connection>scm:git:git@github.com:B3Partners/datastorelinker.git</connection>
         <developerConnection>scm:git:git@github.com:B3Partners/datastorelinker.git</developerConnection>
         <url>https://github.com/B3Partners/datastorelinker</url>
-        <tag>HEAD</tag>
+        <tag>v6.0.0-RC3</tag>
     </scm>
     <issueManagement>
         <system>Github</system>
