@@ -24,7 +24,6 @@
     </licenses>
 
     <modules>
-        <module>datastorelinker-bom</module>
         <module>datastorelinkerEntities</module>
         <module>b3p-datastorelinker</module>
         <module>datastorelinker</module>
