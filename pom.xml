@@ -68,11 +68,14 @@
         <maven.compiler.target>${project.build.targetVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <geotools.version>23.2</geotools.version>
+        <geotools.version>24.0</geotools.version>
         <jts.version>1.17.1</jts.version>
-        <b3p-gt-modules.version>6.0.1</b3p-gt-modules.version>
+        <b3p-gt-modules.version>7.0</b3p-gt-modules.version>
         <slf4j.version>1.7.30</slf4j.version>
         <hibernate.version>3.6.10.Final</hibernate.version>
+        <jaxb.api.version>2.3.3</jaxb.api.version>
+        <jaxb.impl.version>2.3.3</jaxb.impl.version>
+        <activation.api.version>1.2.2</activation.api.version>
         <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
     </properties>
 
@@ -535,4 +538,37 @@
             </plugin>
         </plugins>
     </reporting>
+    
+    <profiles>
+        <profile>
+            <id>java11</id>
+            <activation>
+                <jdk>[11,)</jdk>
+            </activation>
+            <properties>
+                <java.version>11</java.version>
+                <project.build.targetVersion>1.8</project.build.targetVersion>
+                <maven.compiler.target>1.8</maven.compiler.target>
+            </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>jakarta.xml.bind</groupId>
+                        <artifactId>jakarta.xml.bind-api</artifactId>
+                        <version>${jaxb.api.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.glassfish.jaxb</groupId>
+                        <artifactId>jaxb-runtime</artifactId>
+                        <version>${jaxb.impl.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>jakarta.activation</groupId>
+                        <artifactId>jakarta.activation-api</artifactId>
+                        <version>${activation.api.version}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
 </project>
