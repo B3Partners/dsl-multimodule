@@ -70,7 +70,7 @@
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <geotools.version>24.1</geotools.version>
         <jts.version>1.17.1</jts.version>
-        <b3p-gt-modules.version>7.0</b3p-gt-modules.version>
+        <b3p-gt-modules.version>7.1</b3p-gt-modules.version>
         <slf4j.version>1.7.30</slf4j.version>
         <hibernate.version>3.6.10.Final</hibernate.version>
         <jaxb.api.version>2.3.3</jaxb.api.version>
