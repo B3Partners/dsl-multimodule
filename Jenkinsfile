@@ -8,7 +8,7 @@ timestamps {
             numToKeepStr: '5']
         ]]);
 
-    final def jdks = ['OpenJDK11', 'JDK8']
+    final def jdks = ['OpenJDK11', 'OpenJDK8']
 
     node {
         jdks.eachWithIndex { jdk, indexOfJdk ->
@@ -21,7 +21,7 @@ timestamps {
 
                 stage('Build') {
                     echo "Building branch: ${env.BRANCH_NAME}"
-                    sh "mvn install -B -V -e -fae -q"
+                    sh "mvn clean install -B -V -e -fae -q"
                 }
 
                 stage('Test') {
@@ -33,10 +33,17 @@ timestamps {
                     echo "Running unit tests"
                     sh "mvn -e verify -B"
                 }
+                
+                if (jdkTestName == 'OpenJDK11') {
+                    stage("cleanup Java 11 packages") {
+                        echo "Removing Java 11 build artifacts from local repository"
+                        sh "mvn clean build-helper:remove-project-artifact"
+                    }
+                }
             }
         }
 
-        withEnv(["JAVA_HOME=${ tool 'JDK8' }", "PATH+MAVEN=${tool 'Maven CURRENT'}/bin:${env.JAVA_HOME}/bin"]) {
+        withEnv(["JAVA_HOME=${ tool 'OpenJDK8' }", "PATH+MAVEN=${tool 'Maven CURRENT'}/bin:${env.JAVA_HOME}/bin"]) {
 
             stage('Publish Test Results') {
                 junit allowEmptyResults: true, testResults: '**/target/surefire-reports/TEST-*.xml, **/target/failsafe-reports/TEST-*.xml'
