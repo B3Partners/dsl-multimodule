@@ -68,7 +68,7 @@
         <maven.compiler.target>${project.build.targetVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <geotools.version>24.1</geotools.version>
+        <geotools.version>24.2</geotools.version>
         <jts.version>1.17.1</jts.version>
         <b3p-gt-modules.version>7.1</b3p-gt-modules.version>
         <slf4j.version>1.7.30</slf4j.version>
