@@ -89,7 +89,7 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-commons-core</artifactId>
-                <version>5.0.6</version>
+                <version>5.0.7</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.persistence</groupId>
