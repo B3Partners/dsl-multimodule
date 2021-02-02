@@ -68,7 +68,7 @@
         <maven.compiler.target>${project.build.targetVersion}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-        <geotools.version>24.1</geotools.version>
+        <geotools.version>24.2</geotools.version>
         <jts.version>1.18.0</jts.version>
         <b3p-gt-modules.version>7.1</b3p-gt-modules.version>
         <slf4j.version>1.7.30</slf4j.version>
@@ -141,13 +141,13 @@
             <dependency>
                 <groupId>com.oracle.database.jdbc</groupId>
                 <artifactId>ojdbc8</artifactId>
-                <version>19.8.0.0</version>
+                <version>21.1.0.0</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>b3p-commons-gis</artifactId>
-                <version>7.1</version>
+                <version>7.2</version>
             </dependency>
             <dependency>
                 <groupId>it.geosolutions</groupId>
@@ -392,7 +392,7 @@
                 <plugin>
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
-                    <version>6.0.3</version>
+                    <version>6.1.0</version>
                     <configuration>
                         <skipSystemScope>true</skipSystemScope>
                         <format>ALL</format>
@@ -430,7 +430,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-scm-publish-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
